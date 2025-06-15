@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Financiero - En la Nube</title>
+    <style>
+        /* Estilos CSS (sin cambios) */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; color: #1c1e21; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 10px;}
+        .container { width: 100%; max-width: 1200px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 20px; }
+        h1, h2, h3 { color: #1c1e21; }
+        .tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 20px; }
+        .tab-button { padding: 10px 20px; cursor: pointer; border: none; background-color: transparent; font-size: 16px; font-weight: 600; color: #606770; }
+        .tab-button.active { color: #1877f2; border-bottom: 3px solid #1877f2; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .form-grid, .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        label { font-weight: 600; font-size: 14px; color: #606770; margin-bottom: 5px; display: block; }
+        input, select, button { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        button { background-color: #1877f2; color: white; font-weight: bold; border: none; cursor: pointer; transition: background-color 0.3s; margin-top: 10px;}
+        button:hover { background-color: #166fe5; }
+        .summary-card { background-color: #f7f8fa; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #e0e0e0; }
+        .summary-card h3 { margin: 0 0 10px; font-size: 16px; color: #606770; }
+        .summary-card p { margin: 0; font-size: 24px; font-weight: 700; }
+        .list-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .list-table th, .list-table td { border: 1px solid #ddd; padding: 12px; text-align: left; font-size: 14px; }
+        .list-table th { background-color: #f7f8fa; }
+        .action-buttons button { padding: 5px 10px; font-size: 12px; width: auto; display: inline-block; margin: 0 5px; }
+        .btn-delete { background-color: #e74c3c; } .btn-delete:hover{ background-color: #c0392b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Panel de Control - Licorera</h1>
+    <div class="tabs">
+        <button class="tab-button active" onclick="openTab(event, 'resumen')">Resumen</button>
+        <button class="tab-button" onclick="openTab(event, 'registros')">Registrar Movimiento</button>
+        <button class="tab-button" onclick="openTab(event, 'listas')">Ver Listas</button>
+    </div>
+
+    <div id="resumen" class="tab-content active">
+        <h2>Resumen Financiero</h2>
+        <div class="summary-grid">
+            <div class="summary-card"><h3>Efectivo en Caja</h3><p id="summary-caja">$0</p></div>
+            <div class="summary-card"><h3>Saldo en Banco</h3><p id="summary-banco">$0</p></div>
+        </div>
+    </div>
+
+    <div id="registros" class="tab-content">
+        <div class="form-grid">
+            <div>
+                <h3>Registrar Ingreso</h3>
+                <label for="ingreso-fecha">Fecha</label>
+                <input type="date" id="ingreso-fecha">
+                <label for="ingreso-desc">Descripción</label>
+                <input type="text" id="ingreso-desc" placeholder="Ej: Ventas del día">
+                <label for="ingreso-monto">Monto</label>
+                <input type="number" id="ingreso-monto" placeholder="Monto">
+                 <label for="ingreso-tipo">Tipo de Ingreso</label>
+                <select id="ingreso-tipo">
+                    <option value="efectivo">Efectivo</option>
+                    <option value="transferencia">Transferencia/Tarjeta</option>
+                </select>
+                <button onclick="addIngreso()">Añadir Ingreso</button>
+            </div>
+            <div>
+                <h3>Registrar Gasto Operativo</h3>
+                <label for="gasto-fecha">Fecha</label>
+                <input type="date" id="gasto-fecha">
+                <label for="gasto-desc">Descripción</label>
+                <input type="text" id="gasto-desc" placeholder="Ej: Pago de arriendo">
+                <label for="gasto-monto">Monto</label>
+                <input type="number" id="gasto-monto" placeholder="Monto">
+                <label for="gasto-categoria">Categoría</label>
+                <select id="gasto-categoria">
+                    <option value="Arriendo">Arriendo</option>
+                    <option value="Servicios">Servicios</option>
+                    <option value="Nómina">Nómina</option>
+                    <option value="Proveedores">Proveedores</option>
+                    <option value="Mantenimiento">Mantenimiento</option>
+                    <option value="Otros">Otros</option>
+                </select>
+                <button onclick="addGasto()">Añadir Gasto</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="listas" class="tab-content">
+        <h2>Listado de Movimientos</h2>
+        <h3>Ingresos</h3>
+        <table class="list-table">
+            <thead><tr><th>Fecha</th><th>Descripción</th><th>Monto</th><th>Tipo</th><th>Acciones</th></tr></thead>
+            <tbody id="ingresos-list"></tbody>
+        </table>
+        <h3 style="margin-top: 30px;">Gastos</h3>
+        <table class="list-table">
+            <thead><tr><th>Fecha</th><th>Descripción</th><th>Monto</th><th>Categoría</th><th>Acciones</th></tr></thead>
+            <tbody id="gastos-list"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+    // =================================================================================
+    // ¡MUY IMPORTANTE! PEGA AQUÍ LA CONFIGURACIÓN DE TU PROYECTO DE FIREBASE
+    // =================================================================================
+    const firebaseConfig = {
+        apiKey: "TU_API_KEY",
+        authDomain: "TU_AUTH_DOMAIN",
+        databaseURL: "TU_DATABASE_URL",
+        projectId: "TU_PROJECT_ID",
+        storageBucket: "TU_STORAGE_BUCKET",
+        messagingSenderId: "TU_MESSAGING_SENDER_ID",
+        appId: "TU_APP_ID"
+    };
+    // =================================================================================
+
+    // Inicializar Firebase
+    if (firebaseConfig.apiKey !== "TU_API_KEY") {
+        firebase.initializeApp(firebaseConfig);
+    } else {
+        document.body.innerHTML = '<div style="text-align:center; padding-top: 50px;"><h1>Error de Configuración</h1><p>Por favor, añade tus claves de Firebase en el archivo HTML para que la aplicación pueda funcionar.</p></div>';
+    }
+
+    const database = firebase.database();
+    const ingresosRef = database.ref('ingresos');
+    const gastosRef = database.ref('gastos');
+
+    // Funciones de la UI
+    function openTab(evt, tabName) {
+        let i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tab-button");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelector('.tab-button').click();
+        document.getElementById('ingreso-fecha').valueAsDate = new Date();
+        document.getElementById('gasto-fecha').valueAsDate = new Date();
+
+        // Escuchar cambios en tiempo real
+        ingresosRef.on('value', snapshot => {
+            renderList(snapshot, 'ingresos-list', ['fecha', 'descripcion', 'monto', 'tipo'], deleteIngreso);
+            updateSummary();
+        });
+        gastosRef.on('value', snapshot => {
+            renderList(snapshot, 'gastos-list', ['fecha', 'descripcion', 'monto', 'categoria'], deleteGasto);
+            updateSummary();
+        });
+    });
+
+    // Función para renderizar listas
+    function renderList(snapshot, listId, fields, deleteFn) {
+        const listBody = document.getElementById(listId);
+        listBody.innerHTML = '';
+        if (snapshot.exists()) {
+            snapshot.forEach(childSnapshot => {
+                const data = childSnapshot.val();
+                const key = childSnapshot.key;
+                const row = document.createElement('tr');
+                let cells = '';
+                fields.forEach(field => {
+                    let value = data[field] || '';
+                    if (field === 'monto') {
+                        value = formatCurrency(value);
+                    }
+                    cells += `<td>${value}</td>`;
+                });
+                cells += `<td class="action-buttons"><button class="btn-delete" onclick="${deleteFn.name}('${key}')">Eliminar</button></td>`;
+                row.innerHTML = cells;
+                listBody.appendChild(row);
+            });
+        }
+    }
+
+    // Funciones para añadir datos
+    function addIngreso() {
+        const data = {
+            fecha: document.getElementById('ingreso-fecha').value,
+            descripcion: document.getElementById('ingreso-desc').value,
+            monto: parseFloat(document.getElementById('ingreso-monto').value),
+            tipo: document.getElementById('ingreso-tipo').value
+        };
+        if (!data.descripcion || !data.monto) { alert('Por favor completa todos los campos.'); return; }
+        ingresosRef.push(data);
+        document.getElementById('ingreso-desc').value = '';
+        document.getElementById('ingreso-monto').value = '';
+    }
+
+    function addGasto() {
+        const data = {
+            fecha: document.getElementById('gasto-fecha').value,
+            descripcion: document.getElementById('gasto-desc').value,
+            monto: parseFloat(document.getElementById('gasto-monto').value),
+            categoria: document.getElementById('gasto-categoria').value
+        };
+        if (!data.descripcion || !data.monto) { alert('Por favor completa todos los campos.'); return; }
+        gastosRef.push(data);
+        document.getElementById('gasto-desc').value = '';
+        document.getElementById('gasto-monto').value = '';
+    }
+
+    // Funciones para eliminar datos
+    function deleteIngreso(key) {
+        if (confirm('¿Estás seguro de que quieres eliminar este ingreso?')) {
+            ingresosRef.child(key).remove();
+        }
+    }
+
+    function deleteGasto(key) {
+        if (confirm('¿Estás seguro de que quieres eliminar este gasto?')) {
+            gastosRef.child(key).remove();
+        }
+    }
+
+    // Función para actualizar el resumen
+    function updateSummary() {
+        let caja = 0;
+        let banco = 0;
+
+        ingresosRef.once('value', snapshot => {
+            if (snapshot.exists()) {
+                snapshot.forEach(child => {
+                    const ingreso = child.val();
+                    if (ingreso.tipo === 'efectivo') {
+                        caja += ingreso.monto;
+                    } else {
+                        banco += ingreso.monto;
+                    }
+                });
+            }
+            gastosRef.once('value', gastoSnapshot => {
+                if(gastoSnapshot.exists()) {
+                    gastoSnapshot.forEach(child => {
+                        const gasto = child.val();
+                        caja -= gasto.monto; // Asumimos que todos los gastos operativos salen de la caja
+                    });
+                }
+                document.getElementById('summary-caja').textContent = formatCurrency(caja);
+                document.getElementById('summary-banco').textContent = formatCurrency(banco);
+            });
+        });
+    }
+
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value || 0);
+    }
+</script>
+
+</body>
+</html>
