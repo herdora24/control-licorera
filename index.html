@@ -390,8 +390,26 @@
         document.getElementById('form-compras').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: new Date(document.getElementById('compra-fecha').value).toISOString(), proveedor: document.getElementById('compra-proveedor').value, descripcion: document.getElementById('compra-descripcion').value, monto: getNumericValue(document.getElementById('compra-monto').value), metodo: document.getElementById('compra-metodo').value }; dataRefs.compras.push(newData); showNotification('Éxito', 'Compra registrada.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); });
         document.getElementById('form-gastos').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: new Date(document.getElementById('gasto-fecha').value).toISOString(), descripcion: document.getElementById('gasto-descripcion').value, categoria: document.getElementById('gasto-categoria').value, monto: getNumericValue(document.getElementById('gasto-monto').value) }; dataRefs.gastos.push(newData); showNotification('Éxito', 'Gasto registrado.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); });
         document.getElementById('form-retiros').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: new Date(document.getElementById('retiro-fecha').value).toISOString(), metodo: document.getElementById('retiro-metodo').value, descripcion: document.getElementById('retiro-descripcion').value, monto: getNumericValue(document.getElementById('retiro-monto').value) }; dataRefs.retiros.push(newData); showNotification('Éxito', 'Retiro registrado.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); });
-        document.getElementById('form-cuentas-cobrar').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: new Date().toISOString(), cliente: document.getElementById('cpc-cliente').value, descripcion: document.getElementById('cpc-descripcion').value, monto: getNumericValue(document.getElementById('cpc-monto').value), abonos: {} }; dataRefs.cuentasPorCobrar.push(newData); showNotification('Éxito', 'Deuda por cobrar registrada.'); e.target.reset(); addCurrencyFormatting(e.target); });
-        document.getElementById('form-cuentas-pagar').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: new Date().toISOString(), acreedor: document.getElementById('cpp-acreedor').value, descripcion: document.getElementById('cpp-descripcion').value, monto: getNumericValue(document.getElementById('cpp-monto').value), estado: 'Pendiente' }; dataRefs.cuentasPorPagar.push(newData); showNotification('Éxito', 'Cuenta por pagar registrada.'); e.target.reset(); addCurrencyFormatting(e.target); });
+        
+        document.getElementById('form-cuentas-cobrar').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newData = { fecha: new Date().toISOString(), cliente: document.getElementById('cpc-cliente').value, descripcion: document.getElementById('cpc-descripcion').value, monto: getNumericValue(document.getElementById('cpc-monto').value), abonos: {} };
+            dataRefs.cuentasPorCobrar.push(newData);
+            showNotification('Éxito', 'Deuda por cobrar registrada.');
+            e.target.reset();
+            addCurrencyFormatting(e.target);
+            renderCuentasPorCobrar(); // <-- LÍNEA CORREGIDA
+        });
+
+        document.getElementById('form-cuentas-pagar').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newData = { fecha: new Date().toISOString(), acreedor: document.getElementById('cpp-acreedor').value, descripcion: document.getElementById('cpp-descripcion').value, monto: getNumericValue(document.getElementById('cpp-monto').value), estado: 'Pendiente' };
+            dataRefs.cuentasPorPagar.push(newData);
+            showNotification('Éxito', 'Cuenta por pagar registrada.');
+            e.target.reset();
+            addCurrencyFormatting(e.target);
+            renderCuentasPorPagar(); // <-- LÍNEA CORREGIDA
+        });
 
         // --- LÓGICA DE EDICIÓN, ELIMINACIÓN Y DEUDAS (CON FIREBASE) ---
         const handleDelete = (type, id) => {
