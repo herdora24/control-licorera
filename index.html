@@ -319,11 +319,60 @@
              if (Object.keys(dataPorCategoria).length === 0) { ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#6b7280'; ctx.font = "16px 'Inter'"; ctx.fillText("No hay gastos para mostrar.", ctx.canvas.width / 2, ctx.canvas.height / 2); ctx.restore(); return; }
              gastosChart = new Chart(ctx, { type: 'pie', data: { labels: Object.keys(dataPorCategoria), datasets: [{ data: Object.values(dataPorCategoria), backgroundColor: ['#ef4444', '#3b82f6', '#10b981', '#f97316', '#8b5cf6', '#f59e0b', '#ec4899', '#6366f1', '#84cc16'], hoverOffset: 4 }] }, options: { responsive: true, plugins: { legend: { position: 'top' }}} });
         };
-        const renderAllTables = (type, tableEl, headers) => { /* Código original */ };
-        const renderTable = (type, tableEl, headers) => { /* Código original */ };
-        const renderCuentasPorCobrar = () => { /* Código original */ };
-        const renderCuentasPorPagar = () => { /* Código original */ };
+        
+        const renderAllTables = () => {
+            renderTable('ingresos', document.getElementById('tabla-ingresos'), ['Fecha', 'Efectivo', 'Tarjeta', 'Total', 'Notas', 'Acciones']);
+            renderTable('compras', document.getElementById('tabla-compras'), ['Fecha', 'Proveedor', 'Descripción', 'Monto', 'Pagado con', 'Acciones']);
+            renderTable('gastos', document.getElementById('tabla-gastos'), ['Fecha', 'Descripción', 'Categoría', 'Monto', 'Acciones']);
+            renderTable('retiros', document.getElementById('tabla-retiros'), ['Fecha', 'Retirado de', 'Descripción', 'Monto', 'Acciones']);
+        };
+        
+        const renderTable = (type, tableEl, headers) => {
+            const data = allData[type].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+            tableEl.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
+            const tbody = tableEl.querySelector('tbody');
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay registros de ${type}.</td></tr>`;
+                return;
+            }
+            const rowsHTML = data.map(item => {
+                let cellsHTML = '';
+                if (type === 'ingresos') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString()}</td><td class="px-4 py-3">${formatCurrency(item.monto_efectivo)}</td><td class="px-4 py-3">${formatCurrency(item.monto_tarjeta)}</td><td class="px-4 py-3 font-bold">${formatCurrency(item.monto)}</td><td class="px-4 py-3">${item.notas || '-'}</td>`;
+                else if (type === 'compras') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString()}</td><td class="px-4 py-3">${item.proveedor}</td><td class="px-4 py-3">${item.descripcion}</td><td class="px-4 py-3">${formatCurrency(item.monto)}</td><td class="px-4 py-3">${item.metodo}</td>`;
+                else if (type === 'gastos') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString()}</td><td class="px-4 py-3">${item.descripcion}</td><td class="px-4 py-3">${item.categoria}</td><td class="px-4 py-3">${formatCurrency(item.monto)}</td>`;
+                else if (type === 'retiros') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString()}</td><td class="px-4 py-3">${item.metodo}</td><td class="px-4 py-3">${item.descripcion}</td><td class="px-4 py-3">${formatCurrency(item.monto)}</td>`;
+                cellsHTML += `<td class="px-4 py-3 flex items-center space-x-2"><button class="action-button text-blue-600 edit-btn" data-type="${type}" data-id="${item.id}"><i class="fas fa-pencil-alt"></i></button><button class="action-button text-red-600 delete-btn" data-type="${type}" data-id="${item.id}"><i class="fas fa-trash"></i></button></td>`;
+                return `<tr class="bg-white border-b hover:bg-gray-50">${cellsHTML}</tr>`;
+            }).join('');
+            tbody.innerHTML = rowsHTML;
+        };
 
+        const renderCuentasPorCobrar = () => {
+            const table = document.getElementById('tabla-cuentas-cobrar');
+            const headers = ['Cliente', 'Debe', 'Estado', 'Acciones'];
+            table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
+            const tbody = table.querySelector('tbody');
+            const data = allData.cuentasPorCobrar.sort((a,b) => a.cliente.localeCompare(b.cliente));
+            if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4">No hay cuentas por cobrar.</td></tr>`; return; }
+            const rowsHTML = data.map(d => {
+                const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
+                const restante = d.monto - totalAbonado;
+                if (restante <= 0) return ''; 
+                return `<tr class="bg-white border-b"><td class="px-4 py-3 font-medium">${d.cliente}<p class="text-xs text-gray-500 font-normal">${d.descripcion}</p></td><td class="px-4 py-3">${formatCurrency(restante)}</td><td class="px-4 py-3"><span class="px-2 py-1 font-semibold leading-tight text-yellow-700 bg-yellow-100 rounded-full">Pendiente</span></td><td class="px-4 py-3 flex items-center gap-2"><button class="abono-btn bg-green-500 text-white text-xs px-2 py-1 rounded-md hover:bg-green-600" data-id="${d.id}">Abonar</button><button class="delete-btn action-button text-red-600" data-type="cuentasPorCobrar" data-id="${d.id}"><i class="fas fa-trash"></i></button></td></tr>`;
+            }).join('');
+            tbody.innerHTML = rowsHTML;
+        };
+        const renderCuentasPorPagar = () => {
+            const table = document.getElementById('tabla-cuentas-pagar');
+            const headers = ['Proveedor', 'Concepto', 'Monto', 'Estado', 'Acciones'];
+            table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
+            const tbody = table.querySelector('tbody');
+            const data = allData.cuentasPorPagar.filter(d => d.estado !== 'Pagada').sort((a,b) => a.acreedor.localeCompare(b.acreedor));
+            if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4">No hay cuentas por pagar.</td></tr>`; return; }
+            const rowsHTML = data.map(d => `<tr class="bg-white border-b"><td class="px-4 py-3 font-medium">${d.acreedor}</td><td class="px-4 py-3">${d.descripcion}</td><td class="px-4 py-3">${formatCurrency(d.monto)}</td><td class="px-4 py-3"><span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full">Pendiente</span></td><td class="px-4 py-3 flex items-center gap-2"><button class="pagar-btn bg-blue-500 text-white text-xs px-2 py-1 rounded-md hover:bg-blue-600" data-id="${d.id}">Pagar</button><button class="delete-btn action-button text-red-600" data-type="cuentasPorPagar" data-id="${d.id}"><i class="fas fa-trash"></i></button></td></tr>`).join('');
+            tbody.innerHTML = rowsHTML;
+        };
+        
         // --- MANEJO DE FORMULARIOS (ESCRIBEN EN FIREBASE) ---
         const setFormDatesToToday = () => {
             const today = formatDateForInput(new Date());
@@ -345,12 +394,12 @@
         document.getElementById('form-cuentas-pagar').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: new Date().toISOString(), acreedor: document.getElementById('cpp-acreedor').value, descripcion: document.getElementById('cpp-descripcion').value, monto: getNumericValue(document.getElementById('cpp-monto').value), estado: 'Pendiente' }; dataRefs.cuentasPorPagar.push(newData); showNotification('Éxito', 'Cuenta por pagar registrada.'); e.target.reset(); addCurrencyFormatting(e.target); });
 
         // --- LÓGICA DE EDICIÓN, ELIMINACIÓN Y DEUDAS (CON FIREBASE) ---
-        const handleDelete = (type, id) => { /* Código Original */ };
-        const handleAbonar = (deudaId) => { /* Código Original */ };
-        document.getElementById('save-abono-btn').addEventListener('click', () => { /* Código Original */ });
-        const handlePagar = (deudaId) => { /* Código Original */ };
-        const handleEdit = (type, id) => { /* Código Original */ };
-        document.getElementById('save-edit-btn').addEventListener('click', () => { /* Código Original */ });
+        const handleDelete = (type, id) => { showConfirm('Confirmar Eliminación', '¿Estás seguro? Esta acción no se puede deshacer.', () => { dataRefs[type].child(id).remove().then(() => showNotification('Éxito', 'Registro eliminado.')).catch((error) => showNotification('Error', 'No se pudo eliminar: ' + error, 'error')); }); };
+        const handleAbonar = (deudaId) => { document.getElementById('abono-deuda-id').value = deudaId; const modal = document.getElementById('abono-modal'); modal.style.display = 'flex'; addCurrencyFormatting(modal); };
+        document.getElementById('save-abono-btn').addEventListener('click', () => { const deudaId = document.getElementById('abono-deuda-id').value; const monto = getNumericValue(document.getElementById('abono-monto').value); const metodo = document.getElementById('abono-metodo').value; if (deudaId && monto > 0) { const abonoData = { fecha: new Date().toISOString(), monto, metodo }; dataRefs.cuentasPorCobrar.child(deudaId).child('abonos').push(abonoData); showNotification('Éxito', 'Abono registrado.'); document.getElementById('abono-modal').style.display = 'none'; document.getElementById('form-abono').reset(); } else { showNotification('Error', 'No se pudo registrar el abono', 'error'); } });
+        const handlePagar = (deudaId) => { const deuda = allData.cuentasPorPagar.find(d => d.id === deudaId); if (!deuda) return; showConfirm('Confirmar Pago', `¿Cómo se pagó esta cuenta de ${formatCurrency(deuda.monto)} a ${deuda.acreedor}?`, (metodo) => { if (metodo) { const compraData = { fecha: new Date().toISOString(), proveedor: deuda.acreedor, descripcion: `Pago Cta. Pendiente: ${deuda.descripcion}`, monto: deuda.monto, metodo: metodo }; dataRefs.compras.push(compraData); dataRefs.cuentasPorPagar.child(deudaId).update({ estado: 'Pagada' }); showNotification('Éxito', `Cuenta pagada y registrada como compra.`); } }, true); };
+        const handleEdit = (type, id) => { if (type.startsWith('cuentas')) { showNotification('Info', 'La edición de deudas no está disponible. Elimine y vuelva a crear si es necesario.'); return; } const item = allData[type].find(i => i.id === id); if (!item) return; const modal = document.getElementById('edit-modal'); const form = document.getElementById('edit-form'); const title = document.getElementById('edit-modal-title'); form.innerHTML = ''; let formContent = `<input type="hidden" id="edit-id" value="${item.id}"><input type="hidden" id="edit-type" value="${type}"><div><label class="block text-sm font-medium">Fecha</label><input type="date" id="edit-fecha" value="${formatDateForInput(item.fecha)}" class="mt-1 block w-full rounded-md" required></div>`; if (type === 'ingresos') { title.textContent = 'Editar Ingreso'; formContent += `<div><label>Efectivo</label><input type="text" data-moneda inputmode="numeric" id="edit-efectivo" value="${item.monto_efectivo.toLocaleString('es-CO')}" class="mt-1 block w-full"></div><div><label>Tarjeta/Transf.</label><input type="text" data-moneda inputmode="numeric" id="edit-tarjeta" value="${item.monto_tarjeta.toLocaleString('es-CO')}" class="mt-1 block w-full"></div><div><label>Notas</label><textarea id="edit-notas" class="mt-1 block w-full">${item.notas || ''}</textarea></div>`; } else if (type === 'compras') { title.textContent = 'Editar Compra'; formContent += `<div><label>Proveedor</label><input type="text" id="edit-proveedor" value="${item.proveedor}" class="mt-1 block w-full"></div><div><label>Descripción</label><input type="text" id="edit-descripcion" value="${item.descripcion}" class="mt-1 block w-full"></div><div><label>Monto</label><input type="text" data-moneda inputmode="numeric" id="edit-monto" value="${item.monto.toLocaleString('es-CO')}" class="mt-1 block w-full"></div><div><label>Pagado con</label><select id="edit-metodo" class="mt-1 block w-full"><option value="Efectivo" ${item.metodo === 'Efectivo' ? 'selected' : ''}>Efectivo</option><option value="Banco" ${item.metodo === 'Banco' ? 'selected' : ''}>Banco</option></select></div>`; } else if (type === 'gastos') { title.textContent = 'Editar Gasto'; const cat = ['Arriendo', 'Servicios', 'Nómina', 'Marketing', 'Mantenimiento', 'Impuestos', 'Insumos', 'Otro']; const opt = cat.map(c => `<option value="${c}" ${item.categoria === c ? 'selected' : ''}>${c}</option>`).join(''); formContent += `<div><label>Descripción</label><input type="text" id="edit-descripcion" value="${item.descripcion}" class="mt-1 block w-full"></div><div><label>Categoría</label><select id="edit-categoria" class="mt-1 block w-full">${opt}</select></div><div><label>Monto</label><input type="text" data-moneda inputmode="numeric" id="edit-monto" value="${item.monto.toLocaleString('es-CO')}" class="mt-1 block w-full"></div>`; } else if (type === 'retiros') { title.textContent = 'Editar Retiro'; formContent += `<div><label>Retirado de</label><select id="edit-metodo" class="mt-1 block w-full"><option value="Efectivo" ${item.metodo === 'Efectivo' ? 'selected' : ''}>Efectivo</option><option value="Banco" ${item.metodo === 'Banco' ? 'selected' : ''}>Banco</option></select></div><div><label>Descripción</label><input type="text" id="edit-descripcion" value="${item.descripcion}" class="mt-1 block w-full"></div><div><label>Monto</label><input type="text" data-moneda inputmode="numeric" id="edit-monto" value="${item.monto.toLocaleString('es-CO')}" class="mt-1 block w-full"></div>`; } form.innerHTML = formContent; addCurrencyFormatting(form); modal.style.display = 'flex'; };
+        document.getElementById('save-edit-btn').addEventListener('click', () => { const form = document.getElementById('edit-form'); const type = form.querySelector('#edit-type').value; const id = form.querySelector('#edit-id').value; const newItem = { fecha: new Date(document.getElementById('edit-fecha').value).toISOString() }; if (type === 'ingresos') { const ef = getNumericValue(document.getElementById('edit-efectivo').value); const ta = getNumericValue(document.getElementById('edit-tarjeta').value); newItem.monto_efectivo = ef; newItem.monto_tarjeta = ta; newItem.monto = ef + ta; newItem.notas = document.getElementById('edit-notas').value; } else if (type === 'compras') { newItem.proveedor = document.getElementById('edit-proveedor').value; newItem.descripcion = document.getElementById('edit-descripcion').value; newItem.monto = getNumericValue(document.getElementById('edit-monto').value); newItem.metodo = document.getElementById('edit-metodo').value; } else if (type === 'gastos') { newItem.descripcion = document.getElementById('edit-descripcion').value; newItem.categoria = document.getElementById('edit-categoria').value; newItem.monto = getNumericValue(document.getElementById('edit-monto').value); } else if (type === 'retiros') { newItem.metodo = document.getElementById('edit-metodo').value; newItem.descripcion = document.getElementById('edit-descripcion').value; newItem.monto = getNumericValue(document.getElementById('edit-monto').value); } dataRefs[type].child(id).update(newItem); document.getElementById('edit-modal').style.display = 'none'; showNotification('Éxito', 'Registro actualizado.'); });
         
         // --- MANEJO DE MODALES ---
         const showNotification = (title, message, type = 'success') => {
@@ -361,12 +410,10 @@
             document.getElementById('confirm-title').textContent = title;
             const msgContainer = document.getElementById('confirm-message-container');
             msgContainer.innerHTML = `<p id="confirm-message" class="text-sm text-gray-500">${message}</p>`;
-
             if (showOptions) {
                 const customContent = `<div class="mt-4"><select id="confirm-options" class="block w-full rounded-md border-gray-300 shadow-sm"><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div>`;
                 msgContainer.insertAdjacentHTML('beforeend', customContent);
             }
-
             confirmCallback = () => {
                 const optionsEl = document.getElementById('confirm-options');
                 callback(showOptions ? optionsEl.value : true);
@@ -388,7 +435,7 @@
         document.getElementById('cancel-password-btn').onclick = () => document.getElementById('password-modal').style.display = 'none';
 
         // --- EXPORTAR A PDF ---
-        const exportToPDF = (type) => { /* Código Original */ };
+        const exportToPDF = (type) => { const doc = new jsPDF(); const data = [...allData[type]].sort((a,b) => new Date(b.fecha) - new Date(a.fecha)); if(data.length === 0){ showNotification('Info', 'No hay datos para exportar.', 'error'); return; } const title = `Informe de ${type.charAt(0).toUpperCase() + type.slice(1)}`; doc.setFontSize(18); doc.text(title, 14, 22); doc.setFontSize(11); doc.setTextColor(100); doc.text(`Generado el: ${new Date().toLocaleDateString('es-CO')}`, 14, 28); if (type !== 'gastos' && type !== 'compras') { let head = [], body = []; if (type === 'ingresos') { head = [['Fecha', 'Efectivo', 'Tarjeta/Transf.', 'Total', 'Notas']]; body = data.map(i => [i.fecha.toLocaleDateString(), formatCurrency(i.monto_efectivo), formatCurrency(i.monto_tarjeta), formatCurrency(i.monto), i.notas || '-']); } else if (type === 'retiros') { head = [['Fecha', 'Retirado de', 'Descripción', 'Monto']]; body = data.map(r => [r.fecha.toLocaleDateString(), r.metodo, r.descripcion, formatCurrency(r.monto)]); } doc.autoTable({ head, body, startY: 35 }); } else { const groupKey = type === 'gastos' ? 'categoria' : 'proveedor'; const groupedData = data.reduce((acc, item) => { const key = item[groupKey]; if (!acc[key]) acc[key] = []; acc[key].push(item); return acc; }, {}); let grandTotal = 0; let startY = 35; for (const groupName in groupedData) { const items = groupedData[groupName]; const subTotal = items.reduce((sum, item) => sum + item.monto, 0); grandTotal += subTotal; doc.setFontSize(14); doc.setFont(undefined, 'bold'); doc.text(groupName, 14, startY); const head = type === 'gastos' ? [['Fecha', 'Descripción', 'Monto']] : [['Fecha', 'Descripción', 'Pagado con', 'Monto']]; const body = items.map(item => type === 'gastos' ? [item.fecha.toLocaleDateString(), item.descripcion, formatCurrency(item.monto)] : [item.fecha.toLocaleDateString(), item.descripcion, item.metodo, formatCurrency(item.monto)] ); doc.autoTable({ head: head, body: body, startY: startY + 2, theme: 'striped', headStyles: { fillColor: [52, 73, 94] } }); startY = doc.autoTable.previous.finalY + 2; doc.setFontSize(10); doc.setFont(undefined, 'bold'); doc.text(`Subtotal ${groupName}: ${formatCurrency(subTotal)}`, 196, startY, { align: 'right' }); startY += 10; if (startY > 250) { doc.addPage(); startY = 20; } } doc.setLineWidth(0.5); doc.line(14, startY, 200, startY); startY += 8; doc.setFontSize(16); doc.setFont(undefined, 'bold'); doc.text('GRAN TOTAL:', 14, startY); doc.text(formatCurrency(grandTotal), 200, startY, { align: 'right' }); } doc.save(`Informe_${type}_${formatDateForInput(new Date())}.pdf`); };
 
         // --- INICIALIZACIÓN Y EVENT LISTENERS GLOBALES ---
         const initApp = () => {
