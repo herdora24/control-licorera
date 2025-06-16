@@ -85,11 +85,10 @@
                              <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Gastos Op. Totales (Mes)</h3><p id="total-gastos-op" class="text-2xl font-semibold text-red-600 mt-1">$0</p></div>
                              <div class="card p-5 bg-blue-50 border-blue-200 border"><h3 class="text-blue-800 text-sm font-medium">Efectivo en Caja (Actual)</h3><p id="efectivo-caja" class="text-2xl font-semibold text-blue-700 mt-1">$0</p></div>
                              <div class="card p-5 bg-green-50 border-green-200 border"><h3 class="text-green-800 text-sm font-medium">Saldo en Banco (Actual)</h3><p id="saldo-banco" class="text-2xl font-semibold text-green-700 mt-1">$0</p></div>
-                             <div class="card p-5 bg-gray-100"><h3 class="text-gray-600 text-sm font-medium">Utilidad del Mes</h3><p id="utilidad-mes" class="text-2xl font-semibold text-gray-800 mt-1">$0</p></div>
                              <div class="card p-5 bg-yellow-50 border-yellow-200 border"><h3 class="text-yellow-800 text-sm font-medium">Cuentas por Cobrar</h3><p id="cuentas-cobrar-total" class="text-2xl font-semibold text-yellow-700 mt-1">$0</p></div>
                              <div class="card p-5 bg-red-50 border-red-200 border"><h3 class="text-red-800 text-sm font-medium">Cuentas por Pagar</h3><p id="cuentas-pagar-total" class="text-2xl font-semibold text-red-700 mt-1">$0</p></div>
                              <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Retiros del Jefe (Mes)</h3><p id="total-retiros" class="text-2xl font-semibold text-orange-500 mt-1">$0</p></div>
-                         </div>
+                             </div>
                          <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
                              <div class="lg:col-span-2 card p-6"><h3 class="text-lg font-semibold text-gray-700 mb-4">Distribución de Gastos Operativos</h3><canvas id="gastos-chart"></canvas></div>
                              <div class="lg:col-span-3 card p-6"><h3 class="text-lg font-semibold text-gray-700 mb-4">Últimos Movimientos</h3><div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-6 py-3">Fecha</th><th class="px-6 py-3">Descripción</th><th class="px-6 py-3">Monto</th></tr></thead><tbody id="ultimos-movimientos-body"></tbody></table></div></div>
@@ -271,7 +270,6 @@
             const totalComprasMes = compras.reduce((sum, item) => sum + item.monto, 0);
             const totalGastosOpMes = gastos.reduce((sum, item) => sum + item.monto, 0);
             const totalRetirosMes = retiros.reduce((sum, item) => sum + item.monto, 0);
-            const utilidadMes = totalIngresosMes - (totalComprasMes + totalGastosOpMes);
             
             const totalIngresosEfectivo = allData.ingresos.reduce((sum, i) => sum + i.monto_efectivo, 0);
             const totalIngresosBanco = allData.ingresos.reduce((sum, i) => sum + i.monto_tarjeta, 0);
@@ -293,7 +291,6 @@
             document.getElementById('total-compras').textContent = formatCurrency(totalComprasMes);
             document.getElementById('total-gastos-op').textContent = formatCurrency(totalGastosOpMes);
             document.getElementById('total-retiros').textContent = formatCurrency(totalRetirosMes);
-            document.getElementById('utilidad-mes').textContent = formatCurrency(utilidadMes);
             document.getElementById('efectivo-caja').textContent = formatCurrency(efectivoEnCaja);
             document.getElementById('saldo-banco').textContent = formatCurrency(saldoEnBanco);
             document.getElementById('cuentas-cobrar-total').textContent = formatCurrency(totalCPC);
@@ -398,7 +395,6 @@
             showNotification('Éxito', 'Deuda por cobrar registrada.');
             e.target.reset();
             addCurrencyFormatting(e.target);
-            renderCuentasPorCobrar(); // <-- LÍNEA CORREGIDA
         });
 
         document.getElementById('form-cuentas-pagar').addEventListener('submit', (e) => {
@@ -408,7 +404,6 @@
             showNotification('Éxito', 'Cuenta por pagar registrada.');
             e.target.reset();
             addCurrencyFormatting(e.target);
-            renderCuentasPorPagar(); // <-- LÍNEA CORREGIDA
         });
 
         // --- LÓGICA DE EDICIÓN, ELIMINACIÓN Y DEUDAS (CON FIREBASE) ---
