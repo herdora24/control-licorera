@@ -397,7 +397,14 @@
         const handleDelete = (type, id) => {
             showConfirm('Confirmar Eliminación', '¿Estás seguro? Esta acción no se puede deshacer.', () => {
                 dataRefs[type].child(id).remove()
-                    .then(() => showNotification('Éxito', 'Registro eliminado.'))
+                    .then(() => {
+                        showNotification('Éxito', 'Registro eliminado.');
+                        if (document.getElementById('registros').offsetParent !== null) renderAllTables();
+                        if (document.getElementById('deudas').offsetParent !== null) {
+                            renderCuentasPorCobrar();
+                            renderCuentasPorPagar();
+                        }
+                    })
                     .catch((error) => showNotification('Error', 'No se pudo eliminar: ' + error, 'error'));
             });
         };
@@ -416,12 +423,17 @@
             
             if (deudaId && monto > 0) {
                 const abonoData = { fecha: new Date().toISOString(), monto, metodo };
-                dataRefs.cuentasPorCobrar.child(deudaId).child('abonos').push(abonoData);
-                showNotification('Éxito', 'Abono registrado.');
-                document.getElementById('abono-modal').style.display = 'none';
-                document.getElementById('form-abono').reset();
+                dataRefs.cuentasPorCobrar.child(deudaId).child('abonos').push(abonoData)
+                    .then(() => {
+                        showNotification('Éxito', 'Abono registrado.');
+                        document.getElementById('abono-modal').style.display = 'none';
+                        document.getElementById('form-abono').reset();
+                    })
+                    .catch(err => {
+                        showNotification('Error', 'No se pudo registrar el abono.', 'error');
+                    });
             } else {
-                showNotification('Error', 'No se pudo registrar el abono', 'error');
+                showNotification('Error', 'Monto inválido.', 'error');
             }
         });
 
@@ -511,9 +523,15 @@
                 newItem.monto = getNumericValue(document.getElementById('edit-monto').value);
             }
 
-            dataRefs[type].child(id).update(newItem);
-            document.getElementById('edit-modal').style.display = 'none';
-            showNotification('Éxito', 'Registro actualizado.');
+            dataRefs[type].child(id).update(newItem)
+                .then(() => {
+                    document.getElementById('edit-modal').style.display = 'none';
+                    showNotification('Éxito', 'Registro actualizado.');
+                    if (document.getElementById('registros').offsetParent !== null) renderAllTables();
+                })
+                .catch(err => {
+                    showNotification('Error', `No se pudo actualizar el registro: ${err.message}`, 'error');
+                });
         });
         
         // --- MANEJO DE MODALES ---
