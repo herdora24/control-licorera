@@ -89,19 +89,16 @@
     document.addEventListener('DOMContentLoaded', () => {
 
         // ... Configuración de Firebase y referencias no cambian ...
-        const firebaseConfig = { /* ... */ };
-        let database;
-        firebase.initializeApp(firebaseConfig);
-        database = firebase.database();
-        const dataRefs = {
-            ingresos: database.ref('ingresos'),
-            compras: database.ref('compras'),
-            gastos: database.ref('gastos'),
-            retiros: database.ref('retiros'),
-            cuentasPorCobrar: database.ref('cuentasPorCobrar'),
-            cuentasPorPagar: database.ref('cuentasPorPagar'),
-            password: database.ref('config/password')
-        };
+        const firebaseConfig = {
+ apiKey: "AIzaSyCm5BGh7cWX4A5fXx8zCN33ztuLvseRhAU",
+ authDomain: "control-licorera.firebaseapp.com",
+ databaseURL: "https://control-licorera-default-rtdb.firebaseio.com",
+ projectId: "control-licorera",
+ storageBucket: "control-licorera.appspot.com",
+ messagingSenderId: "430925820415",
+ appId: "1:430925820415:web:e1c06bc73b6863a5c3f7ca",
+ measurementId: "G-86ZY48XKV4"
+};
         // ... Variables globales y funciones de UI/Datos sin cambios ...
         
         // ... MANEJO DE MODALES ...
