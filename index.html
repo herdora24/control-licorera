@@ -623,9 +623,8 @@
             const item = allData[type].find(i => i.id === id);
             if (!item) return;
 
-            // Previene el borrado de deudas o vales con abonos
             if ((type === 'cuentasPorCobrar' || type === 'vales') && item.abonos && Object.keys(item.abonos).length > 0) {
-                showNotification('Error', 'No puede eliminar un registro que ya tiene abonos. Esto protege la integridad de sus ingresos.', 'error');
+                showNotification('Acción no permitida', 'No puede eliminar un registro que ya tiene abonos. Esto protege la integridad de sus registros de ingresos.', 'error');
                 return;
             }
 
@@ -678,42 +677,51 @@
             modal.style.display = 'flex';
         };
 
+        // ========== INICIO DE LA MODIFICACIÓN: Lógica de Abonos Corregida ==========
         document.getElementById('save-abono-btn').addEventListener('click', () => {
             const deudaId = document.getElementById('abono-deuda-id').value;
             const type = document.getElementById('abono-type').value;
             const monto = getNumericValue(document.getElementById('abono-monto').value);
             const metodo = document.getElementById('abono-metodo').value;
             
-            if (deudaId && monto > 0) {
-                const abonoData = { fecha: new Date().toISOString(), monto, metodo };
-                
-                // 1. Registrar el abono en el objeto de la deuda/vale
-                dataRefs[type].child(deudaId).child('abonos').push(abonoData)
-                    .then(() => {
-                        const deuda = allData[type].find(d => d.id === deudaId);
-                        const personKey = type === 'vales' ? 'persona' : 'cliente';
-                        
-                        // 2. Crear un registro de ingreso permanente
-                        const ingresoData = {
-                            fecha: new Date().toISOString(),
-                            monto: monto,
-                            monto_efectivo: metodo === 'Efectivo' ? monto : 0,
-                            monto_tarjeta: metodo === 'Banco' ? monto : 0,
-                            notas: `Abono de ${type === 'vales' ? 'vale' : 'deuda'}: ${deuda[personKey]}`
-                        };
-                        dataRefs.ingresos.push(ingresoData);
-
-                        showNotification('Éxito', 'Abono registrado y añadido a ingresos.');
-                        document.getElementById('abono-modal').style.display = 'none';
-                        document.getElementById('form-abono').reset();
-                    })
-                    .catch(err => {
-                        showNotification('Error', 'No se pudo registrar el abono.', 'error');
-                    });
-            } else {
-                showNotification('Error', 'Monto inválido.', 'error');
+            if (!deudaId || !type || monto <= 0) {
+                showNotification('Error', 'Monto inválido o datos incompletos.', 'error');
+                return;
             }
+
+            const abonoData = { fecha: new Date().toISOString(), monto, metodo };
+            
+            dataRefs[type].child(deudaId).child('abonos').push(abonoData)
+                .then(() => {
+                    return dataRefs[type].child(deudaId).once('value');
+                })
+                .then(snapshot => {
+                    const deuda = snapshot.val();
+                    if (!deuda) throw new Error("No se encontró el registro original.");
+
+                    const personKey = type === 'vales' ? 'persona' : 'cliente';
+                    const personName = deuda[personKey];
+                    
+                    const ingresoData = {
+                        fecha: new Date().toISOString(),
+                        monto: monto,
+                        monto_efectivo: metodo === 'Efectivo' ? monto : 0,
+                        monto_tarjeta: metodo === 'Banco' ? monto : 0,
+                        notas: `Abono de ${type === 'vales' ? 'vale' : 'deuda'}: ${personName}`
+                    };
+                    return dataRefs.ingresos.push(ingresoData);
+                })
+                .then(() => {
+                    showNotification('Éxito', 'Abono registrado y añadido a ingresos.');
+                    document.getElementById('abono-modal').style.display = 'none';
+                    document.getElementById('form-abono').reset();
+                })
+                .catch(err => {
+                    console.error("Error en la operación de abono: ", err);
+                    showNotification('Error', 'No se pudo completar la operación de abono.', 'error');
+                });
         });
+        // ========== FIN DE LA MODIFICACIÓN ==========
 
         const handlePagar = (deudaId) => {
             const deuda = allData.cuentasPorPagar.find(d => d.id === deudaId);
