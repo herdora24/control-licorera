@@ -136,11 +136,13 @@
                         </div>
                     </div>
                 </div>
+                
                 <div id="registros" class="tab-content hidden space-y-8">
                     <div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todos los Ingresos</h2><button data-type="ingresos" class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-ingresos"></table></div></div>
                     <div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todas las Compras</h2><button data-type="compras" class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-compras"></table></div></div>
                     <div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todos los Gastos Op.</h2><button data-type="gastos" class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-gastos"></table></div></div>
                     <div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todos los Retiros</h2><button data-type="retiros" class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-retiros"></table></div></div>
+
                     <div class="pt-4">
                         <div class="flex justify-between items-center mb-4">
                             <h2 class="text-2xl font-semibold">Reportes Avanzados</h2>
@@ -153,14 +155,14 @@
                                 </div>
                                 <button data-type="deudas-cobrar" class="btn-pdf bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm flex-shrink-0"><i class="fas fa-download mr-2"></i>Descargar PDF</button>
                             </div>
-                             <div class="flex justify-between items-center border-b pb-4">
+                            <div class="flex justify-between items-center border-b pb-4">
                                 <div>
                                     <p class="font-medium text-gray-800">Resumen de Vales de Personal</p>
                                     <p class="text-sm text-gray-500">Genera un PDF con el detalle de los vales de consumo interno.</p>
                                 </div>
                                 <button data-type="vales" class="btn-pdf bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm flex-shrink-0"><i class="fas fa-download mr-2"></i>Descargar PDF</button>
                             </div>
-                             <div class="flex justify-between items-center">
+                            <div class="flex justify-between items-center">
                                 <div>
                                     <p class="font-medium text-gray-800">Resumen de Cuentas por Pagar</p>
                                     <p class="text-sm text-gray-500">Genera un PDF con el detalle de tus deudas a proveedores.</p>
@@ -268,14 +270,14 @@
             retiros: database.ref('retiros'),
             cuentasPorCobrar: database.ref('cuentasPorCobrar'),
             cuentasPorPagar: database.ref('cuentasPorPagar'),
-            vales: database.ref('vales'), // <-- Nuevo
+            vales: database.ref('vales'),
             password: database.ref('config/password') 
         };
         
         // --- ESTADO GLOBAL Y CONFIGURACIÓN ---
         const { jsPDF } = window.jspdf;
         let gastosChart = null;
-        let allData = { ingresos: [], compras: [], gastos: [], retiros: [], cuentasPorCobrar: [], cuentasPorPagar: [], vales: [] }; // <-- Nuevo
+        let allData = { ingresos: [], compras: [], gastos: [], retiros: [], cuentasPorCobrar: [], cuentasPorPagar: [], vales: [] };
         let confirmCallback = null;
 
         // --- MANEJO DE DATOS (CON FIREBASE) ---
@@ -380,18 +382,14 @@
             
             const totalIngresosEfectivo = (allData.ingresos || []).reduce((sum, i) => sum + i.monto_efectivo, 0);
             const totalIngresosBanco = (allData.ingresos || []).reduce((sum, i) => sum + i.monto_tarjeta, 0);
-            const abonosEfectivo = (allData.cuentasPorCobrar || []).flatMap(d => d.abonos || []).filter(a => a.metodo === 'Efectivo').reduce((sum, a) => sum + a.monto, 0);
-            const abonosBanco = (allData.cuentasPorCobrar || []).flatMap(d => d.abonos || []).filter(a => a.metodo === 'Banco').reduce((sum, a) => sum + a.monto, 0);
-            const abonosVales = (allData.vales || []).flatMap(d => d.abonos || []).filter(a => a.metodo === 'Efectivo').reduce((sum, a) => sum + a.monto, 0); // Los abonos a vales también suman
-            
             const totalComprasEfectivo = (allData.compras || []).filter(c => c.metodo === 'Efectivo').reduce((sum, c) => sum + c.monto, 0);
             const totalComprasBanco = (allData.compras || []).filter(c => c.metodo === 'Banco').reduce((sum, c) => sum + c.monto, 0);
             const totalGastosOp = (allData.gastos || []).reduce((sum, g) => sum + g.monto, 0);
             const totalRetirosEfectivo = (allData.retiros || []).filter(r => r.metodo === 'Efectivo').reduce((sum, r) => sum + r.monto, 0);
             const totalRetirosBanco = (allData.retiros || []).filter(r => r.metodo === 'Banco').reduce((sum, r) => sum + r.monto, 0);
             
-            const efectivoEnCaja = (totalIngresosEfectivo + abonosEfectivo + abonosVales) - totalComprasEfectivo - totalGastosOp - totalRetirosEfectivo;
-            const saldoEnBanco = (totalIngresosBanco + abonosBanco) - totalComprasBanco - totalRetirosBanco;
+            const efectivoEnCaja = totalIngresosEfectivo - totalComprasEfectivo - totalGastosOp - totalRetirosEfectivo;
+            const saldoEnBanco = totalIngresosBanco - totalComprasBanco - totalRetirosBanco;
             
             const totalCPC = (cpc || []).reduce((sum, d) => sum + (d.monto - ((d.abonos || []).reduce((s, a) => s + a.monto, 0))), 0);
             const totalCPP = (cpp || []).filter(d => d.estado !== 'Pagada').reduce((sum, d) => sum + d.monto, 0);
@@ -411,7 +409,7 @@
             allMovements.forEach(mov => {
                 const tr = document.createElement('tr'); tr.className = 'bg-white border-b';
                 const type = mov.monto_efectivo !== undefined ? 'ingreso' : (mov.proveedor !== undefined ? 'compra' : (mov.categoria !== undefined ? 'gasto' : 'retiro'));
-                const desc = mov.descripcion || mov.proveedor || `Venta del día`;
+                const desc = mov.notas || mov.descripcion || mov.proveedor || `Venta del día`;
                 const montoClass = type === 'ingreso' ? 'text-green-600' : (type === 'compra' ? 'text-purple-600' : (type === 'gasto' ? 'text-red-600' : 'text-orange-500'));
                 tr.innerHTML = `<td class="px-6 py-4">${mov.fecha.toLocaleDateString()}</td><td class="px-6 py-4">${desc}</td><td class="px-6 py-4 font-medium ${montoClass}">${formatCurrency(mov.monto)}</td>`;
                 tbody.appendChild(tr);
@@ -480,9 +478,9 @@
                     <td class="px-4 py-3 text-green-600">${formatCurrency(totalAbonado)}</td>
                     <td class="px-4 py-3 font-bold">${formatCurrency(restante)}</td>
                     <td class="px-4 py-3 flex items-center gap-1">
-                        <button class="historial-btn" data-type="cuentasPorCobrar" data-id="${d.id}"><i class="fas fa-history text-blue-600"></i></button>
-                        <button class="abono-btn" data-type="cuentasPorCobrar" data-id="${d.id}"><i class="fas fa-plus-circle text-green-600"></i></button>
-                        <button class="delete-btn action-button text-red-600" data-type="cuentasPorCobrar" data-id="${d.id}"><i class="fas fa-trash"></i></button>
+                        <button class="historial-btn action-button text-blue-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button>
+                        <button class="abono-btn action-button text-green-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Registrar Abono"><i class="fas fa-plus-circle"></i></button>
+                        <button class="delete-btn action-button text-red-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Eliminar"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>`;
             }).join('');
@@ -525,8 +523,7 @@
             }).join('');
             tbody.innerHTML = rowsHTML;
         };
-
-        // ========== INICIO DE LA MODIFICACIÓN: Renderizado de Vales ==========
+        
         const renderVales = () => {
             const table = document.getElementById('tabla-vales');
             const headers = ['Persona', 'Total Vale', 'Abonado', 'Restante', 'Acciones'];
@@ -562,7 +559,6 @@
             }).join('');
             tbody.innerHTML = rowsHTML;
         };
-        // ========== FIN DE LA MODIFICACIÓN ==========
         
         // --- MANEJO DE FORMULARIOS (ESCRIBEN EN FIREBASE) ---
         const getTimestampFromDateInput = (dateInputId) => {
@@ -624,6 +620,15 @@
 
         // --- LÓGICA DE EDICIÓN, ELIMINACIÓN Y DEUDAS (CON FIREBASE) ---
         const handleDelete = (type, id) => {
+            const item = allData[type].find(i => i.id === id);
+            if (!item) return;
+
+            // Previene el borrado de deudas o vales con abonos
+            if ((type === 'cuentasPorCobrar' || type === 'vales') && item.abonos && Object.keys(item.abonos).length > 0) {
+                showNotification('Error', 'No puede eliminar un registro que ya tiene abonos. Esto protege la integridad de sus ingresos.', 'error');
+                return;
+            }
+
             showConfirm('Confirmar Eliminación', '¿Estás seguro? Esta acción no se puede deshacer.', () => {
                 dataRefs[type].child(id).remove()
                     .then(() => {
@@ -681,9 +686,24 @@
             
             if (deudaId && monto > 0) {
                 const abonoData = { fecha: new Date().toISOString(), monto, metodo };
+                
+                // 1. Registrar el abono en el objeto de la deuda/vale
                 dataRefs[type].child(deudaId).child('abonos').push(abonoData)
                     .then(() => {
-                        showNotification('Éxito', 'Abono registrado.');
+                        const deuda = allData[type].find(d => d.id === deudaId);
+                        const personKey = type === 'vales' ? 'persona' : 'cliente';
+                        
+                        // 2. Crear un registro de ingreso permanente
+                        const ingresoData = {
+                            fecha: new Date().toISOString(),
+                            monto: monto,
+                            monto_efectivo: metodo === 'Efectivo' ? monto : 0,
+                            monto_tarjeta: metodo === 'Banco' ? monto : 0,
+                            notas: `Abono de ${type === 'vales' ? 'vale' : 'deuda'}: ${deuda[personKey]}`
+                        };
+                        dataRefs.ingresos.push(ingresoData);
+
+                        showNotification('Éxito', 'Abono registrado y añadido a ingresos.');
                         document.getElementById('abono-modal').style.display = 'none';
                         document.getElementById('form-abono').reset();
                     })
@@ -938,49 +958,40 @@
         const exportDeudasPDF = (type) => {
             const doc = new jsPDF();
             const genDate = `Generado el: ${new Date().toLocaleDateString('es-CO')}`;
+            const data = allData[type];
+            if(!data || data.length === 0){ showNotification('Info', 'No hay datos para exportar.', 'error'); return; }
 
             if (type === 'cuentasPorCobrar') {
-                const data = allData.cuentasPorCobrar;
-                if(data.length === 0){ showNotification('Info', 'No hay datos para exportar.', 'error'); return; }
-
                 doc.setFontSize(18); doc.text('Reporte de Cuentas por Cobrar', 14, 22);
                 doc.setFontSize(11); doc.setTextColor(100); doc.text(genDate, 14, 28);
-
-                let grandTotalDeuda = 0;
-                let grandTotalAbonado = 0;
-                let grandTotalSaldo = 0;
-                
                 const head = [['Cliente', 'Descripción', 'Deuda Total', 'Total Abonado', 'Saldo Pendiente']];
                 const body = data.map(d => {
                     const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
-                    const saldo = d.monto - totalAbonado;
-                    grandTotalDeuda += d.monto;
-                    grandTotalAbonado += totalAbonado;
-                    grandTotalSaldo += saldo;
-                    return [d.cliente, d.descripcion, formatCurrency(d.monto), formatCurrency(totalAbonado), formatCurrency(saldo)];
+                    return [d.cliente, d.descripcion, formatCurrency(d.monto), formatCurrency(totalAbonado), formatCurrency(d.monto - totalAbonado)];
                 });
-
+                const saldoTotal = data.reduce((sum, d) => sum + (d.monto - (d.abonos || []).reduce((s, a) => s + a.monto, 0)), 0);
                 doc.autoTable({ head, body, startY: 35 });
-                let finalY = doc.autoTable.previous.finalY;
-
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text('GRANDES TOTALES', 14, finalY + 15);
-                
-                doc.setFontSize(12);
-                doc.setFont(undefined, 'normal');
-                doc.text(`Total de Abonos Recibidos:`, 14, finalY + 22);
-                doc.text(formatCurrency(grandTotalAbonado), 200, finalY + 22, { align: 'right' });
-                doc.text(`Saldo Total por Cobrar:`, 14, finalY + 29);
-                doc.setFont(undefined, 'bold');
-                doc.text(formatCurrency(grandTotalSaldo), 200, finalY + 29, { align: 'right' });
-
+                doc.setFontSize(12); doc.setFont(undefined, 'bold');
+                doc.text(`Saldo Total por Cobrar:`, 14, doc.autoTable.previous.finalY + 10);
+                doc.text(formatCurrency(saldoTotal), 200, doc.autoTable.previous.finalY + 10, { align: 'right' });
                 doc.save(`Reporte_Cuentas_por_Cobrar_${formatDateForInput(new Date())}.pdf`);
 
+            } else if (type === 'vales') {
+                doc.setFontSize(18); doc.text('Reporte de Vales de Personal', 14, 22);
+                doc.setFontSize(11); doc.setTextColor(100); doc.text(genDate, 14, 28);
+                const head = [['Persona', 'Descripción', 'Monto Total', 'Total Abonado', 'Saldo Pendiente']];
+                const body = data.map(d => {
+                    const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
+                    return [d.persona, d.descripcion, formatCurrency(d.monto), formatCurrency(totalAbonado), formatCurrency(d.monto - totalAbonado)];
+                });
+                const saldoTotal = data.reduce((sum, d) => sum + (d.monto - (d.abonos || []).reduce((s, a) => s + a.monto, 0)), 0);
+                doc.autoTable({ head, body, startY: 35 });
+                doc.setFontSize(12); doc.setFont(undefined, 'bold');
+                doc.text(`Saldo Total Pendiente en Vales:`, 14, doc.autoTable.previous.finalY + 10);
+                doc.text(formatCurrency(saldoTotal), 200, doc.autoTable.previous.finalY + 10, { align: 'right' });
+                doc.save(`Reporte_Vales_${formatDateForInput(new Date())}.pdf`);
+
             } else if (type === 'cuentasPorPagar') {
-                const data = allData.cuentasPorPagar;
-                if(data.length === 0){ showNotification('Info', 'No hay datos para exportar.', 'error'); return; }
-                
                 doc.setFontSize(18); doc.text('Reporte de Cuentas por Pagar', 14, 22);
                 doc.setFontSize(11); doc.setTextColor(100); doc.text(genDate, 14, 28);
                 
@@ -998,13 +1009,8 @@
                 const grandTotalDeudaPendiente = data.filter(d => d.estado !== 'Pagada').reduce((sum, d) => sum + d.monto, 0);
                 
                 let finalY = doc.autoTable.previous.finalY;
-
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text('GRANDES TOTALES', 14, finalY + 15);
-
-                doc.setFontSize(12);
-                doc.setFont(undefined, 'normal');
+                doc.setFontSize(14); doc.setFont(undefined, 'bold'); doc.text('GRANDES TOTALES', 14, finalY + 15);
+                doc.setFontSize(12); doc.setFont(undefined, 'normal');
                 doc.text(`Total Pagado de Deudas (Este Mes):`, 14, finalY + 22);
                 doc.text(formatCurrency(grandTotalPagadoEsteMes), 200, finalY + 22, { align: 'right' });
                 doc.text(`Total de Dinero Pendiente por Pagar:`, 14, finalY + 29);
@@ -1012,35 +1018,6 @@
                 doc.text(formatCurrency(grandTotalDeudaPendiente), 200, finalY + 29, { align: 'right' });
 
                 doc.save(`Reporte_Cuentas_por_Pagar_${formatDateForInput(new Date())}.pdf`);
-            
-            } else if (type === 'vales') {
-                const data = allData.vales;
-                if(data.length === 0){ showNotification('Info', 'No hay datos para exportar.', 'error'); return; }
-
-                doc.setFontSize(18); doc.text('Reporte de Vales de Personal', 14, 22);
-                doc.setFontSize(11); doc.setTextColor(100); doc.text(genDate, 14, 28);
-
-                let grandTotalSaldo = 0;
-                
-                const head = [['Persona', 'Descripción', 'Monto Total', 'Total Abonado', 'Saldo Pendiente']];
-                const body = data.map(d => {
-                    const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
-                    const saldo = d.monto - totalAbonado;
-                    grandTotalSaldo += saldo;
-                    return [d.persona, d.descripcion, formatCurrency(d.monto), formatCurrency(totalAbonado), formatCurrency(saldo)];
-                });
-
-                doc.autoTable({ head, body, startY: 35 });
-                let finalY = doc.autoTable.previous.finalY;
-                
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text('GRAN TOTAL', 14, finalY + 15);
-                doc.setFontSize(12);
-                doc.text(`Saldo Total Pendiente en Vales:`, 14, finalY + 22);
-                doc.text(formatCurrency(grandTotalSaldo), 200, finalY + 22, { align: 'right' });
-
-                doc.save(`Reporte_Vales_${formatDateForInput(new Date())}.pdf`);
             }
         };
 
