@@ -130,7 +130,7 @@
                                 </div>
                             </div>
                             <div class="md:col-span-2 card p-4 overflow-x-auto">
-                                <h3 class="text-lg font-semibold mb-4 px-2">Vales Pendientes</h3>
+                                <h3 class="text-lg font-semibold mb-4 px-2">Historial de Vales</h3>
                                 <table class="w-full text-sm" id="tabla-vales"></table>
                             </div>
                         </div>
@@ -456,32 +456,32 @@
             const headers = ['Cliente', 'Total Deuda', 'Abonado', 'Restante', 'Acciones'];
             table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
             const tbody = table.querySelector('tbody');
-            const data = allData.cuentasPorCobrar.sort((a,b) => a.cliente.localeCompare(b.cliente));
-            
-            const pendingDebts = data.filter(d => {
-                const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
-                return d.monto - totalAbonado > 0;
-            });
+            const data = (allData.cuentasPorCobrar || []).sort((a,b) => b.fecha - a.fecha);
 
-            if (pendingDebts.length === 0) { 
-                tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay cuentas pendientes por cobrar.</td></tr>`; 
+            if (data.length === 0) { 
+                tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay cuentas por cobrar.</td></tr>`; 
                 return;
             }
 
-            const rowsHTML = pendingDebts.map(d => {
+            const rowsHTML = data.map(d => {
                 const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
                 const restante = d.monto - totalAbonado;
+                const isPaid = restante <= 0;
+
+                const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white';
+                const textStyle = isPaid ? 'line-through' : '';
+                const actionButtons = isPaid 
+                    ? `<button class="historial-btn action-button text-blue-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button> <span class="px-2 py-1 text-xs font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Saldado</span>`
+                    : `<button class="historial-btn action-button text-blue-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button>
+                       <button class="abono-btn action-button text-green-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Registrar Abono"><i class="fas fa-plus-circle"></i></button>
+                       <button class="delete-btn action-button text-red-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Eliminar"><i class="fas fa-trash"></i></button>`;
                 
-                return `<tr class="bg-white border-b hover:bg-gray-50">
-                    <td class="px-4 py-3 font-medium">${d.cliente}<p class="text-xs text-gray-500 font-normal">${d.descripcion}</p></td>
-                    <td class="px-4 py-3">${formatCurrency(d.monto)}</td>
-                    <td class="px-4 py-3 text-green-600">${formatCurrency(totalAbonado)}</td>
-                    <td class="px-4 py-3 font-bold">${formatCurrency(restante)}</td>
-                    <td class="px-4 py-3 flex items-center gap-1">
-                        <button class="historial-btn action-button text-blue-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button>
-                        <button class="abono-btn action-button text-green-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Registrar Abono"><i class="fas fa-plus-circle"></i></button>
-                        <button class="delete-btn action-button text-red-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Eliminar"><i class="fas fa-trash"></i></button>
-                    </td>
+                return `<tr class="${rowClass} border-b hover:bg-gray-50">
+                    <td class="px-4 py-3 font-medium ${textStyle}">${d.cliente}<p class="text-xs font-normal">${d.descripcion}</p></td>
+                    <td class="px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td>
+                    <td class="px-4 py-3 text-green-600 ${textStyle}">${formatCurrency(totalAbonado)}</td>
+                    <td class="px-4 py-3 font-bold ${textStyle}">${formatCurrency(restante)}</td>
+                    <td class="px-4 py-3 flex items-center gap-1">${actionButtons}</td>
                 </tr>`;
             }).join('');
             tbody.innerHTML = rowsHTML;
@@ -529,32 +529,32 @@
             const headers = ['Persona', 'Total Vale', 'Abonado', 'Restante', 'Acciones'];
             table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
             const tbody = table.querySelector('tbody');
-            const data = (allData.vales || []).sort((a,b) => a.persona.localeCompare(b.persona));
-            
-            const pendingVales = data.filter(d => {
-                const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
-                return d.monto - totalAbonado > 0;
-            });
+            const data = (allData.vales || []).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
 
-            if (pendingVales.length === 0) { 
-                tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay vales pendientes.</td></tr>`; 
+            if (data.length === 0) { 
+                tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay vales registrados.</td></tr>`; 
                 return;
             }
 
-            const rowsHTML = pendingVales.map(d => {
+            const rowsHTML = data.map(d => {
                 const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
                 const restante = d.monto - totalAbonado;
+                const isPaid = restante <= 0;
+
+                const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white';
+                const textStyle = isPaid ? 'line-through' : '';
+                const actionButtons = isPaid 
+                    ? `<button class="historial-btn action-button text-blue-600" data-type="vales" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button> <span class="px-2 py-1 text-xs font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Saldado</span>`
+                    : `<button class="historial-btn action-button text-blue-600" data-type="vales" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button>
+                       <button class="abono-btn action-button text-green-600" data-type="vales" data-id="${d.id}" title="Registrar Abono"><i class="fas fa-plus-circle"></i></button>
+                       <button class="delete-btn action-button text-red-600" data-type="vales" data-id="${d.id}" title="Eliminar Vale"><i class="fas fa-trash"></i></button>`;
                 
-                return `<tr class="bg-white border-b hover:bg-gray-50">
-                    <td class="px-4 py-3 font-medium">${d.persona}<p class="text-xs text-gray-500 font-normal">${d.descripcion}</p></td>
-                    <td class="px-4 py-3">${formatCurrency(d.monto)}</td>
-                    <td class="px-4 py-3 text-green-600">${formatCurrency(totalAbonado)}</td>
-                    <td class="px-4 py-3 font-bold">${formatCurrency(restante)}</td>
-                    <td class="px-4 py-3 flex items-center gap-1">
-                        <button class="historial-btn action-button text-blue-600" data-type="vales" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button>
-                        <button class="abono-btn action-button text-green-600" data-type="vales" data-id="${d.id}" title="Registrar Abono"><i class="fas fa-plus-circle"></i></button>
-                        <button class="delete-btn action-button text-red-600" data-type="vales" data-id="${d.id}" title="Eliminar Vale"><i class="fas fa-trash"></i></button>
-                    </td>
+                return `<tr class="${rowClass} border-b hover:bg-gray-50">
+                    <td class="px-4 py-3 font-medium ${textStyle}">${d.persona}<p class="text-xs font-normal">${d.descripcion}</p></td>
+                    <td class="px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td>
+                    <td class="px-4 py-3 text-green-600 ${textStyle}">${formatCurrency(totalAbonado)}</td>
+                    <td class="px-4 py-3 font-bold ${textStyle}">${formatCurrency(restante)}</td>
+                    <td class="px-4 py-3 flex items-center gap-1">${actionButtons}</td>
                 </tr>`;
             }).join('');
             tbody.innerHTML = rowsHTML;
@@ -677,51 +677,46 @@
             modal.style.display = 'flex';
         };
 
-        // ========== INICIO DE LA MODIFICACIÓN: Lógica de Abonos Corregida ==========
-        document.getElementById('save-abono-btn').addEventListener('click', () => {
+        document.getElementById('save-abono-btn').addEventListener('click', async () => {
             const deudaId = document.getElementById('abono-deuda-id').value;
             const type = document.getElementById('abono-type').value;
             const monto = getNumericValue(document.getElementById('abono-monto').value);
             const metodo = document.getElementById('abono-metodo').value;
-            
+
             if (!deudaId || !type || monto <= 0) {
                 showNotification('Error', 'Monto inválido o datos incompletos.', 'error');
                 return;
             }
 
-            const abonoData = { fecha: new Date().toISOString(), monto, metodo };
-            
-            dataRefs[type].child(deudaId).child('abonos').push(abonoData)
-                .then(() => {
-                    return dataRefs[type].child(deudaId).once('value');
-                })
-                .then(snapshot => {
-                    const deuda = snapshot.val();
-                    if (!deuda) throw new Error("No se encontró el registro original.");
+            try {
+                const abonoData = { fecha: new Date().toISOString(), monto, metodo };
+                await dataRefs[type].child(deudaId).child('abonos').push(abonoData);
 
-                    const personKey = type === 'vales' ? 'persona' : 'cliente';
-                    const personName = deuda[personKey];
-                    
-                    const ingresoData = {
-                        fecha: new Date().toISOString(),
-                        monto: monto,
-                        monto_efectivo: metodo === 'Efectivo' ? monto : 0,
-                        monto_tarjeta: metodo === 'Banco' ? monto : 0,
-                        notas: `Abono de ${type === 'vales' ? 'vale' : 'deuda'}: ${personName}`
-                    };
-                    return dataRefs.ingresos.push(ingresoData);
-                })
-                .then(() => {
-                    showNotification('Éxito', 'Abono registrado y añadido a ingresos.');
-                    document.getElementById('abono-modal').style.display = 'none';
-                    document.getElementById('form-abono').reset();
-                })
-                .catch(err => {
-                    console.error("Error en la operación de abono: ", err);
-                    showNotification('Error', 'No se pudo completar la operación de abono.', 'error');
-                });
+                const snapshot = await dataRefs[type].child(deudaId).once('value');
+                const deuda = snapshot.val();
+                if (!deuda) { throw new Error("El registro original no fue encontrado."); }
+                
+                const personKey = type === 'vales' ? 'persona' : 'cliente';
+                const personName = deuda[personKey];
+                
+                const ingresoData = {
+                    fecha: new Date().toISOString(),
+                    monto: monto,
+                    monto_efectivo: metodo === 'Efectivo' ? monto : 0,
+                    monto_tarjeta: metodo === 'Banco' ? monto : 0,
+                    notas: `Abono de ${type === 'vales' ? 'vale' : 'deuda'}: ${personName}`
+                };
+                await dataRefs.ingresos.push(ingresoData);
+                
+                showNotification('Éxito', 'Abono registrado y añadido a ingresos.');
+                document.getElementById('abono-modal').style.display = 'none';
+                document.getElementById('form-abono').reset();
+
+            } catch (err) {
+                console.error("Error detallado en la operación de abono: ", err);
+                showNotification('Error', 'No se pudo completar la operación de abono.', 'error');
+            }
         });
-        // ========== FIN DE LA MODIFICACIÓN ==========
 
         const handlePagar = (deudaId) => {
             const deuda = allData.cuentasPorPagar.find(d => d.id === deudaId);
