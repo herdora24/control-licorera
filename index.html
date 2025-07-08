@@ -414,7 +414,9 @@
                 tr.innerHTML = `<td class="px-6 py-4">${mov.fecha.toLocaleDateString()}</td><td class="px-6 py-4">${desc}</td><td class="px-6 py-4 font-medium ${montoClass}">${formatCurrency(mov.monto)}</td>`;
                 tbody.appendChild(tr);
             });
-            updateGastosChart(ingresos);
+            // ========== INICIO DE LA MODIFICACIÓN: Corrección del Gráfico ==========
+            updateGastosChart(gastos);
+            // ========== FIN DE LA MODIFICACIÓN ==========
         };
         const updateGastosChart = (gastos) => {
              const ctx = document.getElementById('gastos-chart').getContext('2d');
@@ -1079,7 +1081,7 @@
                     } else if (type === 'deudas-pagar') {
                         exportDeudasPDF('cuentasPorPagar');
                     } else if (type === 'vales') {
-                        exportDeudasPDF('vales');
+                        exportDeudasPDF(type);
                     } else {
                         exportToPDF(type);
                     }
