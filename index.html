@@ -108,7 +108,29 @@
                     <div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todas las Compras</h2><button data-type="compras" class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-compras"></table></div></div>
                     <div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todos los Gastos Op.</h2><button data-type="gastos" class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-gastos"></table></div></div>
                     <div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todos los Retiros</h2><button data-type="retiros" class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-retiros"></table></div></div>
-                </div>
+
+                    <div class="pt-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-2xl font-semibold">Reportes de Deudas</h2>
+                        </div>
+                        <div class="card p-6 space-y-4">
+                            <div class="flex justify-between items-center border-b pb-4">
+                                <div>
+                                    <p class="font-medium text-gray-800">Resumen de Cuentas por Cobrar</p>
+                                    <p class="text-sm text-gray-500">Genera un PDF con el detalle de lo que te deben los clientes.</p>
+                                </div>
+                                <button data-type="deudas-cobrar" class="btn-pdf bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm flex-shrink-0"><i class="fas fa-download mr-2"></i>Descargar PDF</button>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="font-medium text-gray-800">Resumen de Cuentas por Pagar</p>
+                                    <p class="text-sm text-gray-500">Genera un PDF con el detalle de tus deudas a proveedores.</p>
+                                </div>
+                                <button data-type="deudas-pagar" class="btn-pdf bg-red-500 text-white px-4 py-2 rounded-lg text-sm flex-shrink-0"><i class="fas fa-download mr-2"></i>Descargar PDF</button>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
             </main>
         </div>
     </div>
@@ -288,11 +310,8 @@
             }
         };
         
-        // ========== INICIO DE LA MODIFICACIÓN ==========
         const filterAndRenderDashboard = () => {
              let filterValue = document.getElementById('month-filter').value;
-
-             // MEJORA: Si el filtro de mes está vacío, se asegura de usar el mes actual.
              if (!filterValue) {
                 const now = new Date();
                 filterValue = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -301,8 +320,6 @@
              
              const [year, month] = filterValue.split('-').map(Number);
              const filteredData = {};
-
-             // Filtra los datos que dependen del mes para las tarjetas del resumen.
              ['ingresos', 'compras', 'gastos', 'retiros'].forEach(key => {
                  if (allData[key]) {
                     filteredData[key] = allData[key].filter(d => d.fecha.getFullYear() === year && (d.fecha.getMonth() + 1) === month);
@@ -310,20 +327,15 @@
                     filteredData[key] = [];
                  }
              });
-
-             // Llama a updateDashboard con los datos mensuales filtrados y los datos completos de deudas.
              updateDashboard(filteredData.ingresos, filteredData.compras, filteredData.gastos, filteredData.retiros, allData.cuentasPorCobrar, allData.cuentasPorPagar);
         };
-        // ========== FIN DE LA MODIFICACIÓN ==========
 
         const updateDashboard = (ingresos, compras, gastos, retiros, cpc, cpp) => {
-            // Totales para las tarjetas del MES (usan datos filtrados)
             const totalIngresosMes = ingresos.reduce((sum, item) => sum + item.monto, 0);
             const totalComprasMes = compras.reduce((sum, item) => sum + item.monto, 0);
             const totalGastosOpMes = gastos.reduce((sum, item) => sum + item.monto, 0);
             const totalRetirosMes = retiros.reduce((sum, item) => sum + item.monto, 0);
             
-            // Totales para las tarjetas de ESTADO ACTUAL (usan TODOS los datos)
             const totalIngresosEfectivo = (allData.ingresos || []).reduce((sum, i) => sum + i.monto_efectivo, 0);
             const totalIngresosBanco = (allData.ingresos || []).reduce((sum, i) => sum + i.monto_tarjeta, 0);
             const abonosEfectivo = (allData.cuentasPorCobrar || []).flatMap(d => d.abonos || []).filter(a => a.metodo === 'Efectivo').reduce((sum, a) => sum + a.monto, 0);
@@ -360,7 +372,7 @@
                 tr.innerHTML = `<td class="px-6 py-4">${mov.fecha.toLocaleDateString()}</td><td class="px-6 py-4">${desc}</td><td class="px-6 py-4 font-medium ${montoClass}">${formatCurrency(mov.monto)}</td>`;
                 tbody.appendChild(tr);
             });
-            updateGastosChart(ingresos); // El gráfico de gastos sí debe ser mensual
+            updateGastosChart(ingresos);
         };
         const updateGastosChart = (gastos) => {
              const ctx = document.getElementById('gastos-chart').getContext('2d');
@@ -742,13 +754,7 @@
                         : [item.fecha.toLocaleDateString(), item.descripcion, item.metodo, formatCurrency(item.monto)]
                     );
                     
-                    doc.autoTable({
-                        head: head,
-                        body: body,
-                        startY: startY + 2,
-                        theme: 'striped',
-                        headStyles: { fillColor: [52, 73, 94] }
-                    });
+                    doc.autoTable({ head: head, body: body, startY: startY + 2, theme: 'striped', headStyles: { fillColor: [52, 73, 94] } });
 
                     startY = doc.autoTable.previous.finalY + 2;
                     doc.setFontSize(10);
@@ -768,6 +774,88 @@
             }
             doc.save(`Informe_${type}_${formatDateForInput(new Date())}.pdf`);
         };
+
+        // ========== INICIO DE LA MODIFICACIÓN: Nueva función para PDF de Deudas ==========
+        const exportDeudasPDF = (type) => {
+            const doc = new jsPDF();
+            const genDate = `Generado el: ${new Date().toLocaleDateString('es-CO')}`;
+
+            if (type === 'cuentasPorCobrar') {
+                const data = allData.cuentasPorCobrar;
+                if(data.length === 0){ showNotification('Info', 'No hay datos para exportar.', 'error'); return; }
+
+                doc.setFontSize(18); doc.text('Reporte de Cuentas por Cobrar', 14, 22);
+                doc.setFontSize(11); doc.setTextColor(100); doc.text(genDate, 14, 28);
+
+                let grandTotalDeuda = 0;
+                let grandTotalAbonado = 0;
+                let grandTotalSaldo = 0;
+                
+                const head = [['Cliente', 'Descripción', 'Deuda Total', 'Total Abonado', 'Saldo Pendiente']];
+                const body = data.map(d => {
+                    const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
+                    const saldo = d.monto - totalAbonado;
+                    grandTotalDeuda += d.monto;
+                    grandTotalAbonado += totalAbonado;
+                    grandTotalSaldo += saldo;
+                    return [d.cliente, d.descripcion, formatCurrency(d.monto), formatCurrency(totalAbonado), formatCurrency(saldo)];
+                });
+
+                doc.autoTable({ head, body, startY: 35 });
+                let finalY = doc.autoTable.previous.finalY;
+
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text('GRANDES TOTALES', 14, finalY + 15);
+                
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+                doc.text(`Total de Abonos Recibidos:`, 14, finalY + 22);
+                doc.text(formatCurrency(grandTotalAbonado), 200, finalY + 22, { align: 'right' });
+                doc.text(`Saldo Total por Cobrar:`, 14, finalY + 29);
+                doc.setFont(undefined, 'bold');
+                doc.text(formatCurrency(grandTotalSaldo), 200, finalY + 29, { align: 'right' });
+
+                doc.save(`Reporte_Cuentas_por_Cobrar_${formatDateForInput(new Date())}.pdf`);
+
+            } else if (type === 'cuentasPorPagar') {
+                const data = allData.cuentasPorPagar;
+                if(data.length === 0){ showNotification('Info', 'No hay datos para exportar.', 'error'); return; }
+                
+                doc.setFontSize(18); doc.text('Reporte de Cuentas por Pagar', 14, 22);
+                doc.setFontSize(11); doc.setTextColor(100); doc.text(genDate, 14, 28);
+                
+                const head = [['Proveedor', 'Concepto', 'Monto Total', 'Estado']];
+                const body = data.map(d => [d.acreedor, d.descripcion, formatCurrency(d.monto), d.estado]);
+                doc.autoTable({ head, body, startY: 35 });
+
+                const now = new Date();
+                const pagosDeDeudasEsteMes = allData.compras.filter(compra => 
+                    compra.descripcion.startsWith('Pago Cta. Pendiente:') &&
+                    compra.fecha.getFullYear() === now.getFullYear() &&
+                    compra.fecha.getMonth() === now.getMonth()
+                );
+                const grandTotalPagadoEsteMes = pagosDeDeudasEsteMes.reduce((sum, c) => sum + c.monto, 0);
+                const grandTotalDeudaPendiente = data.filter(d => d.estado !== 'Pagada').reduce((sum, d) => sum + d.monto, 0);
+                
+                let finalY = doc.autoTable.previous.finalY;
+
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text('GRANDES TOTALES', 14, finalY + 15);
+
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+                doc.text(`Total Pagado de Deudas (Este Mes):`, 14, finalY + 22);
+                doc.text(formatCurrency(grandTotalPagadoEsteMes), 200, finalY + 22, { align: 'right' });
+                doc.text(`Total de Dinero Pendiente por Pagar:`, 14, finalY + 29);
+                doc.setFont(undefined, 'bold');
+                doc.text(formatCurrency(grandTotalDeudaPendiente), 200, finalY + 29, { align: 'right' });
+
+                doc.save(`Reporte_Cuentas_por_Pagar_${formatDateForInput(new Date())}.pdf`);
+            }
+        };
+        // ========== FIN DE LA MODIFICACIÓN ==========
 
         // --- INICIALIZACIÓN Y EVENT LISTENERS GLOBALES ---
         const initApp = () => {
@@ -816,7 +904,16 @@
                 if (tabBtn) changeTab(tabBtn.dataset.tab);
                 else if (editBtn) handleEdit(editBtn.dataset.type, editBtn.dataset.id);
                 else if (deleteBtn) handleDelete(deleteBtn.dataset.type, deleteBtn.dataset.id);
-                else if (pdfBtn) exportToPDF(pdfBtn.dataset.type);
+                else if (pdfBtn) {
+                    const type = pdfBtn.dataset.type;
+                    if (type === 'deudas-cobrar') {
+                        exportDeudasPDF('cuentasPorCobrar');
+                    } else if (type === 'deudas-pagar') {
+                        exportDeudasPDF('cuentasPorPagar');
+                    } else {
+                        exportToPDF(type);
+                    }
+                }
                 else if (abonoBtn) handleAbonar(abonoBtn.dataset.id);
                 else if (pagarBtn) handlePagar(pagarBtn.dataset.id);
                 else if (historialBtn) handleHistorial(historialBtn.dataset.id);
