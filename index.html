@@ -130,7 +130,8 @@
                             </div>
                         </div>
                     </div>
-                    </div>
+
+                </div>
             </main>
         </div>
     </div>
@@ -715,19 +716,67 @@
         document.getElementById('cancel-historial-btn').onclick = () => document.getElementById('historial-modal').style.display = 'none';
 
         // --- EXPORTAR A PDF ---
+        // ========== INICIO DE LA MODIFICACIÓN: PDF de Ingresos ahora es detallado ==========
         const exportToPDF = (type) => {
             const doc = new jsPDF();
             const data = [...allData[type]].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
             if(data.length === 0){ showNotification('Info', 'No hay datos para exportar.', 'error'); return; }
+            
             const title = `Informe de ${type.charAt(0).toUpperCase() + type.slice(1)}`;
             doc.setFontSize(18); doc.text(title, 14, 22);
             doc.setFontSize(11); doc.setTextColor(100); doc.text(`Generado el: ${new Date().toLocaleDateString('es-CO')}`, 14, 28);
-            if (type !== 'gastos' && type !== 'compras') {
-                let head = [], body = [];
-                if (type === 'ingresos') { head = [['Fecha', 'Efectivo', 'Tarjeta/Transf.', 'Total', 'Notas']]; body = data.map(i => [i.fecha.toLocaleDateString(), formatCurrency(i.monto_efectivo), formatCurrency(i.monto_tarjeta), formatCurrency(i.monto), i.notas || '-']); }
-                else if (type === 'retiros') { head = [['Fecha', 'Retirado de', 'Descripción', 'Monto']]; body = data.map(r => [r.fecha.toLocaleDateString(), r.metodo, r.descripcion, formatCurrency(r.monto)]); }
+            let startY = 35;
+
+            if (type === 'ingresos') {
+                const ingresosEfectivo = data.filter(i => i.monto_efectivo > 0);
+                const ingresosTarjeta = data.filter(i => i.monto_tarjeta > 0);
+                const totalEfectivo = ingresosEfectivo.reduce((sum, i) => sum + i.monto_efectivo, 0);
+                const totalTarjeta = ingresosTarjeta.reduce((sum, i) => sum + i.monto_tarjeta, 0);
+
+                doc.setFontSize(14); doc.setFont(undefined, 'bold'); doc.text('Ingresos en Efectivo', 14, startY);
+                const headEfectivo = [['Fecha', 'Notas', 'Monto']];
+                const bodyEfectivo = ingresosEfectivo.map(i => [i.fecha.toLocaleDateString(), i.notas || '-', formatCurrency(i.monto_efectivo)]);
+                doc.autoTable({ head: headEfectivo, body: bodyEfectivo, startY: startY + 2 });
+                
+                startY = doc.autoTable.previous.finalY + 5;
+                doc.setFontSize(12); doc.setFont(undefined, 'bold');
+                doc.text('Total Efectivo:', 14, startY);
+                doc.text(formatCurrency(totalEfectivo), 200, startY, { align: 'right' });
+                startY += 15;
+
+                if (startY > 250) { doc.addPage(); startY = 20; }
+
+                doc.setFontSize(14); doc.setFont(undefined, 'bold'); doc.text('Ingresos por Tarjeta/Transferencia', 14, startY);
+                const headTarjeta = [['Fecha', 'Notas', 'Monto']];
+                const bodyTarjeta = ingresosTarjeta.map(i => [i.fecha.toLocaleDateString(), i.notas || '-', formatCurrency(i.monto_tarjeta)]);
+                doc.autoTable({ head: headTarjeta, body: bodyTarjeta, startY: startY + 2 });
+
+                startY = doc.autoTable.previous.finalY + 5;
+                doc.setFontSize(12); doc.setFont(undefined, 'bold');
+                doc.text('Total Tarjeta/Transf.:', 14, startY);
+                doc.text(formatCurrency(totalTarjeta), 200, startY, { align: 'right' });
+                startY += 15;
+                
+                if (startY > 250) { doc.addPage(); startY = 20; }
+
+                doc.setLineWidth(0.5); doc.line(14, startY, 200, startY); startY += 10;
+                doc.setFontSize(14); doc.setFont(undefined, 'bold');
+                doc.text('CONSOLIDADO GLOBAL', 14, startY);
+                doc.setFontSize(12); doc.setFont(undefined, 'normal');
+                doc.text(`Total Efectivo:`, 14, startY + 7);
+                doc.text(formatCurrency(totalEfectivo), 200, startY + 7, { align: 'right' });
+                doc.text(`Total Tarjeta/Transf.:`, 14, startY + 14);
+                doc.text(formatCurrency(totalTarjeta), 200, startY + 14, { align: 'right' });
+                doc.setFont(undefined, 'bold');
+                doc.text(`Venta Global:`, 14, startY + 21);
+                doc.text(formatCurrency(totalEfectivo + totalTarjeta), 200, startY + 21, { align: 'right' });
+
+
+            } else if (type === 'retiros') {
+                const head = [['Fecha', 'Retirado de', 'Descripción', 'Monto']];
+                const body = data.map(r => [r.fecha.toLocaleDateString(), r.metodo, r.descripcion, formatCurrency(r.monto)]);
                 doc.autoTable({ head, body, startY: 35 });
-            } else {
+            } else { // Gastos y Compras
                 const groupKey = type === 'gastos' ? 'categoria' : 'proveedor';
                 const groupedData = data.reduce((acc, item) => {
                     const key = item[groupKey];
@@ -737,45 +786,30 @@
                 }, {});
 
                 let grandTotal = 0;
-                let startY = 35;
-
                 for (const groupName in groupedData) {
+                    if (startY > 250) { doc.addPage(); startY = 20; }
                     const items = groupedData[groupName];
                     const subTotal = items.reduce((sum, item) => sum + item.monto, 0);
                     grandTotal += subTotal;
-
-                    doc.setFontSize(14);
-                    doc.setFont(undefined, 'bold');
-                    doc.text(groupName, 14, startY);
-                    
+                    doc.setFontSize(14); doc.setFont(undefined, 'bold'); doc.text(groupName, 14, startY);
                     const head = type === 'gastos' ? [['Fecha', 'Descripción', 'Monto']] : [['Fecha', 'Descripción', 'Pagado con', 'Monto']];
-                    const body = items.map(item => type === 'gastos'
-                        ? [item.fecha.toLocaleDateString(), item.descripcion, formatCurrency(item.monto)]
-                        : [item.fecha.toLocaleDateString(), item.descripcion, item.metodo, formatCurrency(item.monto)]
-                    );
-                    
+                    const body = items.map(item => type === 'gastos' ? [item.fecha.toLocaleDateString(), item.descripcion, formatCurrency(item.monto)] : [item.fecha.toLocaleDateString(), item.descripcion, item.metodo, formatCurrency(item.monto)]);
                     doc.autoTable({ head: head, body: body, startY: startY + 2, theme: 'striped', headStyles: { fillColor: [52, 73, 94] } });
-
                     startY = doc.autoTable.previous.finalY + 2;
-                    doc.setFontSize(10);
-                    doc.setFont(undefined, 'bold');
+                    doc.setFontSize(10); doc.setFont(undefined, 'bold');
                     doc.text(`Subtotal ${groupName}: ${formatCurrency(subTotal)}`, 196, startY, { align: 'right' });
                     startY += 10;
-                    if (startY > 250) { doc.addPage(); startY = 20; }
                 }
                 
-                doc.setLineWidth(0.5);
-                doc.line(14, startY, 200, startY);
-                startY += 8;
-                doc.setFontSize(16);
-                doc.setFont(undefined, 'bold');
+                doc.setLineWidth(0.5); doc.line(14, startY, 200, startY); startY += 8;
+                doc.setFontSize(16); doc.setFont(undefined, 'bold');
                 doc.text('GRAN TOTAL:', 14, startY);
                 doc.text(formatCurrency(grandTotal), 200, startY, { align: 'right' });
             }
             doc.save(`Informe_${type}_${formatDateForInput(new Date())}.pdf`);
         };
+        // ========== FIN DE LA MODIFICACIÓN ==========
 
-        // ========== INICIO DE LA MODIFICACIÓN: Nueva función para PDF de Deudas ==========
         const exportDeudasPDF = (type) => {
             const doc = new jsPDF();
             const genDate = `Generado el: ${new Date().toLocaleDateString('es-CO')}`;
@@ -855,7 +889,6 @@
                 doc.save(`Reporte_Cuentas_por_Pagar_${formatDateForInput(new Date())}.pdf`);
             }
         };
-        // ========== FIN DE LA MODIFICACIÓN ==========
 
         // --- INICIALIZACIÓN Y EVENT LISTENERS GLOBALES ---
         const initApp = () => {
