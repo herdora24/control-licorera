@@ -71,29 +71,29 @@
 
             <main>
                 <div id="resumen" class="tab-content">
-                     <div id="print-area">
-                         <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-                             <h2 class="text-2xl font-semibold text-gray-700">Resumen Financiero</h2>
-                             <div class="flex items-center space-x-2 no-print">
-                                 <label for="month-filter" class="text-sm font-medium text-gray-700">Filtrar por Mes:</label>
-                                 <input type="month" id="month-filter" class="p-2 border border-gray-300 rounded-md">
+                         <div id="print-area">
+                             <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                                 <h2 class="text-2xl font-semibold text-gray-700">Resumen Financiero</h2>
+                                 <div class="flex items-center space-x-2 no-print">
+                                     <label for="month-filter" class="text-sm font-medium text-gray-700">Filtrar por Mes:</label>
+                                     <input type="month" id="month-filter" class="p-2 border border-gray-300 rounded-md">
+                                 </div>
+                             </div>
+                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                                 <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Ingresos Totales (Mes)</h3><p id="total-ingresos" class="text-2xl font-semibold text-green-600 mt-1">$0</p></div>
+                                 <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Compras Totales (Mes)</h3><p id="total-compras" class="text-2xl font-semibold text-purple-600 mt-1">$0</p></div>
+                                 <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Gastos Op. Totales (Mes)</h3><p id="total-gastos-op" class="text-2xl font-semibold text-red-600 mt-1">$0</p></div>
+                                 <div class="card p-5 bg-blue-50 border-blue-200 border"><h3 class="text-blue-800 text-sm font-medium">Efectivo en Caja (Actual)</h3><p id="efectivo-caja" class="text-2xl font-semibold text-blue-700 mt-1">$0</p></div>
+                                 <div class="card p-5 bg-green-50 border-green-200 border"><h3 class="text-green-800 text-sm font-medium">Saldo en Banco (Actual)</h3><p id="saldo-banco" class="text-2xl font-semibold text-green-700 mt-1">$0</p></div>
+                                 <div class="card p-5 bg-yellow-50 border-yellow-200 border"><h3 class="text-yellow-800 text-sm font-medium">Cuentas por Cobrar</h3><p id="cuentas-cobrar-total" class="text-2xl font-semibold text-yellow-700 mt-1">$0</p></div>
+                                 <div class="card p-5 bg-red-50 border-red-200 border"><h3 class="text-red-800 text-sm font-medium">Cuentas por Pagar</h3><p id="cuentas-pagar-total" class="text-2xl font-semibold text-red-700 mt-1">$0</p></div>
+                                 <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Retiros del Jefe (Mes)</h3><p id="total-retiros" class="text-2xl font-semibold text-orange-500 mt-1">$0</p></div>
+                                 </div>
+                             <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                                 <div class="lg:col-span-2 card p-6"><h3 class="text-lg font-semibold text-gray-700 mb-4">Distribución de Gastos Operativos</h3><canvas id="gastos-chart"></canvas></div>
+                                 <div class="lg:col-span-3 card p-6"><h3 class="text-lg font-semibold text-gray-700 mb-4">Últimos Movimientos</h3><div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-6 py-3">Fecha</th><th class="px-6 py-3">Descripción</th><th class="px-6 py-3">Monto</th></tr></thead><tbody id="ultimos-movimientos-body"></tbody></table></div></div>
                              </div>
                          </div>
-                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                             <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Ingresos Totales (Mes)</h3><p id="total-ingresos" class="text-2xl font-semibold text-green-600 mt-1">$0</p></div>
-                             <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Compras Totales (Mes)</h3><p id="total-compras" class="text-2xl font-semibold text-purple-600 mt-1">$0</p></div>
-                             <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Gastos Op. Totales (Mes)</h3><p id="total-gastos-op" class="text-2xl font-semibold text-red-600 mt-1">$0</p></div>
-                             <div class="card p-5 bg-blue-50 border-blue-200 border"><h3 class="text-blue-800 text-sm font-medium">Efectivo en Caja (Actual)</h3><p id="efectivo-caja" class="text-2xl font-semibold text-blue-700 mt-1">$0</p></div>
-                             <div class="card p-5 bg-green-50 border-green-200 border"><h3 class="text-green-800 text-sm font-medium">Saldo en Banco (Actual)</h3><p id="saldo-banco" class="text-2xl font-semibold text-green-700 mt-1">$0</p></div>
-                             <div class="card p-5 bg-yellow-50 border-yellow-200 border"><h3 class="text-yellow-800 text-sm font-medium">Cuentas por Cobrar</h3><p id="cuentas-cobrar-total" class="text-2xl font-semibold text-yellow-700 mt-1">$0</p></div>
-                             <div class="card p-5 bg-red-50 border-red-200 border"><h3 class="text-red-800 text-sm font-medium">Cuentas por Pagar</h3><p id="cuentas-pagar-total" class="text-2xl font-semibold text-red-700 mt-1">$0</p></div>
-                             <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Retiros del Jefe (Mes)</h3><p id="total-retiros" class="text-2xl font-semibold text-orange-500 mt-1">$0</p></div>
-                             </div>
-                         <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                             <div class="lg:col-span-2 card p-6"><h3 class="text-lg font-semibold text-gray-700 mb-4">Distribución de Gastos Operativos</h3><canvas id="gastos-chart"></canvas></div>
-                             <div class="lg:col-span-3 card p-6"><h3 class="text-lg font-semibold text-gray-700 mb-4">Últimos Movimientos</h3><div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-6 py-3">Fecha</th><th class="px-6 py-3">Descripción</th><th class="px-6 py-3">Monto</th></tr></thead><tbody id="ultimos-movimientos-body"></tbody></table></div></div>
-                         </div>
-                     </div>
                 </div>
                 <div id="ingresos" class="tab-content hidden"><div class="max-w-xl mx-auto card p-8"><h2 class="text-2xl font-semibold">Registrar Venta</h2><form id="form-ingresos" class="space-y-6"><div><label for="ingreso-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="ingreso-fecha" class="mt-1 block w-full rounded-md" required></div><div><label for="ingreso-efectivo" class="block text-sm font-medium">Ventas en Efectivo</label><input type="text" data-moneda inputmode="numeric" id="ingreso-efectivo" value="0" class="mt-1 block w-full" required></div><div><label for="ingreso-tarjeta" class="block text-sm font-medium">Ventas Tarjeta/Transf.</label><input type="text" data-moneda inputmode="numeric" id="ingreso-tarjeta" value="0" class="mt-1 block w-full" required></div><div><label for="ingreso-notas" class="block text-sm font-medium">Notas</label><textarea id="ingreso-notas" rows="3" class="mt-1 block w-full"></textarea></div><button type="submit" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Ingreso</button></form></div></div>
                 <div id="compras" class="tab-content hidden"><div class="max-w-xl mx-auto card p-8"><h2 class="text-2xl font-semibold">Registrar Compra</h2><form id="form-compras" class="space-y-6"><div><label for="compra-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="compra-fecha" class="mt-1 block w-full" required></div><div><label for="compra-proveedor" class="block text-sm font-medium">Proveedor</label><input type="text" id="compra-proveedor" class="mt-1 block w-full" required></div><div><label for="compra-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="compra-descripcion" class="mt-1 block w-full" required></div><div><label for="compra-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="compra-monto" class="mt-1 block w-full" required></div><div><label for="compra-metodo" class="block text-sm font-medium">Pagado con</label><select id="compra-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div><button type="submit" class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Compra</button></form></div></div>
@@ -248,9 +248,26 @@
                 input.addEventListener('input', formatInputAsCurrency);
             });
         };
+
+        // ========== INICIO DE LA MODIFICACIÓN ==========
         const refreshUI = () => { 
+            // Esta función siempre actualiza los valores del Resumen.
             filterAndRenderDashboard(); 
+
+            // Ahora, también revisa qué pestaña está activa y la refresca.
+            // Esto asegura que si estás en "Deudas" o "Ver Registros", veas los cambios al instante.
+            const activeTabName = document.querySelector('.tab-button.active')?.dataset.tab;
+
+            if (activeTabName === 'registros') {
+                renderAllTables();
+            }
+            if (activeTabName === 'deudas') {
+                renderCuentasPorCobrar();
+                renderCuentasPorPagar();
+            }
         };
+        // ========== FIN DE LA MODIFICACIÓN ==========
+        
         const filterAndRenderDashboard = () => {
              const filterValue = document.getElementById('month-filter').value;
              let filteredData = { ...allData };
@@ -357,7 +374,7 @@
                 if (restante <= 0) return ''; 
                 return `<tr class="bg-white border-b"><td class="px-4 py-3 font-medium">${d.cliente}<p class="text-xs text-gray-500 font-normal">${d.descripcion}</p></td><td class="px-4 py-3">${formatCurrency(restante)}</td><td class="px-4 py-3"><span class="px-2 py-1 font-semibold leading-tight text-yellow-700 bg-yellow-100 rounded-full">Pendiente</span></td><td class="px-4 py-3 flex items-center gap-2"><button class="abono-btn bg-green-500 text-white text-xs px-2 py-1 rounded-md hover:bg-green-600" data-id="${d.id}">Abonar</button><button class="delete-btn action-button text-red-600" data-type="cuentasPorCobrar" data-id="${d.id}"><i class="fas fa-trash"></i></button></td></tr>`;
             }).join('');
-            tbody.innerHTML = rowsHTML;
+            tbody.innerHTML = rowsHTML || `<tr><td colspan="${headers.length}" class="text-center py-4">No hay cuentas pendientes.</td></tr>`;
         };
         const renderCuentasPorPagar = () => {
             const table = document.getElementById('tabla-cuentas-pagar');
@@ -412,11 +429,7 @@
                 dataRefs[type].child(id).remove()
                     .then(() => {
                         showNotification('Éxito', 'Registro eliminado.');
-                        if (document.getElementById('registros').offsetParent !== null) renderAllTables();
-                        if (document.getElementById('deudas').offsetParent !== null) {
-                            renderCuentasPorCobrar();
-                            renderCuentasPorPagar();
-                        }
+                        // La función refreshUI() se encarga de actualizar las tablas automáticamente
                     })
                     .catch((error) => showNotification('Error', 'No se pudo eliminar: ' + error, 'error'));
             });
@@ -540,7 +553,7 @@
                 .then(() => {
                     document.getElementById('edit-modal').style.display = 'none';
                     showNotification('Éxito', 'Registro actualizado.');
-                    if (document.getElementById('registros').offsetParent !== null) renderAllTables();
+                    // La función refreshUI() se encarga de actualizar las tablas automáticamente
                 })
                 .catch(err => {
                     showNotification('Error', `No se pudo actualizar el registro: ${err.message}`, 'error');
