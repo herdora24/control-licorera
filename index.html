@@ -694,7 +694,7 @@
 
                 const snapshot = await dataRefs[type].child(deudaId).once('value');
                 const deuda = snapshot.val();
-                if (!deuda) { throw new Error("El registro original de la deuda no fue encontrado."); }
+                if (!deuda) { throw new Error("El registro original no fue encontrado."); }
                 
                 const personKey = type === 'vales' ? 'persona' : 'cliente';
                 const personName = deuda[personKey];
@@ -1074,8 +1074,12 @@
                 else if (deleteBtn) handleDelete(deleteBtn.dataset.type, deleteBtn.dataset.id);
                 else if (pdfBtn) {
                     const type = pdfBtn.dataset.type;
-                    if (type === 'deudas-cobrar' || type === 'deudas-pagar' || type === 'vales') {
-                        exportDeudasPDF(type);
+                    if (type === 'deudas-cobrar') {
+                        exportDeudasPDF('cuentasPorCobrar');
+                    } else if (type === 'deudas-pagar') {
+                        exportDeudasPDF('cuentasPorPagar');
+                    } else if (type === 'vales') {
+                        exportDeudasPDF('vales');
                     } else {
                         exportToPDF(type);
                     }
