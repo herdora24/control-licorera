@@ -149,6 +149,31 @@
         </div>
     </div>
 
+    <div id="historial-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center p-4">
+        <div class="relative mx-auto p-8 border w-full max-w-2xl shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-2xl font-semibold mb-2" id="historial-modal-title">Historial de Abonos</h3>
+                    <p class="text-gray-600" id="historial-modal-subtitle"></p>
+                </div>
+                <button id="cancel-historial-btn" class="p-2 -mt-4 -mr-4"><i class="fas fa-times text-gray-500"></i></button>
+            </div>
+            <div class="mt-6 overflow-y-auto max-h-96">
+                <table class="w-full text-sm">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3">Fecha</th>
+                            <th class="px-4 py-3">Hora</th>
+                            <th class="px-4 py-3">Monto Abonado</th>
+                            <th class="px-4 py-3">Recibido en</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historial-abonos-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
     <script>
     document.addEventListener('DOMContentLoaded', () => {
 
@@ -248,16 +273,10 @@
                 input.addEventListener('input', formatInputAsCurrency);
             });
         };
-
-        // ========== INICIO DE LA MODIFICACIÓN ==========
+        
         const refreshUI = () => { 
-            // Esta función siempre actualiza los valores del Resumen.
             filterAndRenderDashboard(); 
-
-            // Ahora, también revisa qué pestaña está activa y la refresca.
-            // Esto asegura que si estás en "Deudas" o "Ver Registros", veas los cambios al instante.
             const activeTabName = document.querySelector('.tab-button.active')?.dataset.tab;
-
             if (activeTabName === 'registros') {
                 renderAllTables();
             }
@@ -266,7 +285,6 @@
                 renderCuentasPorPagar();
             }
         };
-        // ========== FIN DE LA MODIFICACIÓN ==========
         
         const filterAndRenderDashboard = () => {
              const filterValue = document.getElementById('month-filter').value;
@@ -361,31 +379,80 @@
             tbody.innerHTML = rowsHTML;
         };
 
+        // ========== INICIO DE LA MODIFICACIÓN: Funciones de renderizado de Deudas ==========
         const renderCuentasPorCobrar = () => {
             const table = document.getElementById('tabla-cuentas-cobrar');
-            const headers = ['Cliente', 'Debe', 'Estado', 'Acciones'];
+            const headers = ['Cliente', 'Total Deuda', 'Abonado', 'Restante', 'Acciones'];
             table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
             const tbody = table.querySelector('tbody');
             const data = allData.cuentasPorCobrar.sort((a,b) => a.cliente.localeCompare(b.cliente));
-            if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4">No hay cuentas por cobrar.</td></tr>`; return; }
-            const rowsHTML = data.map(d => {
+            
+            const pendingDebts = data.filter(d => {
+                const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
+                return d.monto - totalAbonado > 0;
+            });
+
+            if (pendingDebts.length === 0) { 
+                tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay cuentas pendientes por cobrar.</td></tr>`; 
+                return;
+            }
+
+            const rowsHTML = pendingDebts.map(d => {
                 const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
                 const restante = d.monto - totalAbonado;
-                if (restante <= 0) return ''; 
-                return `<tr class="bg-white border-b"><td class="px-4 py-3 font-medium">${d.cliente}<p class="text-xs text-gray-500 font-normal">${d.descripcion}</p></td><td class="px-4 py-3">${formatCurrency(restante)}</td><td class="px-4 py-3"><span class="px-2 py-1 font-semibold leading-tight text-yellow-700 bg-yellow-100 rounded-full">Pendiente</span></td><td class="px-4 py-3 flex items-center gap-2"><button class="abono-btn bg-green-500 text-white text-xs px-2 py-1 rounded-md hover:bg-green-600" data-id="${d.id}">Abonar</button><button class="delete-btn action-button text-red-600" data-type="cuentasPorCobrar" data-id="${d.id}"><i class="fas fa-trash"></i></button></td></tr>`;
+                
+                return `<tr class="bg-white border-b hover:bg-gray-50">
+                    <td class="px-4 py-3 font-medium">${d.cliente}<p class="text-xs text-gray-500 font-normal">${d.descripcion}</p></td>
+                    <td class="px-4 py-3">${formatCurrency(d.monto)}</td>
+                    <td class="px-4 py-3 text-green-600">${formatCurrency(totalAbonado)}</td>
+                    <td class="px-4 py-3 font-bold">${formatCurrency(restante)}</td>
+                    <td class="px-4 py-3 flex items-center gap-1">
+                        <button class="historial-btn bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-md hover:bg-blue-200" data-id="${d.id}">Historial</button>
+                        <button class="abono-btn bg-green-500 text-white text-xs px-2 py-1 rounded-md hover:bg-green-600" data-id="${d.id}">Abonar</button>
+                        <button class="delete-btn action-button text-red-600" data-type="cuentasPorCobrar" data-id="${d.id}"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>`;
             }).join('');
-            tbody.innerHTML = rowsHTML || `<tr><td colspan="${headers.length}" class="text-center py-4">No hay cuentas pendientes.</td></tr>`;
+            tbody.innerHTML = rowsHTML;
         };
+        
         const renderCuentasPorPagar = () => {
             const table = document.getElementById('tabla-cuentas-pagar');
             const headers = ['Proveedor', 'Concepto', 'Monto', 'Estado', 'Acciones'];
             table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
             const tbody = table.querySelector('tbody');
-            const data = allData.cuentasPorPagar.filter(d => d.estado !== 'Pagada').sort((a,b) => a.acreedor.localeCompare(b.acreedor));
-            if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4">No hay cuentas por pagar.</td></tr>`; return; }
-            const rowsHTML = data.map(d => `<tr class="bg-white border-b"><td class="px-4 py-3 font-medium">${d.acreedor}</td><td class="px-4 py-3">${d.descripcion}</td><td class="px-4 py-3">${formatCurrency(d.monto)}</td><td class="px-4 py-3"><span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full">Pendiente</span></td><td class="px-4 py-3 flex items-center gap-2"><button class="pagar-btn bg-blue-500 text-white text-xs px-2 py-1 rounded-md hover:bg-blue-600" data-id="${d.id}">Pagar</button><button class="delete-btn action-button text-red-600" data-type="cuentasPorPagar" data-id="${d.id}"><i class="fas fa-trash"></i></button></td></tr>`).join('');
+            const data = allData.cuentasPorPagar.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+
+            if (data.length === 0) { 
+                tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay cuentas por pagar.</td></tr>`; 
+                return;
+            }
+
+            const rowsHTML = data.map(d => {
+                const isPaid = d.estado === 'Pagada';
+                const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white';
+                const textStyle = isPaid ? 'line-through' : '';
+                const statusBadge = isPaid 
+                    ? `<span class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Pagada</span>`
+                    : `<span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full">Pendiente</span>`;
+                const actionButtons = isPaid 
+                    ? `<span class="text-xs text-gray-400">Completado</span>` 
+                    : `<div class="flex items-center gap-2">
+                        <button class="pagar-btn bg-blue-500 text-white text-xs px-2 py-1 rounded-md hover:bg-blue-600" data-id="${d.id}">Pagar</button>
+                        <button class="delete-btn action-button text-red-600" data-type="cuentasPorPagar" data-id="${d.id}"><i class="fas fa-trash"></i></button>
+                       </div>`;
+
+                return `<tr class="${rowClass} border-b">
+                    <td class="px-4 py-3 font-medium ${textStyle}">${d.acreedor}</td>
+                    <td class="px-4 py-3 ${textStyle}">${d.descripcion}</td>
+                    <td class="px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td>
+                    <td class="px-4 py-3">${statusBadge}</td>
+                    <td class="px-4 py-3">${actionButtons}</td>
+                </tr>`;
+            }).join('');
             tbody.innerHTML = rowsHTML;
         };
+        // ========== FIN DE LA MODIFICACIÓN ==========
         
         // --- MANEJO DE FORMULARIOS (ESCRIBEN EN FIREBASE) ---
         const setFormDatesToToday = () => {
@@ -429,7 +496,6 @@
                 dataRefs[type].child(id).remove()
                     .then(() => {
                         showNotification('Éxito', 'Registro eliminado.');
-                        // La función refreshUI() se encarga de actualizar las tablas automáticamente
                     })
                     .catch((error) => showNotification('Error', 'No se pudo eliminar: ' + error, 'error'));
             });
@@ -441,6 +507,36 @@
             modal.style.display = 'flex';
             addCurrencyFormatting(modal); 
         };
+
+        // ========== INICIO DE LA MODIFICACIÓN: Función para mostrar historial ==========
+        const handleHistorial = (deudaId) => {
+            const deuda = allData.cuentasPorCobrar.find(d => d.id === deudaId);
+            if (!deuda) return;
+
+            const modal = document.getElementById('historial-modal');
+            const subtitle = document.getElementById('historial-modal-subtitle');
+            const tbody = document.getElementById('historial-abonos-body');
+
+            subtitle.textContent = `Cliente: ${deuda.cliente} | Deuda Total: ${formatCurrency(deuda.monto)}`;
+            
+            const abonos = (deuda.abonos || []).sort((a,b) => b.fecha - a.fecha);
+
+            if (abonos.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">No se han registrado abonos para esta deuda.</td></tr>`;
+            } else {
+                tbody.innerHTML = abonos.map(abono => {
+                    return `<tr class="border-b">
+                        <td class="px-4 py-3">${abono.fecha.toLocaleDateString('es-CO')}</td>
+                        <td class="px-4 py-3">${abono.fecha.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</td>
+                        <td class="px-4 py-3 font-medium">${formatCurrency(abono.monto)}</td>
+                        <td class="px-4 py-3">${abono.metodo}</td>
+                    </tr>`;
+                }).join('');
+            }
+            modal.style.display = 'flex';
+        };
+        // ========== FIN DE LA MODIFICACIÓN ==========
+
 
         document.getElementById('save-abono-btn').addEventListener('click', () => {
             const deudaId = document.getElementById('abono-deuda-id').value;
@@ -553,7 +649,6 @@
                 .then(() => {
                     document.getElementById('edit-modal').style.display = 'none';
                     showNotification('Éxito', 'Registro actualizado.');
-                    // La función refreshUI() se encarga de actualizar las tablas automáticamente
                 })
                 .catch(err => {
                     showNotification('Error', `No se pudo actualizar el registro: ${err.message}`, 'error');
@@ -592,6 +687,7 @@
         document.getElementById('cancel-edit-btn').onclick = () => document.getElementById('edit-modal').style.display = 'none';
         document.getElementById('cancel-abono-btn').onclick = () => document.getElementById('abono-modal').style.display = 'none';
         document.getElementById('cancel-password-btn').onclick = () => document.getElementById('password-modal').style.display = 'none';
+        document.getElementById('cancel-historial-btn').onclick = () => document.getElementById('historial-modal').style.display = 'none';
 
         // --- EXPORTAR A PDF ---
         const exportToPDF = (type) => {
@@ -702,6 +798,7 @@
                 const abonoBtn = target.closest('.abono-btn');
                 const pagarBtn = target.closest('.pagar-btn');
                 const settingsBtn = target.closest('#settings-btn');
+                const historialBtn = target.closest('.historial-btn');
                 
                 if (tabBtn) changeTab(tabBtn.dataset.tab);
                 else if (editBtn) handleEdit(editBtn.dataset.type, editBtn.dataset.id);
@@ -709,6 +806,7 @@
                 else if (pdfBtn) exportToPDF(pdfBtn.dataset.type);
                 else if (abonoBtn) handleAbonar(abonoBtn.dataset.id);
                 else if (pagarBtn) handlePagar(pagarBtn.dataset.id);
+                else if (historialBtn) handleHistorial(historialBtn.dataset.id);
                 else if (settingsBtn) {
                     document.getElementById('form-password').reset();
                     document.getElementById('password-error').classList.add('hidden');
