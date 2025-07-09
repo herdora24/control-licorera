@@ -455,7 +455,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (activeTabName === 'vales') renderVales();
     };
     
-    const filterAndRenderDashboard = () => {
+const filterAndRenderDashboard = () => {
         if (!periods || periods.length === 0) return;
 
         let filterValue = document.getElementById('month-filter').value;
@@ -487,13 +487,17 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 filteredData[key] = [];
             }
-            console.log("--- DEBUG PARA EL RESUMEN ---");
-console.log("Periodo seleccionado:", selectedPeriod);
-console.log("Ingresos filtrados para el resumen:", filteredData.ingresos);
-console.log("Compras filtradas para el resumen:", filteredData.compras);
-console.log("Gastos filtrados para el resumen:", filteredData.gastos);
-console.log("-------------------------------");
         });
+
+        // --- INICIO DEL BLOQUE DE DEPURACIÓN ---
+        console.log("--- DEBUG PARA EL RESUMEN ---");
+        console.log("Periodo seleccionado:", selectedPeriod);
+        console.log("Ingresos filtrados para el resumen:", filteredData.ingresos);
+        console.log("Compras filtradas para el resumen:", filteredData.compras);
+        console.log("Gastos filtrados para el resumen:", filteredData.gastos);
+        console.log("-------------------------------");
+        // --- FIN DEL BLOQUE DE DEPURACIÓN ---
+
         updateDashboard(filteredData.ingresos, filteredData.compras, filteredData.gastos, filteredData.retiros, allData.cuentasPorCobrar, allData.cuentasPorPagar);
     };
 
