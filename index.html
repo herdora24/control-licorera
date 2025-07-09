@@ -349,45 +349,49 @@ document.addEventListener('DOMContentLoaded', () => {
         detachAllListeners();
         allData = {};
         
-        const allDataTypes = ['periods', 'ingresos', 'compras', 'gastos', 'retiros', 'cuentasPorCobrar', 'cuentasPorPagar', 'vales'];
-        let loadedDataStatus = allDataTypes.reduce((acc, type) => ({...acc, [type]: false }), {});
+        const dataTypesWithPeriods = ['periods', ...dataTypes];
+        let initialLoadCompleted = false;
+        let loadedCount = 0;
 
-        const checkIfAllDataIsLoaded = () => {
-            // Revisa si todos los valores en el objeto son 'true'
-            if (Object.values(loadedDataStatus).every(status => status === true)) {
-                refreshUI();
+        const checkInitialLoad = () => {
+            if (initialLoadCompleted) {
+                // Si la carga inicial ya se completó, cualquier actualización de datos refresca la UI.
+                refreshUI(); 
+            } else {
+                // Si aún estamos en la carga inicial, contamos hasta que lleguen todos los datos.
+                loadedCount++;
+                if (loadedCount >= dataTypesWithPeriods.length) {
+                    initialLoadCompleted = true;
+                    refreshUI(); // Esta es la primera vez que se refresca, con todos los datos listos.
+                }
             }
         };
 
         // Listener para los periodos
         const periodsRef = database.ref(`businesses/${selectedBusinessId}/periods`);
         const periodsListener = periodsRef.on('value', async (snapshot) => {
-            if (!snapshot.exists()) {
-                const now = new Date();
+            // Si no existen periodos y es la primera carga, crea uno.
+            if (!snapshot.exists() && !initialLoadCompleted) {
                 const initialPeriod = {
-                    startDate: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(),
-                    endDate: null,
-                    monthKey: now.toISOString().slice(0, 7)
+                     startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString(),
+                     endDate: null,
+                     monthKey: new Date().toISOString().slice(0, 7)
                 };
                 await periodsRef.push(initialPeriod);
-                // La función se volverá a llamar sola una vez creado el periodo
+                // El listener se llamará de nuevo automáticamente cuando se cree el periodo.
             } else {
-                periods = firebaseObjectToArray(snapshot);
+                 periods = firebaseObjectToArray(snapshot);
+                 checkInitialLoad();
             }
-            loadedDataStatus.periods = true;
-            checkIfAllDataIsLoaded();
         });
         dataListeners.push({ ref: periodsRef, listener: periodsListener });
 
-
-        // Listeners para el resto de los datos
-        const otherDataTypes = dataTypes.filter(t => t !== 'periods');
-        otherDataTypes.forEach(type => {
+        // Listeners para todos los demás tipos de datos (ingresos, compras, etc.)
+        dataTypes.forEach(type => {
             const ref = database.ref(`businesses/${selectedBusinessId}/${type}`);
             const listener = ref.on('value', snapshot => {
                 allData[type] = firebaseObjectToArray(snapshot);
-                loadedDataStatus[type] = true;
-                checkIfAllDataIsLoaded();
+                checkInitialLoad();
             });
             dataListeners.push({ ref, listener });
         });
@@ -487,13 +491,14 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDashboard(filteredData.ingresos, filteredData.compras, filteredData.gastos, filteredData.retiros, allData.cuentasPorCobrar, allData.cuentasPorPagar);
     };
 
-   const updateDashboard = (ingresos, compras, gastos, retiros, cpc, cpp) => {
+  const updateDashboard = (ingresos, compras, gastos, retiros, cpc, cpp) => {
+        // Se asegura de que todos los montos se traten como números para evitar errores de cálculo.
         const totalIngresosMes = (ingresos || []).reduce((sum, item) => sum + Number(item.monto || 0), 0);
         const totalComprasMes = (compras || []).reduce((sum, item) => sum + Number(item.monto || 0), 0);
         const totalGastosOpMes = (gastos || []).reduce((sum, item) => sum + Number(item.monto || 0), 0);
         const totalRetirosMes = (retiros || []).reduce((sum, item) => sum + Number(item.monto || 0), 0);
         
-        // Los totales de caja y banco son siempre globales
+        // El resto de los totales son globales y se calculan a partir de 'allData'
         const totalIngresosEfectivo = (allData.ingresos || []).reduce((sum, i) => sum + Number(i.monto_efectivo || 0), 0);
         const totalIngresosBanco = (allData.ingresos || []).reduce((sum, i) => sum + Number(i.monto_tarjeta || 0), 0);
         const totalComprasEfectivo = (allData.compras || []).filter(c => c.metodo === 'Efectivo').reduce((sum, c) => sum + Number(c.monto || 0), 0);
@@ -505,10 +510,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const efectivoEnCaja = totalIngresosEfectivo - totalComprasEfectivo - totalGastosOp - totalRetirosEfectivo;
         const saldoEnBanco = totalIngresosBanco - totalComprasBanco - totalRetirosBanco;
         
-        // Deudas y vales son siempre globales
-        const totalCPC = (cpc || []).reduce((sum, d) => sum + (Number(d.monto || 0) - ((d.abonos || []).reduce((s, a) => s + Number(a.monto || 0), 0))), 0);
-        const totalCPP = (cpp || []).filter(d => d.estado !== 'Pagada').reduce((sum, d) => sum + Number(d.monto || 0), 0);
+        const totalCPC = (allData.cuentasPorCobrar || []).reduce((sum, d) => sum + (Number(d.monto || 0) - ((d.abonos || []).reduce((s, a) => s + Number(a.monto || 0), 0))), 0);
+        const totalCPP = (allData.cuentasPorPagar || []).filter(d => d.estado !== 'Pagada').reduce((sum, d) => sum + Number(d.monto || 0), 0);
         
+        // Actualiza la UI
         document.getElementById('total-ingresos').textContent = formatCurrency(totalIngresosMes);
         document.getElementById('total-compras').textContent = formatCurrency(totalComprasMes);
         document.getElementById('total-gastos-op').textContent = formatCurrency(totalGastosOpMes);
