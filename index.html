@@ -1,3 +1,8 @@
+Entendido. He analizado tu código, identifiqué las áreas a corregir y las funcionalidades faltantes (Editar y Exportar a PDF).
+
+Aquí tienes el código completo y corregido. Simplemente copia y pega.
+
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -56,7 +61,7 @@
             <h2 class="text-2xl font-bold text-gray-800 text-center">Seleccionar Negocio</h2>
             <p class="text-gray-500 text-sm text-center mb-6">Elige el local que deseas gestionar.</p>
             <div id="business-list" class="space-y-3">
-                </div>
+            </div>
             <div class="mt-6 text-center">
                  <button id="logout-btn-selector" class="text-sm text-gray-600 hover:text-indigo-600">Cerrar Sesión</button>
             </div>
@@ -69,12 +74,12 @@
                  <h1 id="app-title" class="text-3xl md:text-4xl font-bold text-gray-800">📊 Gestión Financiera</h1>
                  <p class="text-gray-600 mt-2">Control de Flujo de Dinero, Compras, Gastos y Deudas.</p>
                  <div class="absolute top-0 right-0 flex items-center space-x-2">
-                     <button id="switch-business-btn" class="hidden action-button text-gray-500 hover:text-indigo-600 text-2xl" title="Cambiar de Negocio">
-                        <i class="fas fa-exchange-alt"></i>
-                     </button>
-                     <button id="logout-btn-main" class="action-button text-gray-500 hover:text-red-600 text-2xl" title="Cerrar Sesión">
-                         <i class="fas fa-sign-out-alt"></i>
-                     </button>
+                      <button id="switch-business-btn" class="hidden action-button text-gray-500 hover:text-indigo-600 text-2xl" title="Cambiar de Negocio">
+                          <i class="fas fa-exchange-alt"></i>
+                      </button>
+                      <button id="logout-btn-main" class="action-button text-gray-500 hover:text-red-600 text-2xl" title="Cerrar Sesión">
+                          <i class="fas fa-sign-out-alt"></i>
+                      </button>
                  </div>
             </header>
 
@@ -95,16 +100,16 @@
                 <div id="resumen" class="tab-content">
                          <div id="print-area">
                              <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-                                <div>
+                                 <div>
                                      <h2 class="text-2xl font-semibold text-gray-700">Resumen del Periodo</h2>
                                      <p id="period-display" class="text-sm text-gray-500 mt-1">Calculando periodo...</p>
-                                </div>
-                                <div class="flex items-center space-x-4 no-print">
-                                    <input type="month" id="month-filter" class="p-2 border border-gray-300 rounded-md">
-                                    <button id="close-period-btn" class="bg-indigo-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
-                                        <i class="fas fa-calendar-check mr-2"></i>Realizar Corte de Mes
-                                    </button>
-                                </div>
+                                 </div>
+                                 <div class="flex items-center space-x-4 no-print">
+                                     <input type="month" id="month-filter" class="p-2 border border-gray-300 rounded-md">
+                                     <button id="close-period-btn" class="bg-indigo-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                                         <i class="fas fa-calendar-check mr-2"></i>Realizar Corte de Mes
+                                     </button>
+                                 </div>
                              </div>
                              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                                  <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Ingresos Totales (Periodo)</h3><p id="total-ingresos" class="text-2xl font-semibold text-green-600 mt-1">$0</p></div>
@@ -202,7 +207,7 @@
         </div>
     </div>
     
-    <div id="abono-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center p-4"><div class="relative mx-auto p-8 border w-full max-w-md shadow-lg rounded-md bg-white"><h3 class="text-2xl font-semibold mb-6" id="abono-modal-title">Registrar Abono</h3><form id="form-abono"><input type="hidden" id="abono-deuda-id"><input type="hidden" id="abono-type"><div><label class="block text-sm font-medium">Monto a Abonar</label><input type="text" data-moneda inputmode="numeric" id="abono-monto" class="mt-1 block w-full" required></div><div><label class="block text-sm font-medium">Recibido en</label><select id="abono-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div></form><div class="flex justify-end items-center mt-6 space-x-4"><button id="cancel-abono-btn" class="px-4 py-2 bg-gray-200 rounded-md">Cancelar</button><button id="save-abono-btn" class="px-4 py-2 bg-green-600 text-white rounded-md">Registrar Abono</button></div></div></div>
+    <div id="abono-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center p-4"><div class="relative mx-auto p-8 border w-full max-w-md shadow-lg rounded-md bg-white"><h3 class="text-2xl font-semibold mb-6" id="abono-modal-title">Registrar Abono</h3><form id="form-abono"><input type="hidden" id="abono-deuda-id"><input type="hidden" id="abono-type"><div><label class="block text-sm font-medium">Monto a Abonar</label><input type="text" data-moneda inputmode="numeric" id="abono-monto" class="mt-1 block w-full" required></div><div class="mt-4"><label class="block text-sm font-medium">Recibido en</label><select id="abono-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div></form><div class="flex justify-end items-center mt-6 space-x-4"><button id="cancel-abono-btn" class="px-4 py-2 bg-gray-200 rounded-md">Cancelar</button><button id="save-abono-btn" class="px-4 py-2 bg-green-600 text-white rounded-md">Registrar Abono</button></div></div></div>
     <div id="notification-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center"><div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white"><div class="mt-3 text-center"><div id="notification-icon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full"></div><h3 id="notification-title" class="text-lg leading-6 font-medium text-gray-900"></h3><div class="mt-2 px-7 py-3"><p id="notification-message" class="text-sm text-gray-500"></p></div><div class="items-center px-4 py-3"><button id="notification-close" class="px-4 py-2 bg-indigo-500 text-white text-base font-medium rounded-md w-full">Cerrar</button></div></div></div></div>
     <div id="confirm-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center"><div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white"><div class="mt-3 text-center"><div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100"><i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i></div><h3 id="confirm-title" class="text-lg leading-6 font-medium text-gray-900 mt-4"></h3><div id="confirm-message-container" class="mt-2 px-7 py-3"><p id="confirm-message" class="text-sm text-gray-500"></p></div><div class="flex justify-center items-center px-4 py-3 space-x-4"><button id="cancel-confirm-btn" class="px-4 py-2 bg-gray-200 rounded-md w-full">Cancelar</button><button id="confirm-btn" class="px-4 py-2 bg-red-600 text-white rounded-md w-full">Confirmar</button></div></div></div></div>
     <div id="edit-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center overflow-y-auto p-4"><div class="relative mx-auto p-8 border w-full max-w-xl shadow-lg rounded-md bg-white"><h3 id="edit-modal-title" class="text-2xl font-semibold mb-6"></h3><form id="edit-form" class="space-y-4"></form><div class="flex justify-end items-center mt-6 space-x-4"><button id="cancel-edit-btn" class="px-4 py-2 bg-gray-200 rounded-md">Cancelar</button><button id="save-edit-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-md">Guardar Cambios</button></div></div></div>
@@ -240,6 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentUserProfile = null;
     let selectedBusinessId = null;
     let periods = [];
+    let currentBusinessName = '';
 
     const dataTypes = ['ingresos', 'compras', 'gastos', 'retiros', 'cuentasPorCobrar', 'cuentasPorPagar', 'vales'];
 
@@ -318,8 +324,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const businessNameRef = database.ref(`businesses/${businessId}/name`);
         const snapshot = await businessNameRef.once('value');
-        const businessName = snapshot.val();
-        document.getElementById('app-title').textContent = `📊 Gestión: ${businessName}`;
+        currentBusinessName = snapshot.val();
+        document.getElementById('app-title').textContent = `📊 Gestión: ${currentBusinessName}`;
 
         const switchBtn = document.getElementById('switch-business-btn');
         if (currentUserProfile.role === 'owner') {
@@ -352,11 +358,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const periodsRef = database.ref(`businesses/${selectedBusinessId}/periods`);
         const periodsListener = periodsRef.on('value', async (snapshot) => {
             if (!snapshot.exists()) {
-                // Si no hay periodos, crea el inicial
+                const now = new Date();
                 const initialPeriod = {
-                    startDate: new Date(2000, 0, 1).toISOString(), // Una fecha muy antigua
+                    startDate: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(),
                     endDate: null,
-                    monthKey: new Date().toISOString().slice(0, 7) // Clave del mes actual
+                    monthKey: now.toISOString().slice(0, 7) 
                 };
                 await periodsRef.push(initialPeriod);
             } else {
@@ -403,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const now = new Date();
         const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-        const monthName = monthNames[now.getMonth()];
+        const monthName = monthNames[new Date(activePeriod.startDate).getMonth()];
 
         showConfirm('Confirmar Corte de Mes', `¿Estás seguro de que quieres cerrar el periodo contable de ${monthName}? Esta acción no se puede deshacer.`, () => {
             const periodRef = database.ref(`businesses/${selectedBusinessId}/periods`);
@@ -415,7 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const newPeriod = {
                 startDate: now.toISOString(),
                 endDate: null,
-                monthKey: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString().slice(0, 7) // Clave del siguiente mes
+                monthKey: now.toISOString().slice(0, 7)
             };
             periodRef.push(newPeriod);
 
@@ -438,9 +444,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!periods || periods.length === 0) return;
 
         let filterValue = document.getElementById('month-filter').value;
+        if (!filterValue) {
+            const now = new Date();
+            filterValue = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            document.getElementById('month-filter').value = filterValue;
+        }
+        
         const [year, month] = filterValue.split('-').map(Number);
 
-        // Encontrar el periodo que corresponde al mes seleccionado
         const selectedPeriod = periods.find(p => {
             const start = new Date(p.startDate);
             return start.getFullYear() === year && (start.getMonth() + 1) === month;
@@ -449,12 +460,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const periodDisplay = document.getElementById('period-display');
         if (!selectedPeriod) {
             periodDisplay.textContent = `No hay datos para ${filterValue}.`;
-            updateDashboard([], [], [], [], allData.cuentasPorCobrar, allData.cuentasPorPagar); // Limpiar dashboard
+            updateDashboard([], [], [], [], allData.cuentasPorCobrar, allData.cuentasPorPagar);
             return;
         }
 
         const startDate = new Date(selectedPeriod.startDate);
-        const endDate = selectedPeriod.endDate ? new Date(selectedPeriod.endDate) : new Date(); // Si no hay fin, es hasta ahora
+        const endDate = selectedPeriod.endDate ? new Date(selectedPeriod.endDate) : new Date();
 
         periodDisplay.textContent = `Mostrando: ${startDate.toLocaleDateString()} - ${selectedPeriod.endDate ? endDate.toLocaleDateString() : 'Presente'}`;
 
@@ -490,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Deudas y vales son siempre globales
         const totalCPC = (cpc || []).reduce((sum, d) => sum + (d.monto - ((d.abonos || []).reduce((s, a) => s + a.monto, 0))), 0);
-        const totalCPP = (cpp || []).filter(d => d.estado !== 'Pagada').reduce((sum, d) => sum + d.monto, 0);
+        const totalCPP = (cpp || []).filter(d => d.estado !== 'Pagada').reduce((sum, d) => sum + (d.monto - ((d.abonos || []).reduce((s, a) => s + a.monto, 0))), 0);
         
         document.getElementById('total-ingresos').textContent = formatCurrency(totalIngresosMes);
         document.getElementById('total-compras').textContent = formatCurrency(totalComprasMes);
@@ -524,11 +535,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // =========================================================================
-    // LÓGICA DE FORMULARIOS Y ACCIONES (El resto del código es mayormente igual)
+    // LÓGICA DE FORMULARIOS Y ACCIONES
     // =========================================================================
     
-    // El resto de las funciones (renderTable, formatCurrency, etc.) y los event listeners
-    // son prácticamente idénticos a la versión anterior, pero se incluyen aquí para la completitud.
     const changeTab = (tabName) => {
         setFormDatesToToday();
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
@@ -542,7 +551,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const formatCurrency = (value) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value || 0);
-    const formatDateForInput = (date) => new Date(date).toISOString().split('T')[0];
+    const formatDateForInput = (date) => new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
     
     const formatInputAsCurrency = (e) => {
         let input = e.target;
@@ -575,11 +584,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     const renderTable = (type, tableEl, headers) => {
-        const data = (allData[type] || []).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+        const data = (allData[type] || []).sort((a, b) => b.fecha - a.fecha);
         tableEl.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
         const tbody = tableEl.querySelector('tbody');
         if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay registros de ${type}.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay registros.</td></tr>`;
             return;
         }
         const rowsHTML = data.map(item => {
@@ -588,7 +597,7 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (type === 'compras') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString()}</td><td class="px-4 py-3">${item.proveedor}</td><td class="px-4 py-3">${item.descripcion}</td><td class="px-4 py-3">${formatCurrency(item.monto)}</td><td class="px-4 py-3">${item.metodo}</td>`;
             else if (type === 'gastos') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString()}</td><td class="px-4 py-3">${item.descripcion}</td><td class="px-4 py-3">${item.categoria}</td><td class="px-4 py-3">${formatCurrency(item.monto)}</td>`;
             else if (type === 'retiros') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString()}</td><td class="px-4 py-3">${item.metodo}</td><td class="px-4 py-3">${item.descripcion}</td><td class="px-4 py-3">${formatCurrency(item.monto)}</td>`;
-            cellsHTML += `<td class="px-4 py-3 flex items-center space-x-2"><button class="action-button text-red-600 delete-btn" data-type="${type}" data-id="${item.id}"><i class="fas fa-trash"></i></button></td>`;
+            cellsHTML += `<td class="px-4 py-3 flex items-center space-x-1"><button class="action-button text-blue-600 edit-btn" data-type="${type}" data-id="${item.id}"><i class="fas fa-pencil-alt"></i></button><button class="action-button text-red-600 delete-btn" data-type="${type}" data-id="${item.id}"><i class="fas fa-trash"></i></button></td>`;
             return `<tr class="bg-white border-b hover:bg-gray-50">${cellsHTML}</tr>`;
         }).join('');
         tbody.innerHTML = rowsHTML;
@@ -635,7 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const headers = ['Proveedor', 'Concepto', 'Monto', 'Estado', 'Acciones'];
         table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
         const tbody = table.querySelector('tbody');
-        const data = (allData.cuentasPorPagar || []).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+        const data = (allData.cuentasPorPagar || []).sort((a,b) => b.fecha - a.fecha);
 
         if (data.length === 0) { 
             tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay cuentas por pagar.</td></tr>`; 
@@ -652,9 +661,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const actionButtons = isPaid 
                 ? `<span class="text-xs text-gray-400">Completado</span>` 
                 : `<div class="flex items-center gap-2">
-                    <button class="pagar-btn bg-blue-500 text-white text-xs px-2 py-1 rounded-md hover:bg-blue-600" data-id="${d.id}">Pagar</button>
-                    <button class="delete-btn action-button text-red-600" data-type="cuentasPorPagar" data-id="${d.id}"><i class="fas fa-trash"></i></button>
-                   </div>`;
+                     <button class="pagar-btn bg-blue-500 text-white text-xs px-2 py-1 rounded-md hover:bg-blue-600" data-id="${d.id}">Pagar</button>
+                     <button class="delete-btn action-button text-red-600" data-type="cuentasPorPagar" data-id="${d.id}"><i class="fas fa-trash"></i></button>
+                    </div>`;
 
             return `<tr class="${rowClass} border-b">
                 <td class="px-4 py-3 font-medium ${textStyle}">${d.acreedor}</td>
@@ -672,7 +681,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const headers = ['Persona', 'Total Vale', 'Abonado', 'Restante', 'Acciones'];
         table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
         const tbody = table.querySelector('tbody');
-        const data = (allData.vales || []).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+        const data = (allData.vales || []).sort((a,b) => b.fecha - a.fecha);
 
         if (data.length === 0) { 
             tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay vales registrados.</td></tr>`; 
@@ -726,13 +735,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const getRefFor = (type) => database.ref(`businesses/${selectedBusinessId}/${type}`);
 
-    document.getElementById('form-ingresos').addEventListener('submit', (e) => { e.preventDefault(); const ef = getNumericValue(document.getElementById('ingreso-efectivo').value); const ta = getNumericValue(document.getElementById('ingreso-tarjeta').value); const newData = { fecha: getTimestampFromDateInput('ingreso-fecha'), monto: ef + ta, monto_efectivo: ef, monto_tarjeta: ta, notas: document.getElementById('ingreso-notas').value }; getRefFor('ingresos').push(newData); showNotification('Éxito', 'Ingreso registrado.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); });
-    document.getElementById('form-compras').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: getTimestampFromDateInput('compra-fecha'), proveedor: document.getElementById('compra-proveedor').value, descripcion: document.getElementById('compra-descripcion').value, monto: getNumericValue(document.getElementById('compra-monto').value), metodo: document.getElementById('compra-metodo').value }; getRefFor('compras').push(newData); showNotification('Éxito', 'Compra registrada.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); });
-    document.getElementById('form-gastos').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: getTimestampFromDateInput('gasto-fecha'), descripcion: document.getElementById('gasto-descripcion').value, categoria: document.getElementById('gasto-categoria').value, monto: getNumericValue(document.getElementById('gasto-monto').value) }; getRefFor('gastos').push(newData); showNotification('Éxito', 'Gasto registrado.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); });
-    document.getElementById('form-retiros').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: getTimestampFromDateInput('retiro-fecha'), metodo: document.getElementById('retiro-metodo').value, descripcion: document.getElementById('retiro-descripcion').value, monto: getNumericValue(document.getElementById('retiro-monto').value) }; getRefFor('retiros').push(newData); showNotification('Éxito', 'Retiro registrado.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); });
-    document.getElementById('form-cuentas-cobrar').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: new Date().toISOString(), cliente: document.getElementById('cpc-cliente').value, descripcion: document.getElementById('cpc-descripcion').value, monto: getNumericValue(document.getElementById('cpc-monto').value), abonos: {} }; getRefFor('cuentasPorCobrar').push(newData); showNotification('Éxito', 'Deuda por cobrar registrada.'); e.target.reset(); addCurrencyFormatting(e.target); });
-    document.getElementById('form-cuentas-pagar').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: new Date().toISOString(), acreedor: document.getElementById('cpp-acreedor').value, descripcion: document.getElementById('cpp-descripcion').value, monto: getNumericValue(document.getElementById('cpp-monto').value), estado: 'Pendiente' }; getRefFor('cuentasPorPagar').push(newData); showNotification('Éxito', 'Cuenta por pagar registrada.'); e.target.reset(); addCurrencyFormatting(e.target); });
-    document.getElementById('form-vales').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: new Date().toISOString(), persona: document.getElementById('vale-persona').value, descripcion: document.getElementById('vale-descripcion').value, monto: getNumericValue(document.getElementById('vale-monto').value), abonos: {} }; getRefFor('vales').push(newData); showNotification('Éxito', 'Vale registrado correctamente.'); e.target.reset(); addCurrencyFormatting(e.target); });
+    document.getElementById('form-ingresos').addEventListener('submit', (e) => { e.preventDefault(); const ef = getNumericValue(document.getElementById('ingreso-efectivo').value); const ta = getNumericValue(document.getElementById('ingreso-tarjeta').value); const newData = { fecha: getTimestampFromDateInput('ingreso-fecha'), monto: ef + ta, monto_efectivo: ef, monto_tarjeta: ta, notas: document.getElementById('ingreso-notas').value }; getRefFor('ingresos').push(newData).then(() => { showNotification('Éxito', 'Ingreso registrado.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); }).catch(err => showNotification('Error', err.message, 'error')); });
+    document.getElementById('form-compras').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: getTimestampFromDateInput('compra-fecha'), proveedor: document.getElementById('compra-proveedor').value, descripcion: document.getElementById('compra-descripcion').value, monto: getNumericValue(document.getElementById('compra-monto').value), metodo: document.getElementById('compra-metodo').value }; getRefFor('compras').push(newData).then(() => { showNotification('Éxito', 'Compra registrada.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); }).catch(err => showNotification('Error', err.message, 'error')); });
+    document.getElementById('form-gastos').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: getTimestampFromDateInput('gasto-fecha'), descripcion: document.getElementById('gasto-descripcion').value, categoria: document.getElementById('gasto-categoria').value, monto: getNumericValue(document.getElementById('gasto-monto').value) }; getRefFor('gastos').push(newData).then(() => { showNotification('Éxito', 'Gasto registrado.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); }).catch(err => showNotification('Error', err.message, 'error')); });
+    document.getElementById('form-retiros').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: getTimestampFromDateInput('retiro-fecha'), metodo: document.getElementById('retiro-metodo').value, descripcion: document.getElementById('retiro-descripcion').value, monto: getNumericValue(document.getElementById('retiro-monto').value) }; getRefFor('retiros').push(newData).then(() => { showNotification('Éxito', 'Retiro registrado.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); }).catch(err => showNotification('Error', err.message, 'error')); });
+    document.getElementById('form-cuentas-cobrar').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: new Date().toISOString(), cliente: document.getElementById('cpc-cliente').value, descripcion: document.getElementById('cpc-descripcion').value, monto: getNumericValue(document.getElementById('cpc-monto').value), abonos: {} }; getRefFor('cuentasPorCobrar').push(newData).then(() => { showNotification('Éxito', 'Deuda por cobrar registrada.'); e.target.reset(); addCurrencyFormatting(e.target); }).catch(err => showNotification('Error', err.message, 'error')); });
+    document.getElementById('form-cuentas-pagar').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: new Date().toISOString(), acreedor: document.getElementById('cpp-acreedor').value, descripcion: document.getElementById('cpp-descripcion').value, monto: getNumericValue(document.getElementById('cpp-monto').value), estado: 'Pendiente' }; getRefFor('cuentasPorPagar').push(newData).then(() => { showNotification('Éxito', 'Cuenta por pagar registrada.'); e.target.reset(); addCurrencyFormatting(e.target); }).catch(err => showNotification('Error', err.message, 'error')); });
+    document.getElementById('form-vales').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: new Date().toISOString(), persona: document.getElementById('vale-persona').value, descripcion: document.getElementById('vale-descripcion').value, monto: getNumericValue(document.getElementById('vale-monto').value), abonos: {} }; getRefFor('vales').push(newData).then(() => { showNotification('Éxito', 'Vale registrado correctamente.'); e.target.reset(); addCurrencyFormatting(e.target); }).catch(err => showNotification('Error', err.message, 'error')); });
 
     const handleDelete = (type, id) => {
         const item = (allData[type] || []).find(i => i.id === id);
@@ -746,7 +755,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showConfirm('Confirmar Eliminación', '¿Estás seguro? Esta acción no se puede deshacer.', () => {
             getRefFor(type).child(id).remove()
                 .then(() => showNotification('Éxito', 'Registro eliminado.'))
-                .catch((error) => showNotification('Error', 'No se pudo eliminar: ' + error, 'error'));
+                .catch((error) => showNotification('Error', 'No se pudo eliminar: ' + error.message, 'error'));
         });
     };
 
@@ -754,6 +763,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('abono-deuda-id').value = deudaId;
         document.getElementById('abono-type').value = type;
         document.getElementById('abono-modal-title').textContent = type === 'vales' ? 'Registrar Abono a Vale' : 'Registrar Abono';
+        document.getElementById('form-abono').reset();
+        document.getElementById('abono-monto').value = '';
         document.getElementById('abono-modal').style.display = 'flex';
         addCurrencyFormatting(document.getElementById('abono-modal')); 
     };
@@ -820,7 +831,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('abono-monto').value = '';
 
         } catch (err) {
-            showNotification('Error', 'No se pudo completar la operación.', 'error');
+            showNotification('Error', 'No se pudo completar la operación: ' + err.message, 'error');
         }
     });
 
@@ -836,9 +847,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     monto: deuda.monto,
                     metodo: metodo
                 };
-                getRefFor('compras').push(compraData);
-                getRefFor('cuentasPorPagar').child(deudaId).update({ estado: 'Pagada' });
-                showNotification('Éxito', `Cuenta pagada y registrada como compra.`);
+                getRefFor('compras').push(compraData)
+                    .then(() => {
+                        getRefFor('cuentasPorPagar').child(deudaId).update({ estado: 'Pagada' });
+                        showNotification('Éxito', `Cuenta pagada y registrada como compra.`);
+                    })
+                    .catch(err => showNotification('Error', 'No se pudo registrar la compra: ' + err.message, 'error'));
             }
         }, true);
     };
@@ -867,6 +881,185 @@ document.addEventListener('DOMContentLoaded', () => {
          modal.style.display = 'none';
          confirmCallback = null;
     };
+
+    // =========================================================================
+    // LÓGICA DE EDICIÓN
+    // =========================================================================
+    const handleEdit = (type, id) => {
+        const item = (allData[type] || []).find(i => i.id === id);
+        if (!item) return;
+
+        const modal = document.getElementById('edit-modal');
+        const form = document.getElementById('edit-form');
+        document.getElementById('edit-modal-title').textContent = `Editar ${type.slice(0, -1)}`;
+        form.innerHTML = ''; 
+        form.dataset.type = type;
+        form.dataset.id = id;
+
+        const createField = (label, id, value, type = 'text', options = []) => {
+            let fieldHtml = `<div class="grid grid-cols-3 gap-4 items-center"><label for="edit-${id}" class="col-span-1 text-sm font-medium text-gray-700">${label}</label>`;
+            if (type === 'select') {
+                fieldHtml += `<select id="edit-${id}" class="col-span-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm">`;
+                options.forEach(opt => fieldHtml += `<option value="${opt}" ${opt === value ? 'selected' : ''}>${opt}</option>`);
+                fieldHtml += `</select>`;
+            } else if (type === 'textarea') {
+                fieldHtml += `<textarea id="edit-${id}" rows="3" class="col-span-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm">${value}</textarea>`;
+            } else {
+                const isCurrency = ['monto', 'monto_efectivo', 'monto_tarjeta'].includes(id);
+                const inputType = isCurrency ? 'text' : type;
+                const currencyAttr = isCurrency ? 'data-moneda' : '';
+                const displayValue = isCurrency ? (value || 0).toLocaleString('es-CO') : value;
+                fieldHtml += `<input type="${inputType}" id="edit-${id}" value="${displayValue}" ${currencyAttr} class="col-span-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm">`;
+            }
+            return fieldHtml + '</div>';
+        };
+
+        let formHtml = '';
+        if (type === 'ingresos') {
+            formHtml += createField('Fecha', 'fecha', formatDateForInput(item.fecha), 'date');
+            formHtml += createField('Venta Efectivo', 'monto_efectivo', item.monto_efectivo);
+            formHtml += createField('Venta Tarjeta', 'monto_tarjeta', item.monto_tarjeta);
+            formHtml += createField('Notas', 'notas', item.notas || '', 'textarea');
+        } else if (type === 'compras') {
+            formHtml += createField('Fecha', 'fecha', formatDateForInput(item.fecha), 'date');
+            formHtml += createField('Proveedor', 'proveedor', item.proveedor);
+            formHtml += createField('Descripción', 'descripcion', item.descripcion);
+            formHtml += createField('Monto', 'monto', item.monto);
+            formHtml += createField('Pagado con', 'metodo', item.metodo, 'select', ['Efectivo', 'Banco']);
+        } else if (type === 'gastos') {
+            formHtml += createField('Fecha', 'fecha', formatDateForInput(item.fecha), 'date');
+            formHtml += createField('Descripción', 'descripcion', item.descripcion);
+            formHtml += createField('Categoría', 'categoria', item.categoria, 'select', ['Arriendo', 'Servicios', 'Nómina', 'Marketing', 'Mantenimiento', 'Impuestos', 'Insumos', 'Otro']);
+            formHtml += createField('Monto', 'monto', item.monto);
+        } else if (type === 'retiros') {
+            formHtml += createField('Fecha', 'fecha', formatDateForInput(item.fecha), 'date');
+            formHtml += createField('Descripción', 'descripcion', item.descripcion);
+            formHtml += createField('Retirado de', 'metodo', item.metodo, 'select', ['Efectivo', 'Banco']);
+            formHtml += createField('Monto', 'monto', item.monto);
+        }
+        form.innerHTML = formHtml;
+        addCurrencyFormatting(form);
+        modal.style.display = 'flex';
+    };
+
+    document.getElementById('save-edit-btn').addEventListener('click', () => {
+        const form = document.getElementById('edit-form');
+        const { type, id } = form.dataset;
+        const updatedData = {};
+        const inputs = form.querySelectorAll('input, select, textarea');
+        
+        inputs.forEach(input => {
+            const key = input.id.replace('edit-', '');
+            if (input.hasAttribute('data-moneda')) {
+                updatedData[key] = getNumericValue(input.value);
+            } else if (input.type === 'date') {
+                const originalItem = (allData[type] || []).find(i => i.id === id);
+                const originalDate = originalItem.fecha;
+                const newDateParts = input.value.split('-').map(Number);
+                const updatedDate = new Date(originalDate);
+                updatedDate.setFullYear(newDateParts[0], newDateParts[1] - 1, newDateParts[2]);
+                updatedData.fecha = updatedDate.toISOString();
+            } else {
+                updatedData[key] = input.value;
+            }
+        });
+
+        if (type === 'ingresos') {
+            updatedData.monto = (updatedData.monto_efectivo || 0) + (updatedData.monto_tarjeta || 0);
+        }
+
+        getRefFor(type).child(id).update(updatedData)
+            .then(() => {
+                showNotification('Éxito', 'Registro actualizado.');
+                document.getElementById('edit-modal').style.display = 'none';
+            })
+            .catch(err => showNotification('Error', 'No se pudo actualizar: ' + err.message, 'error'));
+    });
+
+    // =========================================================================
+    // LÓGICA DE PDF
+    // =========================================================================
+    const exportToPDF = (type) => {
+        const data = (allData[type] || []).sort((a,b) => b.fecha - a.fecha);
+        if (data.length === 0) {
+            showNotification('Info', `No hay datos de "${type}" para exportar.`, 'info');
+            return;
+        }
+        
+        const doc = new jsPDF();
+        const title = `Reporte de ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+        doc.text(title, 14, 16);
+        doc.setFontSize(10);
+        doc.text(`Negocio: ${currentBusinessName}`, 14, 22);
+        doc.text(`Fecha de Generación: ${new Date().toLocaleDateString()}`, 14, 26);
+
+        let headers, body;
+        if (type === 'ingresos') {
+            headers = [['Fecha', 'Efectivo', 'Tarjeta', 'Total', 'Notas']];
+            body = data.map(i => [i.fecha.toLocaleDateString(), formatCurrency(i.monto_efectivo), formatCurrency(i.monto_tarjeta), formatCurrency(i.monto), i.notas || '-']);
+        } else if (type === 'compras') {
+            headers = [['Fecha', 'Proveedor', 'Descripción', 'Monto', 'Pagado con']];
+            body = data.map(i => [i.fecha.toLocaleDateString(), i.proveedor, i.descripcion, formatCurrency(i.monto), i.metodo]);
+        } else if (type === 'gastos') {
+            headers = [['Fecha', 'Descripción', 'Categoría', 'Monto']];
+            body = data.map(i => [i.fecha.toLocaleDateString(), i.descripcion, i.categoria, formatCurrency(i.monto)]);
+        } else if (type === 'retiros') {
+            headers = [['Fecha', 'Retirado de', 'Descripción', 'Monto']];
+            body = data.map(i => [i.fecha.toLocaleDateString(), i.metodo, i.descripcion, formatCurrency(i.monto)]);
+        }
+
+        doc.autoTable({
+            startY: 30,
+            head: headers,
+            body: body,
+            theme: 'grid'
+        });
+        doc.save(`${type}_${currentBusinessName}_${new Date().toISOString().slice(0,10)}.pdf`);
+    };
+
+    const exportDeudasPDF = (type) => {
+        const data = (allData[type] || []);
+        if (data.length === 0) {
+            showNotification('Info', `No hay datos para exportar.`, 'info');
+            return;
+        }
+
+        const doc = new jsPDF();
+        let title, headers, body;
+
+        if (type === 'cuentasPorCobrar') {
+            title = 'Reporte de Cuentas por Cobrar';
+            headers = [['Cliente', 'Descripción', 'Monto Total', 'Total Abonado', 'Saldo Pendiente']];
+            body = data.map(d => {
+                const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
+                const restante = d.monto - totalAbonado;
+                return [d.cliente, d.descripcion, formatCurrency(d.monto), formatCurrency(totalAbonado), formatCurrency(restante)];
+            });
+        } else if (type === 'cuentasPorPagar') {
+            title = 'Reporte de Cuentas por Pagar';
+            headers = [['Acreedor', 'Concepto', 'Monto', 'Estado']];
+            body = data.map(d => [d.acreedor, d.descripcion, formatCurrency(d.monto), d.estado]);
+        } else if (type === 'vales') {
+            title = 'Reporte de Vales';
+            headers = [['Persona', 'Descripción', 'Monto Total', 'Total Abonado', 'Saldo Pendiente']];
+            body = data.map(d => {
+                const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
+                const restante = d.monto - totalAbonado;
+                return [d.persona, d.descripcion, formatCurrency(d.monto), formatCurrency(totalAbonado), formatCurrency(restante)];
+            });
+        }
+
+        doc.text(title, 14, 16);
+        doc.setFontSize(10);
+        doc.text(`Negocio: ${currentBusinessName}`, 14, 22);
+        doc.text(`Fecha de Generación: ${new Date().toLocaleDateString()}`, 14, 26);
+        doc.autoTable({ startY: 30, head: headers, body: body, theme: 'grid' });
+        doc.save(`${type}_${currentBusinessName}_${new Date().toISOString().slice(0,10)}.pdf`);
+    };
+
+    // =========================================================================
+    // EVENT LISTENERS GENERALES
+    // =========================================================================
     document.getElementById('notification-close').onclick = () => document.getElementById('notification-modal').style.display = 'none';
     document.getElementById('cancel-confirm-btn').onclick = cleanupConfirmModal;
     document.getElementById('confirm-btn').addEventListener('click', () => { if (confirmCallback) { confirmCallback(); } cleanupConfirmModal(); });
@@ -881,6 +1074,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.addEventListener('click', (e) => {
         const target = e.target;
         const deleteBtn = target.closest('.delete-btn');
+        const editBtn = target.closest('.edit-btn');
         const pdfBtn = target.closest('.btn-pdf');
         const tabBtn = target.closest('.tab-button');
         const abonoBtn = target.closest('.abono-btn');
@@ -889,6 +1083,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (tabBtn) changeTab(tabBtn.dataset.tab);
         else if (deleteBtn) handleDelete(deleteBtn.dataset.type, deleteBtn.dataset.id);
+        else if (editBtn) handleEdit(editBtn.dataset.type, editBtn.dataset.id);
         else if (pdfBtn) {
             const type = pdfBtn.dataset.type;
             if (type === 'deudas-cobrar') exportDeudasPDF('cuentasPorCobrar');
@@ -901,14 +1096,8 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (historialBtn) handleHistorial(historialBtn.dataset.id, historialBtn.dataset.type);
     });
 
-    const exportToPDF = (type) => {
-        // La lógica de PDF es idéntica
-    };
-    const exportDeudasPDF = (type) => {
-        // La lógica de PDF de deudas es idéntica
-    };
-
 });
 </script>
 </body>
 </html>
+```
