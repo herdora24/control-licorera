@@ -349,7 +349,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             monthKey: now.toISOString().slice(0, 7)
                         };
                         await ref.push(initialPeriod);
-                        // No se llama a refreshUI aquí, se espera a que el listener vuelva a ejecutarse.
                     } else {
                         periods = firebaseObjectToArray(snapshot);
                     }
@@ -379,14 +378,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     // =========================================================================
-    // LÓGICA DE CORTE DE MES (CORREGIDA)
+    // LÓGICA DE CORTE DE MES
     // =========================================================================
     document.getElementById('close-period-btn').addEventListener('click', () => {
-        // CORRECCIÓN: Se usa `== null` para aceptar tanto `null` como `undefined`.
         const activePeriod = periods.find(p => p.endDate == null); 
         
         if (!activePeriod) {
-            showNotification('Error', 'No se encontró un periodo activo para cerrar. Verifique los datos.', 'error');
+            showNotification('Error', 'No se encontró un periodo activo para cerrar.', 'error');
             return;
         }
 
@@ -544,9 +542,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     const getRefFor = (type) => database.ref(`businesses/${selectedBusinessId}/${type}`);
 
-    // ... Todas las demás funciones (renderTable, submits, deletes, edits, etc.) se mantienen sin cambios ...
-    // ... El código es idéntico al de la versión anterior desde este punto hasta el final ...
-
     const renderAllTables = () => {
         renderTable('ingresos', document.getElementById('tabla-ingresos'), ['Fecha', 'Efectivo', 'Tarjeta', 'Total', 'Notas', 'Acciones']);
         renderTable('compras', document.getElementById('tabla-compras'), ['Fecha', 'Proveedor', 'Descripción', 'Monto', 'Pagado con', 'Acciones']);
@@ -560,10 +555,63 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay registros.</td></tr>`; return; }
         tbody.innerHTML = data.map(item => { let cellsHTML = ''; if (type === 'ingresos') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString()}</td><td class="px-4 py-3">${formatCurrency(item.monto_efectivo)}</td><td class="px-4 py-3">${formatCurrency(item.monto_tarjeta)}</td><td class="px-4 py-3 font-bold">${formatCurrency(item.monto)}</td><td class="px-4 py-3">${item.notas || '-'}</td>`; else if (type === 'compras') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString()}</td><td class="px-4 py-3">${item.proveedor}</td><td class="px-4 py-3">${item.descripcion}</td><td class="px-4 py-3">${formatCurrency(item.monto)}</td><td class="px-4 py-3">${item.metodo}</td>`; else if (type === 'gastos') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString()}</td><td class="px-4 py-3">${item.descripcion}</td><td class="px-4 py-3">${item.categoria}</td><td class="px-4 py-3">${formatCurrency(item.monto)}</td>`; else if (type === 'retiros') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString()}</td><td class="px-4 py-3">${item.metodo}</td><td class="px-4 py-3">${item.descripcion}</td><td class="px-4 py-3">${formatCurrency(item.monto)}</td>`; cellsHTML += `<td class="px-4 py-3 flex items-center space-x-1"><button class="action-button text-blue-600 edit-btn" data-type="${type}" data-id="${item.id}"><i class="fas fa-pencil-alt"></i></button><button class="action-button text-red-600 delete-btn" data-type="${type}" data-id="${item.id}"><i class="fas fa-trash"></i></button></td>`; return `<tr class="bg-white border-b hover:bg-gray-50">${cellsHTML}</tr>`; }).join('');
     };
-    const renderCuentasPorCobrar = () => { /* ...código sin cambios... */ };
-    const renderCuentasPorPagar = () => { /* ...código sin cambios... */ };
-    const renderVales = () => { /* ...código sin cambios... */ };
-    const getTimestampFromDateInput = (id) => new Date(document.getElementById(id).value + 'T00:00:00').toISOString();
+    const renderCuentasPorCobrar = () => {
+        const table = document.getElementById('tabla-cuentas-cobrar');
+        const headers = ['Cliente', 'Total Deuda', 'Abonado', 'Restante', 'Acciones'];
+        table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
+        const tbody = table.querySelector('tbody');
+        const data = (allData.cuentasPorCobrar || []).sort((a,b) => b.fecha - a.fecha);
+        if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay cuentas por cobrar.</td></tr>`; return; }
+        tbody.innerHTML = data.map(d => {
+            const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + Number(a.monto || 0), 0);
+            const restante = Number(d.monto || 0) - totalAbonado;
+            const isPaid = restante <= 0;
+            const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white';
+            const textStyle = isPaid ? 'line-through' : '';
+            const actionButtons = isPaid ? `<button class="historial-btn action-button text-blue-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button> <span class="px-2 py-1 text-xs font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Saldado</span>`
+                : `<button class="historial-btn action-button text-blue-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button>
+                   <button class="abono-btn action-button text-green-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Registrar Abono"><i class="fas fa-plus-circle"></i></button>
+                   <button class="delete-btn action-button text-red-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Eliminar"><i class="fas fa-trash"></i></button>`;
+            return `<tr class="${rowClass} border-b hover:bg-gray-50"><td class="px-4 py-3 font-medium ${textStyle}">${d.cliente}<p class="text-xs font-normal">${d.descripcion}</p></td><td class="px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td><td class="px-4 py-3 text-green-600 ${textStyle}">${formatCurrency(totalAbonado)}</td><td class="px-4 py-3 font-bold ${textStyle}">${formatCurrency(restante)}</td><td class="px-4 py-3 flex items-center gap-1">${actionButtons}</td></tr>`;
+        }).join('');
+    };
+    const renderCuentasPorPagar = () => {
+        const table = document.getElementById('tabla-cuentas-pagar');
+        const headers = ['Proveedor', 'Concepto', 'Monto', 'Estado', 'Acciones'];
+        table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
+        const tbody = table.querySelector('tbody');
+        const data = (allData.cuentasPorPagar || []).sort((a,b) => b.fecha - a.fecha);
+        if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay cuentas por pagar.</td></tr>`; return; }
+        tbody.innerHTML = data.map(d => {
+            const isPaid = d.estado === 'Pagada';
+            const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white';
+            const textStyle = isPaid ? 'line-through' : '';
+            const statusBadge = isPaid ? `<span class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Pagada</span>` : `<span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full">Pendiente</span>`;
+            const actionButtons = isPaid ? `<span class="text-xs text-gray-400">Completado</span>` : `<div class="flex items-center gap-2"><button class="pagar-btn bg-blue-500 text-white text-xs px-2 py-1 rounded-md hover:bg-blue-600" data-id="${d.id}">Pagar</button><button class="delete-btn action-button text-red-600" data-type="cuentasPorPagar" data-id="${d.id}"><i class="fas fa-trash"></i></button></div>`;
+            return `<tr class="${rowClass} border-b"><td class="px-4 py-3 font-medium ${textStyle}">${d.acreedor}</td><td class="px-4 py-3 ${textStyle}">${d.descripcion}</td><td class="px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td><td class="px-4 py-3">${statusBadge}</td><td class="px-4 py-3">${actionButtons}</td></tr>`;
+        }).join('');
+    };
+    const renderVales = () => {
+        const table = document.getElementById('tabla-vales');
+        const headers = ['Persona', 'Total Vale', 'Abonado', 'Restante', 'Acciones'];
+        table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
+        const tbody = table.querySelector('tbody');
+        const data = (allData.vales || []).sort((a,b) => b.fecha - a.fecha);
+        if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay vales registrados.</td></tr>`; return; }
+        tbody.innerHTML = data.map(d => {
+            const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + Number(a.monto || 0), 0);
+            const restante = Number(d.monto || 0) - totalAbonado;
+            const isPaid = restante <= 0;
+            const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white';
+            const textStyle = isPaid ? 'line-through' : '';
+            const actionButtons = isPaid ? `<button class="historial-btn action-button text-blue-600" data-type="vales" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button> <span class="px-2 py-1 text-xs font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Saldado</span>`
+                : `<button class="historial-btn action-button text-blue-600" data-type="vales" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button>
+                   <button class="abono-btn action-button text-green-600" data-type="vales" data-id="${d.id}" title="Registrar Abono"><i class="fas fa-plus-circle"></i></button>
+                   <button class="delete-btn action-button text-red-600" data-type="vales" data-id="${d.id}" title="Eliminar Vale"><i class="fas fa-trash"></i></button>`;
+            return `<tr class="${rowClass} border-b hover:bg-gray-50"><td class="px-4 py-3 font-medium ${textStyle}">${d.persona}<p class="text-xs font-normal">${d.descripcion}</p></td><td class="px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td><td class="px-4 py-3 text-green-600 ${textStyle}">${formatCurrency(totalAbonado)}</td><td class="px-4 py-3 font-bold ${textStyle}">${formatCurrency(restante)}</td><td class="px-4 py-3 flex items-center gap-1">${actionButtons}</td></tr>`;
+        }).join('');
+    };
+    const getTimestampFromDateInput = (dateInputId) => { const dateValue = document.getElementById(dateInputId).value; const now = new Date(); const [year, month, day] = dateValue.split('-').map(Number); return new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds()).toISOString(); };
     document.getElementById('form-ingresos').addEventListener('submit', (e) => { e.preventDefault(); const ef = getNumericValue(document.getElementById('ingreso-efectivo').value); const ta = getNumericValue(document.getElementById('ingreso-tarjeta').value); const newData = { fecha: getTimestampFromDateInput('ingreso-fecha'), monto: ef + ta, monto_efectivo: ef, monto_tarjeta: ta, notas: document.getElementById('ingreso-notas').value }; getRefFor('ingresos').push(newData).then(() => { showNotification('Éxito', 'Ingreso registrado.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); }).catch(err => showNotification('Error', err.message, 'error')); });
     document.getElementById('form-compras').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: getTimestampFromDateInput('compra-fecha'), proveedor: document.getElementById('compra-proveedor').value, descripcion: document.getElementById('compra-descripcion').value, monto: getNumericValue(document.getElementById('compra-monto').value), metodo: document.getElementById('compra-metodo').value }; getRefFor('compras').push(newData).then(() => { showNotification('Éxito', 'Compra registrada.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); }).catch(err => showNotification('Error', err.message, 'error')); });
     document.getElementById('form-gastos').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: getTimestampFromDateInput('gasto-fecha'), descripcion: document.getElementById('gasto-descripcion').value, categoria: document.getElementById('gasto-categoria').value, monto: getNumericValue(document.getElementById('gasto-monto').value) }; getRefFor('gastos').push(newData).then(() => { showNotification('Éxito', 'Gasto registrado.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); }).catch(err => showNotification('Error', err.message, 'error')); });
@@ -573,16 +621,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('form-vales').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: new Date().toISOString(), persona: document.getElementById('vale-persona').value, descripcion: document.getElementById('vale-descripcion').value, monto: getNumericValue(document.getElementById('vale-monto').value), abonos: {} }; getRefFor('vales').push(newData).then(() => { showNotification('Éxito', 'Vale registrado correctamente.'); e.target.reset(); addCurrencyFormatting(e.target); }).catch(err => showNotification('Error', err.message, 'error')); });
     const handleDelete = (type, id) => { const item = (allData[type] || []).find(i => i.id === id); if (!item) return; if ((type === 'cuentasPorCobrar' || type === 'vales') && item.abonos && Object.keys(item.abonos).length > 0) { showNotification('Acción no permitida', 'No puede eliminar un registro que ya tiene abonos.', 'error'); return; } showConfirm('Confirmar Eliminación', '¿Estás seguro? Esta acción no se puede deshacer.', () => { getRefFor(type).child(id).remove().then(() => showNotification('Éxito', 'Registro eliminado.')).catch((error) => showNotification('Error', 'No se pudo eliminar: ' + error.message, 'error')); }); };
     const handleAbonar = (deudaId, type) => { document.getElementById('abono-deuda-id').value = deudaId; document.getElementById('abono-type').value = type; document.getElementById('abono-modal-title').textContent = type === 'vales' ? 'Registrar Abono a Vale' : 'Registrar Abono'; document.getElementById('form-abono').reset(); document.getElementById('abono-monto').value = ''; document.getElementById('abono-modal').style.display = 'flex'; addCurrencyFormatting(document.getElementById('abono-modal')); };
-    const handleHistorial = (deudaId, type) => { /* ...código sin cambios... */ };
-    document.getElementById('save-abono-btn').addEventListener('click', async () => { /* ...código sin cambios... */ });
-    const handlePagar = (deudaId) => { /* ...código sin cambios... */ };
+    const handleHistorial = (deudaId, type) => { const deuda = (allData[type] || []).find(d => d.id === deudaId); if (!deuda) return; const modal = document.getElementById('historial-modal'); const personKey = type === 'vales' ? 'persona' : 'cliente'; document.getElementById('historial-modal-subtitle').textContent = `Detalle para: ${deuda[personKey]} | Total: ${formatCurrency(deuda.monto)}`; const tbody = document.getElementById('historial-abonos-body'); const abonos = (deuda.abonos || []).sort((a,b) => b.fecha - a.fecha); tbody.innerHTML = abonos.length === 0 ? `<tr><td colspan="4" class="text-center py-4 text-gray-500">No se han registrado abonos.</td></tr>` : abonos.map(abono => `<tr class="border-b"><td class="px-4 py-3">${abono.fecha.toLocaleDateString('es-CO')}</td><td class="px-4 py-3">${abono.fecha.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</td><td class="px-4 py-3 font-medium">${formatCurrency(abono.monto)}</td><td class="px-4 py-3">${abono.metodo}</td></tr>`).join(''); modal.style.display = 'flex'; };
+    document.getElementById('save-abono-btn').addEventListener('click', async () => { const deudaId = document.getElementById('abono-deuda-id').value; const type = document.getElementById('abono-type').value; const monto = getNumericValue(document.getElementById('abono-monto').value); const metodo = document.getElementById('abono-metodo').value; if (!deudaId || !type || monto <= 0) { showNotification('Error', 'Monto inválido o datos incompletos.', 'error'); return; } try { await getRefFor(type).child(deudaId).child('abonos').push({ fecha: new Date().toISOString(), monto, metodo }); const snapshot = await getRefFor(type).child(deudaId).once('value'); const deuda = snapshot.val(); if (!deuda) throw new Error("Registro no encontrado."); const personName = type === 'vales' ? deuda.persona : deuda.cliente; await getRefFor('ingresos').push({ fecha: new Date().toISOString(), monto: monto, monto_efectivo: metodo === 'Efectivo' ? monto : 0, monto_tarjeta: metodo === 'Banco' ? monto : 0, notas: `Abono de ${type === 'vales' ? 'vale' : 'deuda'}: ${personName}` }); showNotification('Éxito', 'Abono registrado y añadido a ingresos.'); document.getElementById('abono-modal').style.display = 'none'; } catch (err) { showNotification('Error', 'No se pudo completar la operación: ' + err.message, 'error'); } });
+    const handlePagar = (deudaId) => { const deuda = (allData.cuentasPorPagar || []).find(d => d.id === deudaId); if (!deuda) return; showConfirm('Confirmar Pago', `¿Cómo se pagó esta cuenta de ${formatCurrency(deuda.monto)} a ${deuda.acreedor}?`, (metodo) => { if (metodo) { const compraData = { fecha: new Date().toISOString(), proveedor: deuda.acreedor, descripcion: `Pago Cta. Pendiente: ${deuda.descripcion}`, monto: deuda.monto, metodo: metodo }; getRefFor('compras').push(compraData).then(() => { getRefFor('cuentasPorPagar').child(deudaId).update({ estado: 'Pagada' }); showNotification('Éxito', `Cuenta pagada y registrada como compra.`); }).catch(err => showNotification('Error', 'No se pudo registrar la compra: ' + err.message, 'error')); } }, true); };
     const showNotification = (title, message, type = 'success') => { const modal = document.getElementById('notification-modal'); document.getElementById('notification-title').textContent = title; document.getElementById('notification-message').textContent = message; document.getElementById('notification-icon').innerHTML = type === 'success' ? `<i class="fas fa-check-circle text-4xl text-green-500"></i>` : `<i class="fas fa-times-circle text-4xl text-red-500"></i>`; modal.style.display = 'flex'; };
-    const showConfirm = (title, message, callback, showOptions = false) => { /* ...código sin cambios... */ };
-    const cleanupConfirmModal = () => { /* ...código sin cambios... */ };
-    const handleEdit = (type, id) => { /* ...código sin cambios... */ };
-    document.getElementById('save-edit-btn').addEventListener('click', () => { /* ...código sin cambios... */ });
-    const exportToPDF = (type) => { /* ...código sin cambios... */ };
-    const exportDeudasPDF = (type) => { /* ...código sin cambios... */ };
+    const showConfirm = (title, message, callback, showOptions = false) => { const modal = document.getElementById('confirm-modal'); document.getElementById('confirm-title').textContent = title; const msgContainer = document.getElementById('confirm-message-container'); msgContainer.innerHTML = `<p id="confirm-message" class="text-sm text-gray-500">${message}</p>`; if (showOptions) { msgContainer.insertAdjacentHTML('beforeend', `<div class="mt-4"><select id="confirm-options" class="block w-full rounded-md border-gray-300 shadow-sm"><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div>`); } confirmCallback = () => { const optionsEl = document.getElementById('confirm-options'); callback(showOptions ? optionsEl.value : true); }; modal.style.display = 'flex'; };
+    const cleanupConfirmModal = () => { const modal = document.getElementById('confirm-modal'); const customContent = document.querySelector('#confirm-message-container > div'); if (customContent) customContent.remove(); modal.style.display = 'none'; confirmCallback = null; };
+    const handleEdit = (type, id) => { const item = (allData[type] || []).find(i => i.id === id); if (!item) return; const modal = document.getElementById('edit-modal'); const form = document.getElementById('edit-form'); document.getElementById('edit-modal-title').textContent = `Editar ${type.slice(0,-1)}`; form.innerHTML = ''; form.dataset.type = type; form.dataset.id = id; const createField = (label, id, value, type = 'text', options = []) => { let fieldHtml = `<div class="grid grid-cols-3 gap-4 items-center"><label for="edit-${id}" class="col-span-1 text-sm font-medium text-gray-700">${label}</label>`; if (type === 'select') { fieldHtml += `<select id="edit-${id}" class="col-span-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm">${options.map(opt => `<option value="${opt}" ${opt === value ? 'selected' : ''}>${opt}</option>`).join('')}</select>`; } else if (type === 'textarea') { fieldHtml += `<textarea id="edit-${id}" rows="3" class="col-span-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm">${value}</textarea>`; } else { const isCurrency = ['monto', 'monto_efectivo', 'monto_tarjeta'].includes(id); const displayValue = isCurrency ? (value || 0).toLocaleString('es-CO') : value; fieldHtml += `<input type="${isCurrency ? 'text' : type}" id="edit-${id}" value="${displayValue}" ${isCurrency ? 'data-moneda' : ''} class="col-span-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm">`; } return fieldHtml + '</div>'; }; let formHtml = ''; if (type === 'ingresos') { formHtml += createField('Fecha', 'fecha', formatDateForInput(item.fecha), 'date'); formHtml += createField('Venta Efectivo', 'monto_efectivo', item.monto_efectivo); formHtml += createField('Venta Tarjeta', 'monto_tarjeta', item.monto_tarjeta); formHtml += createField('Notas', 'notas', item.notas || '', 'textarea'); } else if (type === 'compras') { formHtml += createField('Fecha', 'fecha', formatDateForInput(item.fecha), 'date'); formHtml += createField('Proveedor', 'proveedor', item.proveedor); formHtml += createField('Descripción', 'descripcion', item.descripcion); formHtml += createField('Monto', 'monto', item.monto); formHtml += createField('Pagado con', 'metodo', item.metodo, 'select', ['Efectivo', 'Banco']); } else if (type === 'gastos') { formHtml += createField('Fecha', 'fecha', formatDateForInput(item.fecha), 'date'); formHtml += createField('Descripción', 'descripcion', item.descripcion); formHtml += createField('Categoría', 'categoria', item.categoria, 'select', ['Arriendo', 'Servicios', 'Nómina', 'Marketing', 'Mantenimiento', 'Impuestos', 'Insumos', 'Otro']); formHtml += createField('Monto', 'monto', item.monto); } else if (type === 'retiros') { formHtml += createField('Fecha', 'fecha', formatDateForInput(item.fecha), 'date'); formHtml += createField('Descripción', 'descripcion', item.descripcion); formHtml += createField('Retirado de', 'metodo', item.metodo, 'select', ['Efectivo', 'Banco']); formHtml += createField('Monto', 'monto', item.monto); } form.innerHTML = formHtml; addCurrencyFormatting(form); modal.style.display = 'flex'; };
+    document.getElementById('save-edit-btn').addEventListener('click', () => { const form = document.getElementById('edit-form'); const { type, id } = form.dataset; const updatedData = {}; const inputs = form.querySelectorAll('input, select, textarea'); inputs.forEach(input => { const key = input.id.replace('edit-', ''); if (input.hasAttribute('data-moneda')) { updatedData[key] = getNumericValue(input.value); } else if (input.type === 'date') { const originalItem = (allData[type] || []).find(i => i.id === id); const originalDate = originalItem.fecha; const newDateParts = input.value.split('-').map(Number); const updatedDate = new Date(originalDate); updatedDate.setFullYear(newDateParts[0], newDateParts[1] - 1, newDateParts[2]); updatedData.fecha = updatedDate.toISOString(); } else { updatedData[key] = input.value; } }); if (type === 'ingresos') { updatedData.monto = (updatedData.monto_efectivo || 0) + (updatedData.monto_tarjeta || 0); } getRefFor(type).child(id).update(updatedData).then(() => { showNotification('Éxito', 'Registro actualizado.'); document.getElementById('edit-modal').style.display = 'none'; }).catch(err => showNotification('Error', 'No se pudo actualizar: ' + err.message, 'error')); });
+    const exportToPDF = (type) => { const data = (allData[type] || []).sort((a,b) => b.fecha - a.fecha); if (data.length === 0) { showNotification('Info', `No hay datos de "${type}" para exportar.`, 'info'); return; } const doc = new jsPDF(); const title = `Reporte de ${type.charAt(0).toUpperCase() + type.slice(1)}`; doc.text(title, 14, 16); doc.setFontSize(10); doc.text(`Negocio: ${currentBusinessName}`, 14, 22); doc.text(`Fecha de Generación: ${new Date().toLocaleDateString()}`, 14, 26); let headers, body; if (type === 'ingresos') { headers = [['Fecha', 'Efectivo', 'Tarjeta', 'Total', 'Notas']]; body = data.map(i => [i.fecha.toLocaleDateString(), formatCurrency(i.monto_efectivo), formatCurrency(i.monto_tarjeta), formatCurrency(i.monto), i.notas || '-']); } else if (type === 'compras') { headers = [['Fecha', 'Proveedor', 'Descripción', 'Monto', 'Pagado con']]; body = data.map(i => [i.fecha.toLocaleDateString(), i.proveedor, i.descripcion, formatCurrency(i.monto), i.metodo]); } else if (type === 'gastos') { headers = [['Fecha', 'Descripción', 'Categoría', 'Monto']]; body = data.map(i => [i.fecha.toLocaleDateString(), i.descripcion, i.categoria, formatCurrency(i.monto)]); } else if (type === 'retiros') { headers = [['Fecha', 'Retirado de', 'Descripción', 'Monto']]; body = data.map(i => [i.fecha.toLocaleDateString(), i.metodo, i.descripcion, formatCurrency(i.monto)]); } doc.autoTable({ startY: 30, head: headers, body: body, theme: 'grid' }); doc.save(`${type}_${currentBusinessName}_${new Date().toISOString().slice(0,10)}.pdf`); };
+    const exportDeudasPDF = (type) => { const data = (allData[type] || []); if (data.length === 0) { showNotification('Info', `No hay datos para exportar.`, 'info'); return; } const doc = new jsPDF(); let title, headers, body; const typeMap = { 'cuentasPorCobrar': 'Cuentas por Cobrar', 'cuentasPorPagar': 'Cuentas por Pagar', 'vales': 'Vales' }; title = `Reporte de ${typeMap[type] || type}`; if (type === 'cuentasPorCobrar' || type === 'vales') { const personKey = type === 'vales' ? 'Persona' : 'Cliente'; headers = [[personKey, 'Descripción', 'Monto Total', 'Total Abonado', 'Saldo Pendiente']]; body = data.map(d => { const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + Number(a.monto || 0), 0); const restante = Number(d.monto || 0) - totalAbonado; const person = type === 'vales' ? d.persona : d.cliente; return [person, d.descripcion, formatCurrency(d.monto), formatCurrency(totalAbonado), formatCurrency(restante)]; }); } else if (type === 'cuentasPorPagar') { headers = [['Acreedor', 'Concepto', 'Monto', 'Estado']]; body = data.map(d => [d.acreedor, d.descripcion, formatCurrency(d.monto), d.estado]); } doc.text(title, 14, 16); doc.setFontSize(10); doc.text(`Negocio: ${currentBusinessName}`, 14, 22); doc.text(`Fecha de Generación: ${new Date().toLocaleDateString()}`, 14, 26); doc.autoTable({ startY: 30, head: headers, body: body, theme: 'grid' }); doc.save(`${type}_${currentBusinessName}_${new Date().toISOString().slice(0,10)}.pdf`); };
     document.getElementById('notification-close').onclick = () => document.getElementById('notification-modal').style.display = 'none';
     document.getElementById('cancel-confirm-btn').onclick = cleanupConfirmModal;
     document.getElementById('confirm-btn').addEventListener('click', () => { if (confirmCallback) { confirmCallback(); } cleanupConfirmModal(); });
@@ -594,15 +642,23 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('switch-business-btn').addEventListener('click', showBusinessSelector);
     document.getElementById('month-filter').addEventListener('change', refreshUI);
     document.body.addEventListener('click', (e) => {
-        const target = e.target.closest('button'); if (!target) return;
-        const { type, id } = target.dataset;
-        if (target.matches('.delete-btn')) handleDelete(type, id);
-        else if (target.matches('.edit-btn')) handleEdit(type, id);
-        else if (target.matches('.btn-pdf')) { if (type === 'deudas-cobrar') exportDeudasPDF('cuentasPorCobrar'); else if (type === 'deudas-pagar') exportDeudasPDF('cuentasPorPagar'); else if (type === 'vales') exportDeudasPDF('vales'); else exportToPDF(type); }
-        else if (target.matches('.tab-button')) changeTab(target.dataset.tab);
-        else if (target.matches('.abono-btn')) handleAbonar(id, type);
-        else if (target.matches('.pagar-btn')) handlePagar(id);
-        else if (target.matches('.historial-btn')) handleHistorial(id, type);
+        const button = e.target.closest('button');
+        if (!button) return;
+
+        const { type, id } = button.dataset;
+
+        if (button.classList.contains('delete-btn')) handleDelete(type, id);
+        else if (button.classList.contains('edit-btn')) handleEdit(type, id);
+        else if (button.classList.contains('btn-pdf')) {
+            if (type === 'deudas-cobrar') exportDeudasPDF('cuentasPorCobrar');
+            else if (type === 'deudas-pagar') exportDeudasPDF('cuentasPorPagar');
+            else if (type === 'vales') exportDeudasPDF('vales');
+            else exportToPDF(type);
+        }
+        else if (button.classList.contains('tab-button')) changeTab(type);
+        else if (button.classList.contains('abono-btn')) handleAbonar(id, type);
+        else if (button.classList.contains('pagar-btn')) handlePagar(id);
+        else if (button.classList.contains('historial-btn')) handleHistorial(id, type);
     });
 
 });
