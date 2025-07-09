@@ -345,32 +345,49 @@ document.addEventListener('DOMContentLoaded', () => {
         dataListeners = [];
     };
 
-    const startDataListeners = () => {
+   const startDataListeners = () => {
         detachAllListeners();
         allData = {};
+        
+        const allDataTypes = ['periods', 'ingresos', 'compras', 'gastos', 'retiros', 'cuentasPorCobrar', 'cuentasPorPagar', 'vales'];
+        let loadedDataStatus = allDataTypes.reduce((acc, type) => ({...acc, [type]: false }), {});
 
+        const checkIfAllDataIsLoaded = () => {
+            // Revisa si todos los valores en el objeto son 'true'
+            if (Object.values(loadedDataStatus).every(status => status === true)) {
+                refreshUI();
+            }
+        };
+
+        // Listener para los periodos
         const periodsRef = database.ref(`businesses/${selectedBusinessId}/periods`);
         const periodsListener = periodsRef.on('value', async (snapshot) => {
             if (!snapshot.exists()) {
-                // Si no hay periodos, crea el inicial
+                const now = new Date();
                 const initialPeriod = {
-                    startDate: new Date(2000, 0, 1).toISOString(), // Una fecha muy antigua
+                    startDate: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(),
                     endDate: null,
-                    monthKey: new Date().toISOString().slice(0, 7) // Clave del mes actual
+                    monthKey: now.toISOString().slice(0, 7)
                 };
                 await periodsRef.push(initialPeriod);
+                // La función se volverá a llamar sola una vez creado el periodo
             } else {
                 periods = firebaseObjectToArray(snapshot);
-                refreshUI();
             }
+            loadedDataStatus.periods = true;
+            checkIfAllDataIsLoaded();
         });
         dataListeners.push({ ref: periodsRef, listener: periodsListener });
 
-        dataTypes.forEach(type => {
+
+        // Listeners para el resto de los datos
+        const otherDataTypes = dataTypes.filter(t => t !== 'periods');
+        otherDataTypes.forEach(type => {
             const ref = database.ref(`businesses/${selectedBusinessId}/${type}`);
             const listener = ref.on('value', snapshot => {
                 allData[type] = firebaseObjectToArray(snapshot);
-                refreshUI();
+                loadedDataStatus[type] = true;
+                checkIfAllDataIsLoaded();
             });
             dataListeners.push({ ref, listener });
         });
@@ -395,7 +412,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // LÓGICA DE CORTE DE MES
     // =========================================================================
     document.getElementById('close-period-btn').addEventListener('click', () => {
-        const activePeriod = periods.find(p => p.endDate === null);
+        const activePeriod = periods.find(p => p.endDate == null);
         if (!activePeriod) {
             showNotification('Error', 'No se encontró un periodo activo para cerrar.', 'error');
             return;
@@ -470,27 +487,27 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDashboard(filteredData.ingresos, filteredData.compras, filteredData.gastos, filteredData.retiros, allData.cuentasPorCobrar, allData.cuentasPorPagar);
     };
 
-    const updateDashboard = (ingresos, compras, gastos, retiros, cpc, cpp) => {
-        const totalIngresosMes = (ingresos || []).reduce((sum, item) => sum + item.monto, 0);
-        const totalComprasMes = (compras || []).reduce((sum, item) => sum + item.monto, 0);
-        const totalGastosOpMes = (gastos || []).reduce((sum, item) => sum + item.monto, 0);
-        const totalRetirosMes = (retiros || []).reduce((sum, item) => sum + item.monto, 0);
+   const updateDashboard = (ingresos, compras, gastos, retiros, cpc, cpp) => {
+        const totalIngresosMes = (ingresos || []).reduce((sum, item) => sum + Number(item.monto || 0), 0);
+        const totalComprasMes = (compras || []).reduce((sum, item) => sum + Number(item.monto || 0), 0);
+        const totalGastosOpMes = (gastos || []).reduce((sum, item) => sum + Number(item.monto || 0), 0);
+        const totalRetirosMes = (retiros || []).reduce((sum, item) => sum + Number(item.monto || 0), 0);
         
         // Los totales de caja y banco son siempre globales
-        const totalIngresosEfectivo = (allData.ingresos || []).reduce((sum, i) => sum + i.monto_efectivo, 0);
-        const totalIngresosBanco = (allData.ingresos || []).reduce((sum, i) => sum + i.monto_tarjeta, 0);
-        const totalComprasEfectivo = (allData.compras || []).filter(c => c.metodo === 'Efectivo').reduce((sum, c) => sum + c.monto, 0);
-        const totalComprasBanco = (allData.compras || []).filter(c => c.metodo === 'Banco').reduce((sum, c) => sum + c.monto, 0);
-        const totalGastosOp = (allData.gastos || []).reduce((sum, g) => sum + g.monto, 0);
-        const totalRetirosEfectivo = (allData.retiros || []).filter(r => r.metodo === 'Efectivo').reduce((sum, r) => sum + r.monto, 0);
-        const totalRetirosBanco = (allData.retiros || []).filter(r => r.metodo === 'Banco').reduce((sum, r) => sum + r.monto, 0);
+        const totalIngresosEfectivo = (allData.ingresos || []).reduce((sum, i) => sum + Number(i.monto_efectivo || 0), 0);
+        const totalIngresosBanco = (allData.ingresos || []).reduce((sum, i) => sum + Number(i.monto_tarjeta || 0), 0);
+        const totalComprasEfectivo = (allData.compras || []).filter(c => c.metodo === 'Efectivo').reduce((sum, c) => sum + Number(c.monto || 0), 0);
+        const totalComprasBanco = (allData.compras || []).filter(c => c.metodo === 'Banco').reduce((sum, c) => sum + Number(c.monto || 0), 0);
+        const totalGastosOp = (allData.gastos || []).reduce((sum, g) => sum + Number(g.monto || 0), 0);
+        const totalRetirosEfectivo = (allData.retiros || []).filter(r => r.metodo === 'Efectivo').reduce((sum, r) => sum + Number(r.monto || 0), 0);
+        const totalRetirosBanco = (allData.retiros || []).filter(r => r.metodo === 'Banco').reduce((sum, r) => sum + Number(r.monto || 0), 0);
         
         const efectivoEnCaja = totalIngresosEfectivo - totalComprasEfectivo - totalGastosOp - totalRetirosEfectivo;
         const saldoEnBanco = totalIngresosBanco - totalComprasBanco - totalRetirosBanco;
         
         // Deudas y vales son siempre globales
-        const totalCPC = (cpc || []).reduce((sum, d) => sum + (d.monto - ((d.abonos || []).reduce((s, a) => s + a.monto, 0))), 0);
-        const totalCPP = (cpp || []).filter(d => d.estado !== 'Pagada').reduce((sum, d) => sum + d.monto, 0);
+        const totalCPC = (cpc || []).reduce((sum, d) => sum + (Number(d.monto || 0) - ((d.abonos || []).reduce((s, a) => s + Number(a.monto || 0), 0))), 0);
+        const totalCPP = (cpp || []).filter(d => d.estado !== 'Pagada').reduce((sum, d) => sum + Number(d.monto || 0), 0);
         
         document.getElementById('total-ingresos').textContent = formatCurrency(totalIngresosMes);
         document.getElementById('total-compras').textContent = formatCurrency(totalComprasMes);
