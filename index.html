@@ -241,11 +241,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedBusinessId = null;
     let periods = [];
     let currentBusinessName = '';
-
-    const dataTypes = ['ingresos', 'compras', 'gastos', 'retiros', 'cuentasPorCobrar', 'cuentasPorPagar', 'vales'];
+    
+    const allDataTypes = ['periods', 'ingresos', 'compras', 'gastos', 'retiros', 'cuentasPorCobrar', 'cuentasPorPagar', 'vales'];
+    let dataLoadedStatus = {};
 
     // =========================================================================
-    // LÓGICA DE AUTENTICACIÓN
+    // LÓGICA DE AUTENTICACIÓN Y SELECCIÓN DE NEGOCIO
     // =========================================================================
     auth.onAuthStateChanged(async user => {
         if (user) {
@@ -264,34 +265,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.getElementById('login-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const errorEl = document.getElementById('login-error');
-        
-        auth.signInWithEmailAndPassword(email, password)
-            .catch(error => {
-                errorEl.textContent = 'Correo o contraseña incorrectos.';
-                errorEl.classList.remove('hidden');
-            });
-    });
-
-    const handleLogout = () => {
-        auth.signOut();
-    };
-
     const showLoginScreen = () => {
         document.getElementById('login-overlay').classList.remove('hidden');
         document.getElementById('app-container').classList.add('hidden');
         document.getElementById('business-selector-overlay').classList.add('hidden');
         detachAllListeners();
     };
-
-    // =========================================================================
-    // LÓGICA DE SELECCIÓN DE NEGOCIO
-    // =========================================================================
+    
     const showBusinessSelector = async () => {
+        detachAllListeners();
         const businessRef = database.ref('businesses');
         const snapshot = await businessRef.once('value');
         const businesses = snapshot.val();
@@ -329,17 +311,19 @@ document.addEventListener('DOMContentLoaded', () => {
             switchBtn.classList.add('hidden');
         }
         
-        startDataListeners();
-        
         document.getElementById('business-selector-overlay').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
+        
+        startDataListeners();
         initializeDates();
         addCurrencyFormatting(document.body);
         changeTab('resumen');
     };
+    
+    const handleLogout = () => { auth.signOut(); };
 
     // =========================================================================
-    // MANEJO DE DATOS Y PERIODOS
+    // MANEJO DE DATOS Y PERIODOS (LÓGICA DE CARGA CORREGIDA)
     // =========================================================================
     const detachAllListeners = () => {
         dataListeners.forEach(({ ref, listener }) => ref.off('value', listener));
@@ -349,29 +333,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const startDataListeners = () => {
         detachAllListeners();
         allData = {};
+        // Resetea el estado de carga
+        dataLoadedStatus = allDataTypes.reduce((acc, type) => ({...acc, [type]: false }), {});
 
-        const periodsRef = database.ref(`businesses/${selectedBusinessId}/periods`);
-        const periodsListener = periodsRef.on('value', async (snapshot) => {
-            if (!snapshot.exists()) {
-                const now = new Date();
-                const initialPeriod = {
-                    startDate: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(),
-                    endDate: null,
-                    monthKey: now.toISOString().slice(0, 7) 
-                };
-                await periodsRef.push(initialPeriod);
-            } else {
-                periods = firebaseObjectToArray(snapshot);
+        const checkIfAllDataIsLoaded = () => {
+            const allLoaded = Object.values(dataLoadedStatus).every(status => status === true);
+            if (allLoaded) {
                 refreshUI();
             }
-        });
-        dataListeners.push({ ref: periodsRef, listener: periodsListener });
+        };
 
-        dataTypes.forEach(type => {
+        allDataTypes.forEach(type => {
             const ref = database.ref(`businesses/${selectedBusinessId}/${type}`);
-            const listener = ref.on('value', snapshot => {
-                allData[type] = firebaseObjectToArray(snapshot);
-                refreshUI();
+            const listener = ref.on('value', async (snapshot) => {
+                if (type === 'periods' && !snapshot.exists()) {
+                    const now = new Date();
+                    const initialPeriod = {
+                        startDate: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(),
+                        endDate: null,
+                        monthKey: now.toISOString().slice(0, 7)
+                    };
+                    await ref.push(initialPeriod); 
+                } else if (type === 'periods') {
+                    periods = firebaseObjectToArray(snapshot);
+                } else {
+                    allData[type] = firebaseObjectToArray(snapshot);
+                }
+                
+                // Marcar este tipo de dato como cargado y verificar si todos lo están
+                dataLoadedStatus[type] = true;
+                checkIfAllDataIsLoaded();
             });
             dataListeners.push({ ref, listener });
         });
@@ -391,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return data;
     };
-
+    
     // =========================================================================
     // LÓGICA DE CORTE DE MES
     // =========================================================================
@@ -409,10 +400,8 @@ document.addEventListener('DOMContentLoaded', () => {
         showConfirm('Confirmar Corte de Mes', `¿Estás seguro de que quieres cerrar el periodo contable de ${monthName}? Esta acción no se puede deshacer.`, () => {
             const periodRef = database.ref(`businesses/${selectedBusinessId}/periods`);
             
-            // Cerrar periodo actual
             periodRef.child(activePeriod.id).update({ endDate: now.toISOString() });
             
-            // Crear nuevo periodo
             const newPeriod = {
                 startDate: now.toISOString(),
                 endDate: null,
@@ -428,8 +417,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // MANEJO DE UI Y RENDERIZADO
     // =========================================================================
     const refreshUI = () => { 
-        filterAndRenderDashboard(); 
         const activeTabName = document.querySelector('.tab-button.active')?.dataset.tab;
+        
+        if (!activeTabName) return;
+
+        filterAndRenderDashboard(); 
+
         if (activeTabName === 'registros') renderAllTables();
         else if (activeTabName === 'deudas') { renderCuentasPorCobrar(); renderCuentasPorPagar(); }
         else if (activeTabName === 'vales') renderVales();
@@ -455,7 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const periodDisplay = document.getElementById('period-display');
         if (!selectedPeriod) {
             periodDisplay.textContent = `No hay datos para ${filterValue}.`;
-            updateDashboard([], [], [], [], allData.cuentasPorCobrar, allData.cuentasPorPagar);
+            updateDashboard([], [], [], []);
             return;
         }
 
@@ -464,26 +457,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         periodDisplay.textContent = `Mostrando: ${startDate.toLocaleDateString()} - ${selectedPeriod.endDate ? endDate.toLocaleDateString() : 'Presente'}`;
 
-        const filteredData = {};
+        const filtered = {};
         const dataToFilter = ['ingresos', 'compras', 'gastos', 'retiros'];
         dataToFilter.forEach(key => {
             if (allData[key]) {
-                filteredData[key] = allData[key].filter(d => d.fecha && d.fecha >= startDate && d.fecha <= endDate);
+                filtered[key] = allData[key].filter(d => d.fecha && d.fecha >= startDate && d.fecha <= endDate);
             } else {
-                filteredData[key] = [];
+                filtered[key] = [];
             }
         });
-        updateDashboard(filteredData.ingresos, filteredData.compras, filteredData.gastos, filteredData.retiros, allData.cuentasPorCobrar, allData.cuentasPorPagar);
+        updateDashboard(filtered.ingresos, filtered.compras, filtered.gastos, filtered.retiros);
     };
 
-    const updateDashboard = (ingresos, compras, gastos, retiros, cpc, cpp) => {
-        // CORRECCIÓN: Se asegura que el `item.monto` sea tratado como número.
+    const updateDashboard = (ingresos, compras, gastos, retiros) => {
         const totalIngresosMes = (ingresos || []).reduce((sum, item) => sum + Number(item.monto || 0), 0);
         const totalComprasMes = (compras || []).reduce((sum, item) => sum + Number(item.monto || 0), 0);
         const totalGastosOpMes = (gastos || []).reduce((sum, item) => sum + Number(item.monto || 0), 0);
         const totalRetirosMes = (retiros || []).reduce((sum, item) => sum + Number(item.monto || 0), 0);
         
-        // Los totales de caja y banco son siempre globales
         const totalIngresosEfectivo = (allData.ingresos || []).reduce((sum, i) => sum + Number(i.monto_efectivo || 0), 0);
         const totalIngresosBanco = (allData.ingresos || []).reduce((sum, i) => sum + Number(i.monto_tarjeta || 0), 0);
         const totalComprasEfectivo = (allData.compras || []).filter(c => c.metodo === 'Efectivo').reduce((sum, c) => sum + Number(c.monto || 0), 0);
@@ -495,10 +486,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const efectivoEnCaja = totalIngresosEfectivo - totalComprasEfectivo - totalGastosOp - totalRetirosEfectivo;
         const saldoEnBanco = totalIngresosBanco - totalComprasBanco - totalRetirosBanco;
         
-        // Deudas y vales son siempre globales
-        const totalCPC = (cpc || []).reduce((sum, d) => sum + (Number(d.monto || 0) - ((d.abonos || []).reduce((s, a) => s + Number(a.monto || 0), 0))), 0);
-        // CORRECCIÓN: Las cuentas por pagar no tienen abonos, solo se suma el monto de las pendientes.
-        const totalCPP = (cpp || []).filter(d => d.estado !== 'Pagada').reduce((sum, d) => sum + Number(d.monto || 0), 0);
+        const totalCPC = (allData.cuentasPorCobrar || []).reduce((sum, d) => sum + (Number(d.monto || 0) - ((d.abonos || []).reduce((s, a) => s + Number(a.monto || 0), 0))), 0);
+        const totalCPP = (allData.cuentasPorPagar || []).filter(d => d.estado !== 'Pagada').reduce((sum, d) => sum + Number(d.monto || 0), 0);
         
         document.getElementById('total-ingresos').textContent = formatCurrency(totalIngresosMes);
         document.getElementById('total-compras').textContent = formatCurrency(totalComprasMes);
@@ -532,47 +521,56 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // =========================================================================
-    // LÓGICA DE FORMULARIOS Y ACCIONES (El resto del código se mantiene igual)
+    // LÓGICA DE FORMULARIOS Y ACCIONES
     // =========================================================================
-    
     const changeTab = (tabName) => {
-        setFormDatesToToday();
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
         document.getElementById(tabName).classList.remove('hidden');
         document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
         document.querySelector(`button[data-tab="${tabName}"]`).classList.add('active');
-
-        if (tabName === 'registros') renderAllTables();
-        else if (tabName === 'deudas') { renderCuentasPorCobrar(); renderCuentasPorPagar(); }
-        else if (tabName === 'vales') renderVales();
+        refreshUI();
     };
 
     const formatCurrency = (value) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value || 0);
     const formatDateForInput = (date) => new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-    
-    const formatInputAsCurrency = (e) => {
-        let input = e.target;
-        let value = input.value.replace(/\D/g, ''); 
-        if (value) {
-            const number = parseInt(value, 10);
-            input.value = number.toLocaleString('es-CO');
-        } else {
-            input.value = '';
-        }
-    };
-
     const getNumericValue = (formattedValue) => {
         if (!formattedValue || typeof formattedValue !== 'string') return 0;
         return parseFloat(formattedValue.replace(/\./g, '').replace(/,/g, '.')) || 0;
     };
-
+    const formatInputAsCurrency = (e) => {
+        let input = e.target;
+        let value = input.value.replace(/\D/g, ''); 
+        input.value = value ? parseInt(value, 10).toLocaleString('es-CO') : '';
+    };
     const addCurrencyFormatting = (container) => {
         container.querySelectorAll('[data-moneda]').forEach(input => {
             input.removeEventListener('input', formatInputAsCurrency);
             input.addEventListener('input', formatInputAsCurrency);
         });
     };
+    const setFormDatesToToday = () => {
+        const today = formatDateForInput(new Date());
+        ['ingreso-fecha', 'gasto-fecha', 'compra-fecha', 'retiro-fecha'].forEach(id => { 
+            const el = document.getElementById(id);
+            if (el) el.value = today;
+        });
+    };
+    const initializeDates = () => {
+        setFormDatesToToday();
+        const now = new Date();
+        document.getElementById('month-filter').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    };
+    const getRefFor = (type) => database.ref(`businesses/${selectedBusinessId}/${type}`);
 
+    // (El resto de funciones auxiliares y manejadores de eventos se mantiene igual)
+    // ... renderTable, renderCuentasPorCobrar, renderCuentasPorPagar, renderVales
+    // ... form submissions (ingresos, compras, gastos, etc.)
+    // ... handleDelete, handleAbonar, handleHistorial, handlePagar
+    // ... showNotification, showConfirm, cleanupConfirmModal
+    // ... handleEdit, save-edit-btn logic
+    // ... exportToPDF, exportDeudasPDF
+    // ... y el event listener principal de `document.body`
+    
     const renderAllTables = () => {
         renderTable('ingresos', document.getElementById('tabla-ingresos'), ['Fecha', 'Efectivo', 'Tarjeta', 'Total', 'Notas', 'Acciones']);
         renderTable('compras', document.getElementById('tabla-compras'), ['Fecha', 'Proveedor', 'Descripción', 'Monto', 'Pagado con', 'Acciones']);
@@ -612,7 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const rowsHTML = data.map(d => {
+        tbody.innerHTML = data.map(d => {
             const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
             const restante = d.monto - totalAbonado;
             const isPaid = restante <= 0;
@@ -633,7 +631,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td class="px-4 py-3 flex items-center gap-1">${actionButtons}</td>
             </tr>`;
         }).join('');
-        tbody.innerHTML = rowsHTML;
     };
     
     const renderCuentasPorPagar = () => {
@@ -648,7 +645,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const rowsHTML = data.map(d => {
+        tbody.innerHTML = data.map(d => {
             const isPaid = d.estado === 'Pagada';
             const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white';
             const textStyle = isPaid ? 'line-through' : '';
@@ -670,7 +667,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td class="px-4 py-3">${actionButtons}</td>
             </tr>`;
         }).join('');
-        tbody.innerHTML = rowsHTML;
     };
     
     const renderVales = () => {
@@ -685,7 +681,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const rowsHTML = data.map(d => {
+        tbody.innerHTML = data.map(d => {
             const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
             const restante = d.monto - totalAbonado;
             const isPaid = restante <= 0;
@@ -706,7 +702,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td class="px-4 py-3 flex items-center gap-1">${actionButtons}</td>
             </tr>`;
         }).join('');
-        tbody.innerHTML = rowsHTML;
     };
 
     const getTimestampFromDateInput = (dateInputId) => {
@@ -715,22 +710,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const [year, month, day] = dateValue.split('-').map(Number);
         return new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds()).toISOString();
     };
-
-    const setFormDatesToToday = () => {
-        const today = formatDateForInput(new Date());
-        ['ingreso-fecha', 'gasto-fecha', 'compra-fecha', 'retiro-fecha'].forEach(id => { 
-            const el = document.getElementById(id);
-            if (el) el.value = today;
-        });
-    };
-
-    const initializeDates = () => {
-        setFormDatesToToday();
-        const now = new Date();
-        document.getElementById('month-filter').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    };
-
-    const getRefFor = (type) => database.ref(`businesses/${selectedBusinessId}/${type}`);
 
     document.getElementById('form-ingresos').addEventListener('submit', (e) => { e.preventDefault(); const ef = getNumericValue(document.getElementById('ingreso-efectivo').value); const ta = getNumericValue(document.getElementById('ingreso-tarjeta').value); const newData = { fecha: getTimestampFromDateInput('ingreso-fecha'), monto: ef + ta, monto_efectivo: ef, monto_tarjeta: ta, notas: document.getElementById('ingreso-notas').value }; getRefFor('ingresos').push(newData).then(() => { showNotification('Éxito', 'Ingreso registrado.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); }).catch(err => showNotification('Error', err.message, 'error')); });
     document.getElementById('form-compras').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: getTimestampFromDateInput('compra-fecha'), proveedor: document.getElementById('compra-proveedor').value, descripcion: document.getElementById('compra-descripcion').value, monto: getNumericValue(document.getElementById('compra-monto').value), metodo: document.getElementById('compra-metodo').value }; getRefFor('compras').push(newData).then(() => { showNotification('Éxito', 'Compra registrada.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); }).catch(err => showNotification('Error', err.message, 'error')); });
@@ -743,12 +722,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleDelete = (type, id) => {
         const item = (allData[type] || []).find(i => i.id === id);
         if (!item) return;
-
         if ((type === 'cuentasPorCobrar' || type === 'vales') && item.abonos && Object.keys(item.abonos).length > 0) {
             showNotification('Acción no permitida', 'No puede eliminar un registro que ya tiene abonos. Esto protege la integridad de sus registros de ingresos.', 'error');
             return;
         }
-
         showConfirm('Confirmar Eliminación', '¿Estás seguro? Esta acción no se puede deshacer.', () => {
             getRefFor(type).child(id).remove()
                 .then(() => showNotification('Éxito', 'Registro eliminado.'))
@@ -760,8 +737,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('abono-deuda-id').value = deudaId;
         document.getElementById('abono-type').value = type;
         document.getElementById('abono-modal-title').textContent = type === 'vales' ? 'Registrar Abono a Vale' : 'Registrar Abono';
-        document.getElementById('form-abono').reset();
-        document.getElementById('abono-monto').value = '';
+        document.getElementById('form-abono').reset(); document.getElementById('abono-monto').value = '';
         document.getElementById('abono-modal').style.display = 'flex';
         addCurrencyFormatting(document.getElementById('abono-modal')); 
     };
@@ -769,25 +745,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleHistorial = (deudaId, type) => {
         const deuda = (allData[type] || []).find(d => d.id === deudaId);
         if (!deuda) return;
-
         const modal = document.getElementById('historial-modal');
         const personKey = type === 'vales' ? 'persona' : 'cliente';
         document.getElementById('historial-modal-subtitle').textContent = `Detalle para: ${deuda[personKey]} | Total: ${formatCurrency(deuda.monto)}`;
-        
         const tbody = document.getElementById('historial-abonos-body');
         const abonos = (deuda.abonos || []).sort((a,b) => b.fecha - a.fecha);
-
-        if (abonos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">No se han registrado abonos.</td></tr>`;
-        } else {
-            tbody.innerHTML = abonos.map(abono => `
-                <tr class="border-b">
-                    <td class="px-4 py-3">${abono.fecha.toLocaleDateString('es-CO')}</td>
-                    <td class="px-4 py-3">${abono.fecha.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</td>
-                    <td class="px-4 py-3 font-medium">${formatCurrency(abono.monto)}</td>
-                    <td class="px-4 py-3">${abono.metodo}</td>
-                </tr>`).join('');
-        }
+        tbody.innerHTML = abonos.length === 0 ? `<tr><td colspan="4" class="text-center py-4 text-gray-500">No se han registrado abonos.</td></tr>` : abonos.map(abono => `<tr class="border-b"><td class="px-4 py-3">${abono.fecha.toLocaleDateString('es-CO')}</td><td class="px-4 py-3">${abono.fecha.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</td><td class="px-4 py-3 font-medium">${formatCurrency(abono.monto)}</td><td class="px-4 py-3">${abono.metodo}</td></tr>`).join('');
         modal.style.display = 'flex';
     };
 
@@ -796,40 +759,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const type = document.getElementById('abono-type').value;
         const monto = getNumericValue(document.getElementById('abono-monto').value);
         const metodo = document.getElementById('abono-metodo').value;
-
-        if (!deudaId || !type || monto <= 0) {
-            showNotification('Error', 'Monto inválido o datos incompletos.', 'error');
-            return;
-        }
-
+        if (!deudaId || !type || monto <= 0) { showNotification('Error', 'Monto inválido o datos incompletos.', 'error'); return; }
         try {
-            const abonoData = { fecha: new Date().toISOString(), monto, metodo };
-            await getRefFor(type).child(deudaId).child('abonos').push(abonoData);
-
+            await getRefFor(type).child(deudaId).child('abonos').push({ fecha: new Date().toISOString(), monto, metodo });
             const snapshot = await getRefFor(type).child(deudaId).once('value');
             const deuda = snapshot.val();
             if (!deuda) throw new Error("Registro no encontrado.");
-            
-            const personKey = type === 'vales' ? 'persona' : 'cliente';
-            const personName = deuda[personKey];
-            
-            const ingresoData = {
-                fecha: new Date().toISOString(),
-                monto: monto,
-                monto_efectivo: metodo === 'Efectivo' ? monto : 0,
-                monto_tarjeta: metodo === 'Banco' ? monto : 0,
-                notas: `Abono de ${type === 'vales' ? 'vale' : 'deuda'}: ${personName}`
-            };
-            await getRefFor('ingresos').push(ingresoData);
-            
+            const personName = type === 'vales' ? deuda.persona : deuda.cliente;
+            await getRefFor('ingresos').push({ fecha: new Date().toISOString(), monto: monto, monto_efectivo: metodo === 'Efectivo' ? monto : 0, monto_tarjeta: metodo === 'Banco' ? monto : 0, notas: `Abono de ${type === 'vales' ? 'vale' : 'deuda'}: ${personName}` });
             showNotification('Éxito', 'Abono registrado y añadido a ingresos.');
             document.getElementById('abono-modal').style.display = 'none';
-            document.getElementById('form-abono').reset();
-            document.getElementById('abono-monto').value = '';
-
-        } catch (err) {
-            showNotification('Error', 'No se pudo completar la operación: ' + err.message, 'error');
-        }
+        } catch (err) { showNotification('Error', 'No se pudo completar la operación: ' + err.message, 'error'); }
     });
 
     const handlePagar = (deudaId) => {
@@ -837,13 +777,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!deuda) return;
         showConfirm('Confirmar Pago', `¿Cómo se pagó esta cuenta de ${formatCurrency(deuda.monto)} a ${deuda.acreedor}?`, (metodo) => {
             if (metodo) {
-                const compraData = {
-                    fecha: new Date().toISOString(),
-                    proveedor: deuda.acreedor,
-                    descripcion: `Pago Cta. Pendiente: ${deuda.descripcion}`,
-                    monto: deuda.monto,
-                    metodo: metodo
-                };
+                const compraData = { fecha: new Date().toISOString(), proveedor: deuda.acreedor, descripcion: `Pago Cta. Pendiente: ${deuda.descripcion}`, monto: deuda.monto, metodo: metodo };
                 getRefFor('compras').push(compraData)
                     .then(() => {
                         getRefFor('cuentasPorPagar').child(deudaId).update({ estado: 'Pagada' });
@@ -862,13 +796,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('confirm-title').textContent = title;
         const msgContainer = document.getElementById('confirm-message-container');
         msgContainer.innerHTML = `<p id="confirm-message" class="text-sm text-gray-500">${message}</p>`;
-        if (showOptions) {
-            msgContainer.insertAdjacentHTML('beforeend', `<div class="mt-4"><select id="confirm-options" class="block w-full rounded-md border-gray-300 shadow-sm"><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div>`);
-        }
-        confirmCallback = () => {
-            const optionsEl = document.getElementById('confirm-options');
-            callback(showOptions ? optionsEl.value : true);
-        };
+        if (showOptions) { msgContainer.insertAdjacentHTML('beforeend', `<div class="mt-4"><select id="confirm-options" class="block w-full rounded-md border-gray-300 shadow-sm"><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div>`); }
+        confirmCallback = () => { const optionsEl = document.getElementById('confirm-options'); callback(showOptions ? optionsEl.value : true); };
         modal.style.display = 'flex';
     };
     const cleanupConfirmModal = () => {
@@ -879,182 +808,65 @@ document.addEventListener('DOMContentLoaded', () => {
          confirmCallback = null;
     };
 
-    // =========================================================================
-    // LÓGICA DE EDICIÓN
-    // =========================================================================
     const handleEdit = (type, id) => {
-        const item = (allData[type] || []).find(i => i.id === id);
-        if (!item) return;
-
-        const modal = document.getElementById('edit-modal');
-        const form = document.getElementById('edit-form');
-        document.getElementById('edit-modal-title').textContent = `Editar ${type.slice(0, -1)}`;
-        form.innerHTML = ''; 
-        form.dataset.type = type;
-        form.dataset.id = id;
-
-        const createField = (label, id, value, type = 'text', options = []) => {
-            let fieldHtml = `<div class="grid grid-cols-3 gap-4 items-center"><label for="edit-${id}" class="col-span-1 text-sm font-medium text-gray-700">${label}</label>`;
-            if (type === 'select') {
-                fieldHtml += `<select id="edit-${id}" class="col-span-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm">`;
-                options.forEach(opt => fieldHtml += `<option value="${opt}" ${opt === value ? 'selected' : ''}>${opt}</option>`);
-                fieldHtml += `</select>`;
-            } else if (type === 'textarea') {
-                fieldHtml += `<textarea id="edit-${id}" rows="3" class="col-span-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm">${value}</textarea>`;
-            } else {
-                const isCurrency = ['monto', 'monto_efectivo', 'monto_tarjeta'].includes(id);
-                const inputType = isCurrency ? 'text' : type;
-                const currencyAttr = isCurrency ? 'data-moneda' : '';
-                const displayValue = isCurrency ? (value || 0).toLocaleString('es-CO') : value;
-                fieldHtml += `<input type="${inputType}" id="edit-${id}" value="${displayValue}" ${currencyAttr} class="col-span-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm">`;
-            }
-            return fieldHtml + '</div>';
-        };
-
+        const item = (allData[type] || []).find(i => i.id === id); if (!item) return;
+        const modal = document.getElementById('edit-modal'); const form = document.getElementById('edit-form');
+        document.getElementById('edit-modal-title').textContent = `Editar ${type.slice(0,-1)}`;
+        form.innerHTML = ''; form.dataset.type = type; form.dataset.id = id;
+        const createField = (label, id, value, type = 'text', options = []) => { let fieldHtml = `<div class="grid grid-cols-3 gap-4 items-center"><label for="edit-${id}" class="col-span-1 text-sm font-medium text-gray-700">${label}</label>`; if (type === 'select') { fieldHtml += `<select id="edit-${id}" class="col-span-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm">${options.map(opt => `<option value="${opt}" ${opt === value ? 'selected' : ''}>${opt}</option>`).join('')}</select>`; } else if (type === 'textarea') { fieldHtml += `<textarea id="edit-${id}" rows="3" class="col-span-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm">${value}</textarea>`; } else { const isCurrency = ['monto', 'monto_efectivo', 'monto_tarjeta'].includes(id); const displayValue = isCurrency ? (value || 0).toLocaleString('es-CO') : value; fieldHtml += `<input type="${isCurrency ? 'text' : type}" id="edit-${id}" value="${displayValue}" ${isCurrency ? 'data-moneda' : ''} class="col-span-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm">`; } return fieldHtml + '</div>'; };
         let formHtml = '';
-        if (type === 'ingresos') {
-            formHtml += createField('Fecha', 'fecha', formatDateForInput(item.fecha), 'date');
-            formHtml += createField('Venta Efectivo', 'monto_efectivo', item.monto_efectivo);
-            formHtml += createField('Venta Tarjeta', 'monto_tarjeta', item.monto_tarjeta);
-            formHtml += createField('Notas', 'notas', item.notas || '', 'textarea');
-        } else if (type === 'compras') {
-            formHtml += createField('Fecha', 'fecha', formatDateForInput(item.fecha), 'date');
-            formHtml += createField('Proveedor', 'proveedor', item.proveedor);
-            formHtml += createField('Descripción', 'descripcion', item.descripcion);
-            formHtml += createField('Monto', 'monto', item.monto);
-            formHtml += createField('Pagado con', 'metodo', item.metodo, 'select', ['Efectivo', 'Banco']);
-        } else if (type === 'gastos') {
-            formHtml += createField('Fecha', 'fecha', formatDateForInput(item.fecha), 'date');
-            formHtml += createField('Descripción', 'descripcion', item.descripcion);
-            formHtml += createField('Categoría', 'categoria', item.categoria, 'select', ['Arriendo', 'Servicios', 'Nómina', 'Marketing', 'Mantenimiento', 'Impuestos', 'Insumos', 'Otro']);
-            formHtml += createField('Monto', 'monto', item.monto);
-        } else if (type === 'retiros') {
-            formHtml += createField('Fecha', 'fecha', formatDateForInput(item.fecha), 'date');
-            formHtml += createField('Descripción', 'descripcion', item.descripcion);
-            formHtml += createField('Retirado de', 'metodo', item.metodo, 'select', ['Efectivo', 'Banco']);
-            formHtml += createField('Monto', 'monto', item.monto);
-        }
-        form.innerHTML = formHtml;
-        addCurrencyFormatting(form);
-        modal.style.display = 'flex';
+        if (type === 'ingresos') { formHtml += createField('Fecha', 'fecha', formatDateForInput(item.fecha), 'date'); formHtml += createField('Venta Efectivo', 'monto_efectivo', item.monto_efectivo); formHtml += createField('Venta Tarjeta', 'monto_tarjeta', item.monto_tarjeta); formHtml += createField('Notas', 'notas', item.notas || '', 'textarea'); }
+        else if (type === 'compras') { formHtml += createField('Fecha', 'fecha', formatDateForInput(item.fecha), 'date'); formHtml += createField('Proveedor', 'proveedor', item.proveedor); formHtml += createField('Descripción', 'descripcion', item.descripcion); formHtml += createField('Monto', 'monto', item.monto); formHtml += createField('Pagado con', 'metodo', item.metodo, 'select', ['Efectivo', 'Banco']); }
+        else if (type === 'gastos') { formHtml += createField('Fecha', 'fecha', formatDateForInput(item.fecha), 'date'); formHtml += createField('Descripción', 'descripcion', item.descripcion); formHtml += createField('Categoría', 'categoria', item.categoria, 'select', ['Arriendo', 'Servicios', 'Nómina', 'Marketing', 'Mantenimiento', 'Impuestos', 'Insumos', 'Otro']); formHtml += createField('Monto', 'monto', item.monto); }
+        else if (type === 'retiros') { formHtml += createField('Fecha', 'fecha', formatDateForInput(item.fecha), 'date'); formHtml += createField('Descripción', 'descripcion', item.descripcion); formHtml += createField('Retirado de', 'metodo', item.metodo, 'select', ['Efectivo', 'Banco']); formHtml += createField('Monto', 'monto', item.monto); }
+        form.innerHTML = formHtml; addCurrencyFormatting(form); modal.style.display = 'flex';
     };
 
     document.getElementById('save-edit-btn').addEventListener('click', () => {
-        const form = document.getElementById('edit-form');
-        const { type, id } = form.dataset;
-        const updatedData = {};
-        const inputs = form.querySelectorAll('input, select, textarea');
-        
+        const form = document.getElementById('edit-form'); const { type, id } = form.dataset;
+        const updatedData = {}; const inputs = form.querySelectorAll('input, select, textarea');
         inputs.forEach(input => {
             const key = input.id.replace('edit-', '');
-            if (input.hasAttribute('data-moneda')) {
-                updatedData[key] = getNumericValue(input.value);
-            } else if (input.type === 'date') {
-                const originalItem = (allData[type] || []).find(i => i.id === id);
-                const originalDate = originalItem.fecha;
-                const newDateParts = input.value.split('-').map(Number);
-                const updatedDate = new Date(originalDate);
-                updatedDate.setFullYear(newDateParts[0], newDateParts[1] - 1, newDateParts[2]);
-                updatedData.fecha = updatedDate.toISOString();
-            } else {
-                updatedData[key] = input.value;
-            }
+            if (input.hasAttribute('data-moneda')) { updatedData[key] = getNumericValue(input.value); }
+            else if (input.type === 'date') { const originalItem = (allData[type] || []).find(i => i.id === id); const originalDate = originalItem.fecha; const newDateParts = input.value.split('-').map(Number); const updatedDate = new Date(originalDate); updatedDate.setFullYear(newDateParts[0], newDateParts[1] - 1, newDateParts[2]); updatedData.fecha = updatedDate.toISOString(); }
+            else { updatedData[key] = input.value; }
         });
-
-        if (type === 'ingresos') {
-            updatedData.monto = (updatedData.monto_efectivo || 0) + (updatedData.monto_tarjeta || 0);
-        }
-
+        if (type === 'ingresos') { updatedData.monto = (updatedData.monto_efectivo || 0) + (updatedData.monto_tarjeta || 0); }
         getRefFor(type).child(id).update(updatedData)
-            .then(() => {
-                showNotification('Éxito', 'Registro actualizado.');
-                document.getElementById('edit-modal').style.display = 'none';
-            })
+            .then(() => { showNotification('Éxito', 'Registro actualizado.'); document.getElementById('edit-modal').style.display = 'none'; })
             .catch(err => showNotification('Error', 'No se pudo actualizar: ' + err.message, 'error'));
     });
 
-    // =========================================================================
-    // LÓGICA DE PDF
-    // =========================================================================
     const exportToPDF = (type) => {
         const data = (allData[type] || []).sort((a,b) => b.fecha - a.fecha);
-        if (data.length === 0) {
-            showNotification('Info', `No hay datos de "${type}" para exportar.`, 'info');
-            return;
-        }
-        
-        const doc = new jsPDF();
-        const title = `Reporte de ${type.charAt(0).toUpperCase() + type.slice(1)}`;
-        doc.text(title, 14, 16);
-        doc.setFontSize(10);
-        doc.text(`Negocio: ${currentBusinessName}`, 14, 22);
-        doc.text(`Fecha de Generación: ${new Date().toLocaleDateString()}`, 14, 26);
-
+        if (data.length === 0) { showNotification('Info', `No hay datos de "${type}" para exportar.`, 'info'); return; }
+        const doc = new jsPDF(); const title = `Reporte de ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+        doc.text(title, 14, 16); doc.setFontSize(10); doc.text(`Negocio: ${currentBusinessName}`, 14, 22); doc.text(`Fecha de Generación: ${new Date().toLocaleDateString()}`, 14, 26);
         let headers, body;
-        if (type === 'ingresos') {
-            headers = [['Fecha', 'Efectivo', 'Tarjeta', 'Total', 'Notas']];
-            body = data.map(i => [i.fecha.toLocaleDateString(), formatCurrency(i.monto_efectivo), formatCurrency(i.monto_tarjeta), formatCurrency(i.monto), i.notas || '-']);
-        } else if (type === 'compras') {
-            headers = [['Fecha', 'Proveedor', 'Descripción', 'Monto', 'Pagado con']];
-            body = data.map(i => [i.fecha.toLocaleDateString(), i.proveedor, i.descripcion, formatCurrency(i.monto), i.metodo]);
-        } else if (type === 'gastos') {
-            headers = [['Fecha', 'Descripción', 'Categoría', 'Monto']];
-            body = data.map(i => [i.fecha.toLocaleDateString(), i.descripcion, i.categoria, formatCurrency(i.monto)]);
-        } else if (type === 'retiros') {
-            headers = [['Fecha', 'Retirado de', 'Descripción', 'Monto']];
-            body = data.map(i => [i.fecha.toLocaleDateString(), i.metodo, i.descripcion, formatCurrency(i.monto)]);
-        }
-
-        doc.autoTable({
-            startY: 30,
-            head: headers,
-            body: body,
-            theme: 'grid'
-        });
+        if (type === 'ingresos') { headers = [['Fecha', 'Efectivo', 'Tarjeta', 'Total', 'Notas']]; body = data.map(i => [i.fecha.toLocaleDateString(), formatCurrency(i.monto_efectivo), formatCurrency(i.monto_tarjeta), formatCurrency(i.monto), i.notas || '-']); }
+        else if (type === 'compras') { headers = [['Fecha', 'Proveedor', 'Descripción', 'Monto', 'Pagado con']]; body = data.map(i => [i.fecha.toLocaleDateString(), i.proveedor, i.descripcion, formatCurrency(i.monto), i.metodo]); }
+        else if (type === 'gastos') { headers = [['Fecha', 'Descripción', 'Categoría', 'Monto']]; body = data.map(i => [i.fecha.toLocaleDateString(), i.descripcion, i.categoria, formatCurrency(i.monto)]); }
+        else if (type === 'retiros') { headers = [['Fecha', 'Retirado de', 'Descripción', 'Monto']]; body = data.map(i => [i.fecha.toLocaleDateString(), i.metodo, i.descripcion, formatCurrency(i.monto)]); }
+        doc.autoTable({ startY: 30, head: headers, body: body, theme: 'grid' });
         doc.save(`${type}_${currentBusinessName}_${new Date().toISOString().slice(0,10)}.pdf`);
     };
 
     const exportDeudasPDF = (type) => {
         const data = (allData[type] || []);
-        if (data.length === 0) {
-            showNotification('Info', `No hay datos para exportar.`, 'info');
-            return;
-        }
-
-        const doc = new jsPDF();
-        let title, headers, body;
-        const typeMap = {
-            'cuentasPorCobrar': 'Cuentas por Cobrar',
-            'cuentasPorPagar': 'Cuentas por Pagar',
-            'vales': 'Vales'
-        };
+        if (data.length === 0) { showNotification('Info', `No hay datos para exportar.`, 'info'); return; }
+        const doc = new jsPDF(); let title, headers, body;
+        const typeMap = { 'cuentasPorCobrar': 'Cuentas por Cobrar', 'cuentasPorPagar': 'Cuentas por Pagar', 'vales': 'Vales' };
         title = `Reporte de ${typeMap[type] || type}`;
-
         if (type === 'cuentasPorCobrar' || type === 'vales') {
             const personKey = type === 'vales' ? 'Persona' : 'Cliente';
             headers = [[personKey, 'Descripción', 'Monto Total', 'Total Abonado', 'Saldo Pendiente']];
-            body = data.map(d => {
-                const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + Number(a.monto || 0), 0);
-                const restante = Number(d.monto || 0) - totalAbonado;
-                const person = type === 'vales' ? d.persona : d.cliente;
-                return [person, d.descripcion, formatCurrency(d.monto), formatCurrency(totalAbonado), formatCurrency(restante)];
-            });
-        } else if (type === 'cuentasPorPagar') {
-            headers = [['Acreedor', 'Concepto', 'Monto', 'Estado']];
-            body = data.map(d => [d.acreedor, d.descripcion, formatCurrency(d.monto), d.estado]);
-        }
-
-        doc.text(title, 14, 16);
-        doc.setFontSize(10);
-        doc.text(`Negocio: ${currentBusinessName}`, 14, 22);
-        doc.text(`Fecha de Generación: ${new Date().toLocaleDateString()}`, 14, 26);
+            body = data.map(d => { const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + Number(a.monto || 0), 0); const restante = Number(d.monto || 0) - totalAbonado; const person = type === 'vales' ? d.persona : d.cliente; return [person, d.descripcion, formatCurrency(d.monto), formatCurrency(totalAbonado), formatCurrency(restante)]; });
+        } else if (type === 'cuentasPorPagar') { headers = [['Acreedor', 'Concepto', 'Monto', 'Estado']]; body = data.map(d => [d.acreedor, d.descripcion, formatCurrency(d.monto), d.estado]); }
+        doc.text(title, 14, 16); doc.setFontSize(10); doc.text(`Negocio: ${currentBusinessName}`, 14, 22); doc.text(`Fecha de Generación: ${new Date().toLocaleDateString()}`, 14, 26);
         doc.autoTable({ startY: 30, head: headers, body: body, theme: 'grid' });
         doc.save(`${type}_${currentBusinessName}_${new Date().toISOString().slice(0,10)}.pdf`);
     };
 
-    // =========================================================================
-    // EVENT LISTENERS GENERALES
-    // =========================================================================
     document.getElementById('notification-close').onclick = () => document.getElementById('notification-modal').style.display = 'none';
     document.getElementById('cancel-confirm-btn').onclick = cleanupConfirmModal;
     document.getElementById('confirm-btn').addEventListener('click', () => { if (confirmCallback) { confirmCallback(); } cleanupConfirmModal(); });
@@ -1064,31 +876,23 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('logout-btn-main').addEventListener('click', handleLogout);
     document.getElementById('logout-btn-selector').addEventListener('click', handleLogout);
     document.getElementById('switch-business-btn').addEventListener('click', showBusinessSelector);
-
     document.getElementById('month-filter').addEventListener('change', refreshUI);
+
     document.body.addEventListener('click', (e) => {
-        const target = e.target;
-        const deleteBtn = target.closest('.delete-btn');
-        const editBtn = target.closest('.edit-btn');
-        const pdfBtn = target.closest('.btn-pdf');
-        const tabBtn = target.closest('.tab-button');
-        const abonoBtn = target.closest('.abono-btn');
-        const pagarBtn = target.closest('.pagar-btn');
-        const historialBtn = target.closest('.historial-btn');
-        
-        if (tabBtn) changeTab(tabBtn.dataset.tab);
-        else if (deleteBtn) handleDelete(deleteBtn.dataset.type, deleteBtn.dataset.id);
-        else if (editBtn) handleEdit(editBtn.dataset.type, editBtn.dataset.id);
-        else if (pdfBtn) {
-            const type = pdfBtn.dataset.type;
+        const target = e.target.closest('button'); if (!target) return;
+        const { type, id } = target.dataset;
+        if (target.matches('.delete-btn')) handleDelete(type, id);
+        else if (target.matches('.edit-btn')) handleEdit(type, id);
+        else if (target.matches('.btn-pdf')) {
             if (type === 'deudas-cobrar') exportDeudasPDF('cuentasPorCobrar');
             else if (type === 'deudas-pagar') exportDeudasPDF('cuentasPorPagar');
             else if (type === 'vales') exportDeudasPDF('vales');
             else exportToPDF(type);
         }
-        else if (abonoBtn) handleAbonar(abonoBtn.dataset.id, abonoBtn.dataset.type);
-        else if (pagarBtn) handlePagar(pagarBtn.dataset.id);
-        else if (historialBtn) handleHistorial(historialBtn.dataset.id, historialBtn.dataset.type);
+        else if (target.matches('.tab-button')) changeTab(target.dataset.tab);
+        else if (target.matches('.abono-btn')) handleAbonar(id, type);
+        else if (target.matches('.pagar-btn')) handlePagar(id);
+        else if (target.matches('.historial-btn')) handleHistorial(id, type);
     });
 
 });
