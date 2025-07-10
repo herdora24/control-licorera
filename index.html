@@ -6,38 +6,38 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Control Financiero - Multi-Negocio</title>
 <script src="https://cdn.tailwindcss.com">
-    document.getElementById('close-period-btn').addEventListener('click', async () => {
-        // Confirm that the user wants to close the month
-        const confirm = window.confirm('¿Está seguro de que desea cerrar este mes? Una vez cerrado, no se podrán agregar ni retirar más movimientos.');
-        if (!confirm) return;
+document.getElementById('close-period-btn').addEventListener('click', async () => {
+    // Confirm that the user wants to close the month
+    const confirm = window.confirm('¿Está seguro de que desea cerrar este mes? Una vez cerrado, no se podrán agregar ni retirar más movimientos.');
+    if (!confirm) return;
 
-        // Get the current period
-        const currentPeriodRef = database.ref(`businesses/${selectedBusinessId}/periods`).orderByChild('endDate').equalTo(null).limitToFirst(1);
-        const snapshot = await currentPeriodRef.once('value');
-        const currentPeriod = snapshot.val();
+    // Get the current period
+    const currentPeriodRef = database.ref(`businesses/${selectedBusinessId}/periods`).orderByChild('endDate').equalTo(null).limitToFirst(1);
+    const snapshot = await currentPeriodRef.once('value');
+    const currentPeriod = snapshot.val();
 
-        if (!currentPeriod) {
-            alert('No se encontró un período abierto para cerrar.');
-            return;
-        }
+    if (!currentPeriod) {
+        alert('No se encontró un período abierto para cerrar.');
+        return;
+    }
 
-        // Mark the month as closed
-        const periodKey = Object.keys(currentPeriod)[0];
-        const closedPeriod = { ...currentPeriod[periodKey], endDate: new Date().toISOString() };
-        await database.ref(`businesses/${selectedBusinessId}/periods/${periodKey}`).update(closedPeriod);
+    // Mark the month as closed
+    const periodKey = Object.keys(currentPeriod)[0];
+    const closedPeriod = { ...currentPeriod[periodKey], endDate: new Date().toISOString() };
+    await database.ref(`businesses/${selectedBusinessId}/periods/${periodKey}`).update(closedPeriod);
 
-        // Disable new entries for money (ingresos and retiros)
-        await database.ref(`businesses/${selectedBusinessId}/settings`).update({ periodClosed: true });
+    // Disable the "ingreso" and "retiro" forms by marking the period as closed in settings
+    await database.ref(`businesses/${selectedBusinessId}/settings`).update({ periodClosed: true });
 
-        // Disable the "ingreso" and "retiro" forms (to stop further entries)
-        document.getElementById('form-ingresos').querySelectorAll('input, button').forEach(el => el.disabled = true);
-        document.getElementById('form-retiros').querySelectorAll('input, button').forEach(el => el.disabled = true);
+    // Disable input fields for ingreso and retiro forms (to stop further entries)
+    document.querySelectorAll('#form-ingresos input, #form-ingresos button').forEach(el => el.disabled = true);
+    document.querySelectorAll('#form-retiros input, #form-retiros button').forEach(el => el.disabled = true);
 
-        alert('Corte de mes realizado exitosamente. El período está cerrado.');
+    alert('Corte de mes realizado exitosamente. El período está cerrado.');
 
-        // Refresh the UI if needed to reflect the change
-    });
-    </script>
+    // Refresh the UI to reflect the change
+});
+</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
@@ -127,7 +127,7 @@
 </div>
 <div class="flex items-center space-x-4 no-print">
 <input class="p-2 border border-gray-300 rounded-md" id="month-filter" type="month"/>
-<button class="bg-indigo-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors enabled" id="close-period-btn">
+<button class="bg-indigo-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors" id="close-period-btn">
 <i class="fas fa-calendar-check mr-2"></i>Realizar Corte de Mes
                                     </button>
 </div>
