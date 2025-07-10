@@ -239,6 +239,104 @@ document.addEventListener('DOMContentLoaded', () => {
     let confirmCallback = null;
     let currentUserProfile = null;
     let selectedBusinessId = null;
+    // ============================ FUNCIONES DE CORTE Y BORRADO DE MES ============================
+
+    const handleMonthCut = async () => {
+        try {
+            if (!selectedBusinessId) return alert("Negocio no seleccionado.");
+            const periodKey = document.getElementById('month-filter').value;
+            if (!periodKey) return alert("Selecciona un mes válido.");
+
+            const monthData = {
+                ingresos: allData.ingresos || [],
+                compras: allData.compras || [],
+                gastos: allData.gastos || [],
+                retiros: allData.retiros || [],
+                cuentasPorCobrar: allData.cuentasPorCobrar || [],
+                cuentasPorPagar: allData.cuentasPorPagar || [],
+                vales: allData.vales || []
+            };
+
+            // Guardar histórico en Firebase
+            await database.ref(`businesses/${selectedBusinessId}/historical/${periodKey}`).set(monthData);
+
+            // Filtrar cuentas pendientes
+            const cuentasPorCobrarPendientes = (monthData.cuentasPorCobrar || []).filter(c => {
+                const abonado = (c.abonos ? Object.values(c.abonos).reduce((s, a) => s + a.monto, 0) : 0);
+                return abonado < c.monto;
+            });
+
+            const cuentasPorPagarPendientes = (monthData.cuentasPorPagar || []).filter(c => {
+                const abonado = (c.abonos ? Object.values(c.abonos).reduce((s, a) => s + a.monto, 0) : 0);
+                return abonado < c.monto;
+            });
+
+            // Borrar datos actuales
+            const updates = {};
+            ['ingresos','compras','gastos','retiros','vales','cuentasPorCobrar','cuentasPorPagar'].forEach(key => {
+                updates[`businesses/${selectedBusinessId}/${key}`] = null;
+            });
+
+            // Restaurar cuentas pendientes
+            cuentasPorCobrarPendientes.forEach(item => {
+                const newId = database.ref().child('x').push().key;
+                updates[`businesses/${selectedBusinessId}/cuentasPorCobrar/${newId}`] = item;
+            });
+            cuentasPorPagarPendientes.forEach(item => {
+                const newId = database.ref().child('x').push().key;
+                updates[`businesses/${selectedBusinessId}/cuentasPorPagar/${newId}`] = item;
+            });
+
+            await database.ref().update(updates);
+            showNotification('Corte Realizado', 'El periodo fue guardado y el nuevo mes está listo.');
+
+        } catch (err) {
+            console.error(err);
+            alert("Ocurrió un error al cortar el mes.");
+        }
+    };
+
+    const handleDeleteMonth = async (periodKey) => {
+        if (!selectedBusinessId) return alert("Negocio no seleccionado.");
+        const confirmed = confirm(`¿Estás seguro de borrar el mes ${periodKey}? Esta acción es irreversible.`);
+        if (!confirmed) return;
+
+        try {
+            await database.ref(`businesses/${selectedBusinessId}/historical/${periodKey}`).remove();
+            showNotification('Mes eliminado', `Se eliminó el mes ${periodKey} del histórico.`);
+        } catch (err) {
+            console.error(err);
+            alert("No se pudo eliminar el mes.");
+        }
+    };
+
+    const createMonthButtons = () => {
+        const container = document.createElement('div');
+        container.className = "no-print my-4 flex gap-4 flex-wrap";
+
+        const btnCorte = document.createElement('button');
+        btnCorte.id = "cut-month-btn";
+        btnCorte.textContent = "Realizar Corte de Mes";
+        btnCorte.className = "bg-indigo-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-indigo-700";
+        btnCorte.onclick = handleMonthCut;
+
+        const btnBorrar = document.createElement('button');
+        btnBorrar.textContent = "Borrar Mes Actual";
+        btnBorrar.className = "bg-red-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-700";
+        btnBorrar.onclick = () => {
+            const periodKey = document.getElementById('month-filter').value;
+            if (periodKey) handleDeleteMonth(periodKey);
+        };
+
+        container.appendChild(btnCorte);
+        container.appendChild(btnBorrar);
+
+        const resumen = document.getElementById('resumen');
+        if (resumen) resumen.prepend(container);
+    };
+
+    createMonthButtons();
+
     let periods = [];
 
     const dataTypes = ['ingresos', 'compras', 'gastos', 'retiros', 'cuentasPorCobrar', 'cuentasPorPagar', 'vales'];
@@ -763,377 +861,94 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    // Variables para gestionar los periodos y datos
-    let currentPeriod = null;  // Para almacenar el periodo actual
-    let historicalPeriods = {};  // Para almacenar los periodos pasados
+// Variables para gestionar los periodos y datos
+let currentPeriod = null;  // Para almacenar el periodo actual
+let historicalPeriods = {};  // Para almacenar los periodos pasados
 
-    // Función para realizar el corte de mes
-    const handleMonthCut = async () => {
-        // Guardar los datos del mes en el histórico
-        const monthData = {
-            ingresos: allData.ingresos,
-            compras: allData.compras,
-            gastos: allData.gastos,
-            retiros: allData.retiros,
-            cuentasPorCobrar: allData.cuentasPorCobrar,
-            cuentasPorPagar: allData.cuentasPorPagar,
-            vales: allData.vales,
-        };
-
-        const periodKey = `${new Date().getFullYear()}-${new Date().getMonth() + 1}`;
-        historicalPeriods[periodKey] = monthData;
-
-        // Guardar en la base de datos (por ejemplo, Firebase)
-        const periodRef = database.ref(`businesses/${selectedBusinessId}/historicalPeriods`);
-        await periodRef.update(historicalPeriods);
-
-        // Reiniciar el mes actual a cero
-        resetMonthData();
-
-        // Mover cuentas pendientes al siguiente mes
-        await transferPendingAccountsToNextMonth();
-
-        // Mostrar notificación de éxito
-        showNotification('Corte de mes', `El corte de mes para el mes ${periodKey} se realizó con éxito.`);
+// Función para realizar el corte de mes
+const handleMonthCut = async () => {
+    // Guardar los datos del mes en el histórico
+    const monthData = {
+        ingresos: allData.ingresos,
+        compras: allData.compras,
+        gastos: allData.gastos,
+        retiros: allData.retiros,
+        cuentasPorCobrar: allData.cuentasPorCobrar,
+        cuentasPorPagar: allData.cuentasPorPagar,
+        vales: allData.vales,
     };
 
-    // Función para resetear los datos del mes actual
-    const resetMonthData = () => {
-        allData.ingresos = [];
-        allData.compras = [];
-        allData.gastos = [];
-        allData.retiros = [];
-        allData.cuentasPorCobrar = [];
-        allData.cuentasPorPagar = [];
-        allData.vales = [];
+    const periodKey = `${new Date().getFullYear()}-${new Date().getMonth() + 1}`;
+    historicalPeriods[periodKey] = monthData;
 
-        // Reiniciar en la UI
-        refreshUI();
-    };
+    // Guardar en la base de datos (por ejemplo, Firebase)
+    const periodRef = database.ref(`businesses/${selectedBusinessId}/historicalPeriods`);
+    await periodRef.update(historicalPeriods);
 
-    // Función para transferir las cuentas pendientes al siguiente mes
-    const transferPendingAccountsToNextMonth = async () => {
-        const nextMonth = new Date();
-        nextMonth.setMonth(nextMonth.getMonth() + 1); // Sumar un mes para el próximo periodo
+    // Reiniciar el mes actual a cero
+    resetMonthData();
 
-        const nextMonthKey = `${nextMonth.getFullYear()}-${nextMonth.getMonth() + 1}`;
+    // Mover cuentas pendientes al siguiente mes
+    await transferPendingAccountsToNextMonth();
 
-        const cuentasPorCobrarPendientes = allData.cuentasPorCobrar.filter(cuenta => cuenta.estado !== 'Pagada');
-        const cuentasPorPagarPendientes = allData.cuentasPorPagar.filter(cuenta => cuenta.estado !== 'Pagada');
+    // Mostrar notificación de éxito
+    showNotification('Corte de mes', `El corte de mes para el mes ${periodKey} se realizó con éxito.`);
+};
 
-        // Agregar las cuentas pendientes al siguiente mes
-        const nextMonthRef = database.ref(`businesses/${selectedBusinessId}/historicalPeriods/${nextMonthKey}`);
-        await nextMonthRef.update({
-            cuentasPorCobrar: cuentasPorCobrarPendientes,
-            cuentasPorPagar: cuentasPorPagarPendientes,
-        });
-    };
+// Función para resetear los datos del mes actual
+const resetMonthData = () => {
+    allData.ingresos = [];
+    allData.compras = [];
+    allData.gastos = [];
+    allData.retiros = [];
+    allData.cuentasPorCobrar = [];
+    allData.cuentasPorPagar = [];
+    allData.vales = [];
 
-    // Función para borrar un mes
-    const handleDeleteMonth = async (monthKey) => {
-        const confirmDelete = confirm(`¿Estás seguro de que deseas eliminar el mes ${monthKey}? Esta acción no puede deshacerse.`);
-        if (confirmDelete) {
-            // Eliminar el mes del histórico
-            const periodRef = database.ref(`businesses/${selectedBusinessId}/historicalPeriods/${monthKey}`);
-            await periodRef.remove();
+    // Reiniciar en la UI
+    refreshUI();
+};
 
-            showNotification('Mes Eliminado', `El mes ${monthKey} fue eliminado exitosamente.`);
-        }
-    };
+// Función para transferir las cuentas pendientes al siguiente mes
+const transferPendingAccountsToNextMonth = async () => {
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1); // Sumar un mes para el próximo periodo
 
-    // Función para mostrar notificaciones
-    const showNotification = (title, message) => {
-        alert(`${title}: ${message}`);
-    };
+    const nextMonthKey = `${nextMonth.getFullYear()}-${nextMonth.getMonth() + 1}`;
 
-    // Verificar si el botón de corte de mes existe antes de agregar el eventListener
-    const cutMonthBtn = document.getElementById('cut-month-btn');
-    if (cutMonthBtn) {
-        cutMonthBtn.addEventListener('click', handleMonthCut);
-    } else {
-        console.warn('El botón de corte de mes no se encontró en el HTML.');
+    const cuentasPorCobrarPendientes = allData.cuentasPorCobrar.filter(cuenta => cuenta.estado !== 'Pagada');
+    const cuentasPorPagarPendientes = allData.cuentasPorPagar.filter(cuenta => cuenta.estado !== 'Pagada');
+
+    // Agregar las cuentas pendientes al siguiente mes
+    const nextMonthRef = database.ref(`businesses/${selectedBusinessId}/historicalPeriods/${nextMonthKey}`);
+    await nextMonthRef.update({
+        cuentasPorCobrar: cuentasPorCobrarPendientes,
+        cuentasPorPagar: cuentasPorPagarPendientes,
+    });
+};
+
+// Función para borrar un mes
+const handleDeleteMonth = async (monthKey) => {
+    const confirmDelete = confirm(`¿Estás seguro de que deseas eliminar el mes ${monthKey}? Esta acción no puede deshacerse.`);
+    if (confirmDelete) {
+        // Eliminar el mes del histórico
+        const periodRef = database.ref(`businesses/${selectedBusinessId}/historicalPeriods/${monthKey}`);
+        await periodRef.remove();
+
+        showNotification('Mes Eliminado', `El mes ${monthKey} fue eliminado exitosamente.`);
     }
+};
 
-    // Verificar si el botón para borrar mes existe antes de agregar el eventListener
-    const deleteMonthBtn = document.getElementById('delete-month-btn');
-    if (deleteMonthBtn) {
-        deleteMonthBtn.addEventListener('click', () => handleDeleteMonth('2025-06'));
-    } else {
-        console.warn('El botón de eliminar mes no se encontró en el HTML.');
-    }
-});
-</script>
+// Función para mostrar notificaciones
+const showNotification = (title, message) => {
+    alert(`${title}: ${message}`);
+};
 
-<!-- Botón para realizar el corte de mes -->
-<div class="no-print text-center mt-4">
-    <button id="cut-month-btn" class="bg-indigo-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-indigo-700">
-        Realizar Corte de Mes
-    </button>
-</div>
+// Asumiendo que tienes un botón con id 'cut-month-btn' en el HTML
+document.getElementById('cut-month-btn').addEventListener('click', handleMonthCut);
 
-<!-- Botón para borrar un mes específico -->
-<div class="no-print text-center mt-4">
-    <button id="delete-month-btn" class="bg-red-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-700">
-        Borrar Mes (Ejemplo: Enero 2025)
-    </button>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    // Definir la variable `allData` para almacenar los datos de ingresos, compras, etc.
-    let allData = {
-        ingresos: [],
-        compras: [],
-        gastos: [],
-        retiros: [],
-        cuentasPorCobrar: [],
-        cuentasPorPagar: [],
-        vales: [],
-    };
-
-    // Asegurarnos de que `database` esté correctamente inicializado con Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyCm5BGh7cWX4A5fXx8zCN33ztuLvseRhAU",
-        authDomain: "control-licorera.firebaseapp.com",
-        databaseURL: "https://control-licorera-default-rtdb.firebaseio.com",
-        projectId: "control-licorera",
-        storageBucket: "control-licorera.appspot.com",
-        messagingSenderId: "430925820415",
-        appId: "1:430925820415:web:e1c06bc73b6863a5c3f7ca",
-        measurementId: "G-86ZY48XKV4"
-    };
-
-    // Inicializar Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
-    // Función para realizar el corte de mes
-    const handleMonthCut = async () => {
-        // Guardar los datos del mes en el histórico
-        const monthData = {
-            ingresos: allData.ingresos,
-            compras: allData.compras,
-            gastos: allData.gastos,
-            retiros: allData.retiros,
-            cuentasPorCobrar: allData.cuentasPorCobrar,
-            cuentasPorPagar: allData.cuentasPorPagar,
-            vales: allData.vales,
-        };
-
-        const periodKey = `${new Date().getFullYear()}-${new Date().getMonth() + 1}`;
-        historicalPeriods[periodKey] = monthData;
-
-        // Guardar en la base de datos (por ejemplo, Firebase)
-        const periodRef = database.ref(`businesses/${selectedBusinessId}/historicalPeriods`);
-        await periodRef.update(historicalPeriods);
-
-        // Reiniciar el mes actual a cero
-        resetMonthData();
-
-        // Mover cuentas pendientes al siguiente mes
-        await transferPendingAccountsToNextMonth();
-
-        // Mostrar notificación de éxito
-        showNotification('Corte de mes', `El corte de mes para el mes ${periodKey} se realizó con éxito.`);
-    };
-
-    // Función para resetear los datos del mes actual
-    const resetMonthData = () => {
-        allData.ingresos = [];
-        allData.compras = [];
-        allData.gastos = [];
-        allData.retiros = [];
-        allData.cuentasPorCobrar = [];
-        allData.cuentasPorPagar = [];
-        allData.vales = [];
-
-        // Reiniciar en la UI
-        refreshUI();
-    };
-
-    // Función para transferir las cuentas pendientes al siguiente mes
-    const transferPendingAccountsToNextMonth = async () => {
-        const nextMonth = new Date();
-        nextMonth.setMonth(nextMonth.getMonth() + 1); // Sumar un mes para el próximo periodo
-
-        const nextMonthKey = `${nextMonth.getFullYear()}-${nextMonth.getMonth() + 1}`;
-
-        const cuentasPorCobrarPendientes = allData.cuentasPorCobrar.filter(cuenta => cuenta.estado !== 'Pagada');
-        const cuentasPorPagarPendientes = allData.cuentasPorPagar.filter(cuenta => cuenta.estado !== 'Pagada');
-
-        // Agregar las cuentas pendientes al siguiente mes
-        const nextMonthRef = database.ref(`businesses/${selectedBusinessId}/historicalPeriods/${nextMonthKey}`);
-        await nextMonthRef.update({
-            cuentasPorCobrar: cuentasPorCobrarPendientes,
-            cuentasPorPagar: cuentasPorPagarPendientes,
-        });
-    };
-
-    // Función para borrar un mes
-    const handleDeleteMonth = async (monthKey) => {
-        const confirmDelete = confirm(`¿Estás seguro de que deseas eliminar el mes ${monthKey}? Esta acción no puede deshacerse.`);
-        if (confirmDelete) {
-            // Eliminar el mes del histórico
-            const periodRef = database.ref(`businesses/${selectedBusinessId}/historicalPeriods/${monthKey}`);
-            await periodRef.remove();
-
-            showNotification('Mes Eliminado', `El mes ${monthKey} fue eliminado exitosamente.`);
-        }
-    };
-
-    // Función para mostrar notificaciones
-    const showNotification = (title, message) => {
-        alert(`${title}: ${message}`);
-    };
-
-    // Verificar si el botón de corte de mes existe antes de agregar el eventListener
-    const cutMonthBtn = document.getElementById('cut-month-btn');
-    if (cutMonthBtn) {
-        cutMonthBtn.addEventListener('click', handleMonthCut);
-    } else {
-        console.warn('El botón de corte de mes no se encontró en el HTML.');
-    }
-
-    // Verificar si el botón para borrar mes existe antes de agregar el eventListener
-    const deleteMonthBtn = document.getElementById('delete-month-btn');
-    if (deleteMonthBtn) {
-        deleteMonthBtn.addEventListener('click', () => handleDeleteMonth('2025-06'));
-    } else {
-        console.warn('El botón de eliminar mes no se encontró en el HTML.');
-    }
-});
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    // Definir la variable `allData` para almacenar los datos de ingresos, compras, etc.
-    let allData = {
-        ingresos: [],
-        compras: [],
-        gastos: [],
-        retiros: [],
-        cuentasPorCobrar: [],
-        cuentasPorPagar: [],
-        vales: [],
-    };
-
-    // Inicializar Firebase solo si no está inicializado previamente
-    const firebaseConfig = {
-        apiKey: "AIzaSyCm5BGh7cWX4A5fXx8zCN33ztuLvseRhAU",
-        authDomain: "control-licorera.firebaseapp.com",
-        databaseURL: "https://control-licorera-default-rtdb.firebaseio.com",
-        projectId: "control-licorera",
-        storageBucket: "control-licorera.appspot.com",
-        messagingSenderId: "430925820415",
-        appId: "1:430925820415:web:e1c06bc73b6863a5c3f7ca",
-        measurementId: "G-86ZY48XKV4"
-    };
-
-    // Inicializar Firebase solo si no está inicializado previamente
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    } else {
-        firebase.app(); // Usar la app ya inicializada
-    }
-
-    const database = firebase.database();
-
-    // Función para realizar el corte de mes
-    const handleMonthCut = async () => {
-        // Guardar los datos del mes en el histórico
-        const monthData = {
-            ingresos: allData.ingresos,
-            compras: allData.compras,
-            gastos: allData.gastos,
-            retiros: allData.retiros,
-            cuentasPorCobrar: allData.cuentasPorCobrar,
-            cuentasPorPagar: allData.cuentasPorPagar,
-            vales: allData.vales,
-        };
-
-        const periodKey = `${new Date().getFullYear()}-${new Date().getMonth() + 1}`;
-        historicalPeriods[periodKey] = monthData;
-
-        // Guardar en la base de datos (por ejemplo, Firebase)
-        const periodRef = database.ref(`businesses/${selectedBusinessId}/historicalPeriods`);
-        await periodRef.update(historicalPeriods);
-
-        // Reiniciar el mes actual a cero
-        resetMonthData();
-
-        // Mover cuentas pendientes al siguiente mes
-        await transferPendingAccountsToNextMonth();
-
-        // Mostrar notificación de éxito
-        showNotification('Corte de mes', `El corte de mes para el mes ${periodKey} se realizó con éxito.`);
-    };
-
-    // Función para resetear los datos del mes actual
-    const resetMonthData = () => {
-        allData.ingresos = [];
-        allData.compras = [];
-        allData.gastos = [];
-        allData.retiros = [];
-        allData.cuentasPorCobrar = [];
-        allData.cuentasPorPagar = [];
-        allData.vales = [];
-
-        // Reiniciar en la UI
-        refreshUI();
-    };
-
-    // Función para transferir las cuentas pendientes al siguiente mes
-    const transferPendingAccountsToNextMonth = async () => {
-        const nextMonth = new Date();
-        nextMonth.setMonth(nextMonth.getMonth() + 1); // Sumar un mes para el próximo periodo
-
-        const nextMonthKey = `${nextMonth.getFullYear()}-${nextMonth.getMonth() + 1}`;
-
-        const cuentasPorCobrarPendientes = allData.cuentasPorCobrar.filter(cuenta => cuenta.estado !== 'Pagada');
-        const cuentasPorPagarPendientes = allData.cuentasPorPagar.filter(cuenta => cuenta.estado !== 'Pagada');
-
-        // Agregar las cuentas pendientes al siguiente mes
-        const nextMonthRef = database.ref(`businesses/${selectedBusinessId}/historicalPeriods/${nextMonthKey}`);
-        await nextMonthRef.update({
-            cuentasPorCobrar: cuentasPorCobrarPendientes,
-            cuentasPorPagar: cuentasPorPagarPendientes,
-        });
-    };
-
-    // Función para borrar un mes
-    const handleDeleteMonth = async (monthKey) => {
-        const confirmDelete = confirm(`¿Estás seguro de que deseas eliminar el mes ${monthKey}? Esta acción no puede deshacerse.`);
-        if (confirmDelete) {
-            // Eliminar el mes del histórico
-            const periodRef = database.ref(`businesses/${selectedBusinessId}/historicalPeriods/${monthKey}`);
-            await periodRef.remove();
-
-            showNotification('Mes Eliminado', `El mes ${monthKey} fue eliminado exitosamente.`);
-        }
-    };
-
-    // Función para mostrar notificaciones
-    const showNotification = (title, message) => {
-        alert(`${title}: ${message}`);
-    };
-
-    // Verificar si el botón de corte de mes existe antes de agregar el eventListener
-    const cutMonthBtn = document.getElementById('cut-month-btn');
-    if (cutMonthBtn) {
-        cutMonthBtn.addEventListener('click', handleMonthCut);
-    } else {
-        console.warn('El botón de corte de mes no se encontró en el HTML.');
-    }
-
-    // Verificar si el botón para borrar mes existe antes de agregar el eventListener
-    const deleteMonthBtn = document.getElementById('delete-month-btn');
-    if (deleteMonthBtn) {
-        deleteMonthBtn.addEventListener('click', () => handleDeleteMonth('2025-06'));
-    } else {
-        console.warn('El botón de eliminar mes no se encontró en el HTML.');
-    }
-});
+// Asumiendo que tienes botones para eliminar meses en el HTML
+document.getElementById('delete-month-btn').addEventListener('click', () => handleDeleteMonth('2025-06'));
 </script>
 </body>
 </html>
