@@ -856,12 +856,20 @@ document.getElementById('delete-month-btn').addEventListener('click', () => hand
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
-    // Función para realizar el corte de mes
+    // Verificar si allData está definida correctamente
+    let allData = {};
+
     const handleMonthCut = async () => {
         try {
+            // Asegurarse de que allData esté correctamente definida
+            if (!allData || Object.keys(allData).length === 0) {
+                alert("No se han cargado los datos del mes actual. Por favor, espera a que la información se cargue.");
+                return;
+            }
+
             const periodKey = document.getElementById('month-filter').value; // Mes seleccionado
             if (!periodKey) return alert("Selecciona un mes válido.");
-            
+
             // Obtener los datos del mes actual
             const currentMonthData = {
                 ingresos: allData.ingresos || [],
@@ -886,7 +894,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cuentasPorPagar: filterPending(currentMonthData.cuentasPorPagar),
                 vales: filterPending(currentMonthData.vales)
             };
-            
+
             // Mover datos al siguiente mes
             await moveToNextMonth(nextMonthKey, moveData);
 
@@ -926,7 +934,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await database.ref().update(updates);
     };
 
-    // Crear el botón de "Corte de Mes"
+    // Crear el botón de "Corte de Mes" (si no existe ya en el HTML)
     const createCutButton = () => {
         const buttonContainer = document.createElement('div');
         buttonContainer.className = "no-print text-center mt-4";
