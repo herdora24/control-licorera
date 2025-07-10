@@ -239,14 +239,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let confirmCallback = null;
     let currentUserProfile = null;
     let selectedBusinessId = null;
-    // ============================ FUNCIONES DE CORTE Y BORRADO DE MES ============================
-
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Función para realizar el corte de mes
     const handleMonthCut = async () => {
         try {
             if (!selectedBusinessId) return alert("Negocio no seleccionado.");
+
             const periodKey = document.getElementById('month-filter').value;
             if (!periodKey) return alert("Selecciona un mes válido.");
 
+            // Guardar los datos del mes en el histórico
             const monthData = {
                 ingresos: allData.ingresos || [],
                 compras: allData.compras || [],
@@ -257,10 +260,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 vales: allData.vales || []
             };
 
-            // Guardar histórico en Firebase
+            // Guardar en el histórico de Firebase
             await database.ref(`businesses/${selectedBusinessId}/historical/${periodKey}`).set(monthData);
 
-            // Filtrar cuentas pendientes
+            // Filtrar las cuentas por cobrar, cuentas por pagar y vales pendientes
             const cuentasPorCobrarPendientes = (monthData.cuentasPorCobrar || []).filter(c => {
                 const abonado = (c.abonos ? Object.values(c.abonos).reduce((s, a) => s + a.monto, 0) : 0);
                 return abonado < c.monto;
@@ -271,71 +274,61 @@ document.addEventListener('DOMContentLoaded', () => {
                 return abonado < c.monto;
             });
 
-            // Borrar datos actuales
+            const valesPendientes = (monthData.vales || []).filter(v => v.estado !== 'Pagado');
+
+            // Borrar los datos actuales del mes
             const updates = {};
-            ['ingresos','compras','gastos','retiros','vales','cuentasPorCobrar','cuentasPorPagar'].forEach(key => {
+            ['ingresos', 'compras', 'gastos', 'retiros', 'vales', 'cuentasPorCobrar', 'cuentasPorPagar'].forEach(key => {
                 updates[`businesses/${selectedBusinessId}/${key}`] = null;
             });
 
-            // Restaurar cuentas pendientes
+            // Mover las cuentas pendientes al siguiente mes
             cuentasPorCobrarPendientes.forEach(item => {
                 const newId = database.ref().child('x').push().key;
                 updates[`businesses/${selectedBusinessId}/cuentasPorCobrar/${newId}`] = item;
             });
+
             cuentasPorPagarPendientes.forEach(item => {
                 const newId = database.ref().child('x').push().key;
                 updates[`businesses/${selectedBusinessId}/cuentasPorPagar/${newId}`] = item;
             });
 
+            valesPendientes.forEach(item => {
+                const newId = database.ref().child('x').push().key;
+                updates[`businesses/${selectedBusinessId}/vales/${newId}`] = item;
+            });
+
             await database.ref().update(updates);
-            showNotification('Corte Realizado', 'El periodo fue guardado y el nuevo mes está listo.');
+
+            // Notificación de éxito
+            showNotification('Corte Realizado', `El corte del mes ${periodKey} se ha realizado con éxito. Las cuentas pendientes han sido trasladadas al siguiente mes.`);
 
         } catch (err) {
             console.error(err);
-            alert("Ocurrió un error al cortar el mes.");
+            alert("Ocurrió un error al realizar el corte de mes.");
         }
     };
 
-    const handleDeleteMonth = async (periodKey) => {
-        if (!selectedBusinessId) return alert("Negocio no seleccionado.");
-        const confirmed = confirm(`¿Estás seguro de borrar el mes ${periodKey}? Esta acción es irreversible.`);
-        if (!confirmed) return;
+    // Crear el botón de "Corte de Mes"
+    const createCutButton = () => {
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = "no-print text-center mt-4";
 
-        try {
-            await database.ref(`businesses/${selectedBusinessId}/historical/${periodKey}`).remove();
-            showNotification('Mes eliminado', `Se eliminó el mes ${periodKey} del histórico.`);
-        } catch (err) {
-            console.error(err);
-            alert("No se pudo eliminar el mes.");
-        }
-    };
+        const button = document.createElement('button');
+        button.id = "cut-month-btn";
+        button.textContent = "Realizar Corte de Mes";
+        button.className = "bg-indigo-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-indigo-700";
+        button.onclick = handleMonthCut;
 
-    const createMonthButtons = () => {
-        const container = document.createElement('div');
-        container.className = "no-print my-4 flex gap-4 flex-wrap";
-
-        const btnCorte = document.createElement('button');
-        btnCorte.id = "cut-month-btn";
-        btnCorte.textContent = "Realizar Corte de Mes";
-        btnCorte.className = "bg-indigo-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-indigo-700";
-        btnCorte.onclick = handleMonthCut;
-
-        const btnBorrar = document.createElement('button');
-        btnBorrar.textContent = "Borrar Mes Actual";
-        btnBorrar.className = "bg-red-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-red-700";
-        btnBorrar.onclick = () => {
-            const periodKey = document.getElementById('month-filter').value;
-            if (periodKey) handleDeleteMonth(periodKey);
-        };
-
-        container.appendChild(btnCorte);
-        container.appendChild(btnBorrar);
+        buttonContainer.appendChild(button);
 
         const resumen = document.getElementById('resumen');
-        if (resumen) resumen.prepend(container);
+        if (resumen) resumen.prepend(buttonContainer);
     };
 
-    createMonthButtons();
+    createCutButton();
+});
+</script>
 
     let periods = [];
 
