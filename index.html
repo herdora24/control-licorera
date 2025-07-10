@@ -239,97 +239,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let confirmCallback = null;
     let currentUserProfile = null;
     let selectedBusinessId = null;
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    // Función para realizar el corte de mes
-    const handleMonthCut = async () => {
-        try {
-            if (!selectedBusinessId) return alert("Negocio no seleccionado.");
-
-            const periodKey = document.getElementById('month-filter').value;
-            if (!periodKey) return alert("Selecciona un mes válido.");
-
-            // Guardar los datos del mes en el histórico
-            const monthData = {
-                ingresos: allData.ingresos || [],
-                compras: allData.compras || [],
-                gastos: allData.gastos || [],
-                retiros: allData.retiros || [],
-                cuentasPorCobrar: allData.cuentasPorCobrar || [],
-                cuentasPorPagar: allData.cuentasPorPagar || [],
-                vales: allData.vales || []
-            };
-
-            // Guardar en el histórico de Firebase
-            await database.ref(`businesses/${selectedBusinessId}/historical/${periodKey}`).set(monthData);
-
-            // Filtrar las cuentas por cobrar, cuentas por pagar y vales pendientes
-            const cuentasPorCobrarPendientes = (monthData.cuentasPorCobrar || []).filter(c => {
-                const abonado = (c.abonos ? Object.values(c.abonos).reduce((s, a) => s + a.monto, 0) : 0);
-                return abonado < c.monto;
-            });
-
-            const cuentasPorPagarPendientes = (monthData.cuentasPorPagar || []).filter(c => {
-                const abonado = (c.abonos ? Object.values(c.abonos).reduce((s, a) => s + a.monto, 0) : 0);
-                return abonado < c.monto;
-            });
-
-            const valesPendientes = (monthData.vales || []).filter(v => v.estado !== 'Pagado');
-
-            // Borrar los datos actuales del mes
-            const updates = {};
-            ['ingresos', 'compras', 'gastos', 'retiros', 'vales', 'cuentasPorCobrar', 'cuentasPorPagar'].forEach(key => {
-                updates[`businesses/${selectedBusinessId}/${key}`] = null;
-            });
-
-            // Mover las cuentas pendientes al siguiente mes
-            cuentasPorCobrarPendientes.forEach(item => {
-                const newId = database.ref().child('x').push().key;
-                updates[`businesses/${selectedBusinessId}/cuentasPorCobrar/${newId}`] = item;
-            });
-
-            cuentasPorPagarPendientes.forEach(item => {
-                const newId = database.ref().child('x').push().key;
-                updates[`businesses/${selectedBusinessId}/cuentasPorPagar/${newId}`] = item;
-            });
-
-            valesPendientes.forEach(item => {
-                const newId = database.ref().child('x').push().key;
-                updates[`businesses/${selectedBusinessId}/vales/${newId}`] = item;
-            });
-
-            await database.ref().update(updates);
-
-            // Notificación de éxito
-            showNotification('Corte Realizado', `El corte del mes ${periodKey} se ha realizado con éxito. Las cuentas pendientes han sido trasladadas al siguiente mes.`);
-
-        } catch (err) {
-            console.error(err);
-            alert("Ocurrió un error al realizar el corte de mes.");
-        }
-    };
-
-    // Crear el botón de "Corte de Mes"
-    const createCutButton = () => {
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = "no-print text-center mt-4";
-
-        const button = document.createElement('button');
-        button.id = "cut-month-btn";
-        button.textContent = "Realizar Corte de Mes";
-        button.className = "bg-indigo-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-indigo-700";
-        button.onclick = handleMonthCut;
-
-        buttonContainer.appendChild(button);
-
-        const resumen = document.getElementById('resumen');
-        if (resumen) resumen.prepend(buttonContainer);
-    };
-
-    createCutButton();
-});
-</script>
-
     let periods = [];
 
     const dataTypes = ['ingresos', 'compras', 'gastos', 'retiros', 'cuentasPorCobrar', 'cuentasPorPagar', 'vales'];
@@ -942,6 +851,100 @@ document.getElementById('cut-month-btn').addEventListener('click', handleMonthCu
 
 // Asumiendo que tienes botones para eliminar meses en el HTML
 document.getElementById('delete-month-btn').addEventListener('click', () => handleDeleteMonth('2025-06'));
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // Función para realizar el corte de mes
+    const handleMonthCut = async () => {
+        try {
+            const periodKey = document.getElementById('month-filter').value; // Mes seleccionado
+            if (!periodKey) return alert("Selecciona un mes válido.");
+            
+            // Obtener los datos del mes actual
+            const currentMonthData = {
+                ingresos: allData.ingresos || [],
+                compras: allData.compras || [],
+                gastos: allData.gastos || [],
+                retiros: allData.retiros || [],
+                cuentasPorCobrar: allData.cuentasPorCobrar || [],
+                cuentasPorPagar: allData.cuentasPorPagar || [],
+                vales: allData.vales || []
+            };
+
+            // Guardar los datos del mes en el histórico
+            await database.ref(`businesses/${selectedBusinessId}/historical/${periodKey}`).set(currentMonthData);
+
+            // Bloquear el mes actual
+            await database.ref(`businesses/${selectedBusinessId}/periods/${periodKey}`).update({ blocked: true });
+
+            // Mover las cuentas pendientes al siguiente mes
+            const nextMonthKey = getNextMonthKey(periodKey);
+            const moveData = {
+                cuentasPorCobrar: filterPending(currentMonthData.cuentasPorCobrar),
+                cuentasPorPagar: filterPending(currentMonthData.cuentasPorPagar),
+                vales: filterPending(currentMonthData.vales)
+            };
+            
+            // Mover datos al siguiente mes
+            await moveToNextMonth(nextMonthKey, moveData);
+
+            // Notificación de éxito
+            showNotification('Corte Realizado', `El corte del mes ${periodKey} se ha realizado con éxito. El mes está ahora bloqueado y los datos pendientes fueron movidos al siguiente mes.`);
+        } catch (err) {
+            console.error(err);
+            alert("Ocurrió un error al realizar el corte de mes.");
+        }
+    };
+
+    // Función para obtener el siguiente mes
+    const getNextMonthKey = (currentMonthKey) => {
+        const [year, month] = currentMonthKey.split('-').map(Number);
+        const nextMonth = (month % 12) + 1;
+        const nextYear = nextMonth === 1 ? year + 1 : year;
+        return `${nextYear}-${String(nextMonth).padStart(2, '0')}`;
+    };
+
+    // Función para filtrar las cuentas pendientes (no pagadas)
+    const filterPending = (data) => {
+        return data.filter(item => {
+            const abonado = (item.abonos ? Object.values(item.abonos).reduce((s, a) => s + a.monto, 0) : 0);
+            return abonado < item.monto;
+        });
+    };
+
+    // Función para mover los datos al siguiente mes
+    const moveToNextMonth = async (nextMonthKey, data) => {
+        const updates = {};
+        ['cuentasPorCobrar', 'cuentasPorPagar', 'vales'].forEach(key => {
+            data[key].forEach(item => {
+                const newId = database.ref().child('x').push().key;
+                updates[`businesses/${selectedBusinessId}/${key}/${newId}`] = item;
+            });
+        });
+        await database.ref().update(updates);
+    };
+
+    // Crear el botón de "Corte de Mes"
+    const createCutButton = () => {
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = "no-print text-center mt-4";
+
+        const button = document.createElement('button');
+        button.id = "cut-month-btn";
+        button.textContent = "Realizar Corte de Mes";
+        button.className = "bg-indigo-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-indigo-700";
+        button.onclick = handleMonthCut;
+
+        buttonContainer.appendChild(button);
+
+        const resumen = document.getElementById('resumen');
+        if (resumen) resumen.prepend(buttonContainer);
+    };
+
+    createCutButton();
+});
 </script>
 </body>
 </html>
