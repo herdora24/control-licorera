@@ -239,7 +239,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let confirmCallback = null;
     let currentUserProfile = null;
     let selectedBusinessId = null;
-    // La variable `periods` se mantiene para la lógica de "Corte de Mes"
     let periods = [];
 
     const dataTypes = ['ingresos', 'compras', 'gastos', 'retiros', 'cuentasPorCobrar', 'cuentasPorPagar', 'vales'];
@@ -371,7 +370,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 await periodsRef.push(initialPeriod);
             } else {
                 periods = firebaseObjectToArray(snapshot);
-                // La UI ahora se refresca desde los listeners de datos principales
             }
         });
         dataListeners.push({ ref: periodsRef, listener: periodsListener });
@@ -380,7 +378,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const ref = database.ref(`businesses/${selectedBusinessId}/${type}`);
             const listener = ref.on('value', snapshot => {
                 allData[type] = firebaseObjectToArray(snapshot);
-                // Siempre refrescamos toda la UI cuando llega cualquier dato nuevo
                 refreshUI();
             });
             dataListeners.push({ ref, listener });
@@ -394,12 +391,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const item = childSnapshot.val();
                 if (typeof item !== 'object' || item === null) return;
                 
-                // Convertir fecha principal a objeto Date
                 if (item.fecha && typeof item.fecha === 'string') {
                     item.fecha = new Date(item.fecha);
                 }
                 
-                // Convertir fechas de abonos a objeto Date
                 if(item.abonos && typeof item.abonos === 'object') {
                     item.abonos = Object.values(item.abonos).map(abono => {
                         if (abono.fecha && typeof abono.fecha === 'string') {
@@ -457,28 +452,23 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (activeTabName === 'vales') renderVales();
     };
     
-    // === CORRECCIÓN INICIA ===
-    // Esta es la función principal que he corregido para solucionar el problema del resumen.
     const filterAndRenderDashboard = () => {
         const filterValue = document.getElementById('month-filter').value;
         if (!filterValue || Object.keys(allData).length === 0) {
-            updateDashboard({}, {}); // Llama con objetos vacíos si no hay datos/filtro
+            updateDashboard({}, {});
             return;
         }
 
         const [year, month] = filterValue.split('-').map(Number);
         
-        // Define el rango del mes seleccionado
         const startDate = new Date(year, month - 1, 1);
         startDate.setHours(0, 0, 0, 0);
         const endDate = new Date(year, month, 1);
         endDate.setHours(0, 0, 0, 0);
 
-        // Actualiza el texto que muestra el periodo
         const periodDisplay = document.getElementById('period-display');
         periodDisplay.textContent = `Mostrando datos para: ${startDate.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}`;
 
-        // Filtra los datos relevantes para el periodo seleccionado
         const periodData = {};
         const dataToFilterForPeriod = ['ingresos', 'compras', 'gastos', 'retiros'];
         dataToFilterForPeriod.forEach(key => {
@@ -489,19 +479,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Llama a la función que actualiza el dashboard con los datos del periodo y los datos globales
         updateDashboard(periodData, allData);
     };
 
-    // Esta función ha sido re-estructurada para ser más clara y precisa.
     const updateDashboard = (periodData, globalData) => {
-        // --- 1. Cálculos para el PERIODO seleccionado ---
         const totalIngresosMes = (periodData.ingresos || []).reduce((sum, item) => sum + item.monto, 0);
         const totalComprasMes = (periodData.compras || []).reduce((sum, item) => sum + item.monto, 0);
         const totalGastosOpMes = (periodData.gastos || []).reduce((sum, item) => sum + item.monto, 0);
         const totalRetirosMes = (periodData.retiros || []).reduce((sum, item) => sum + item.monto, 0);
 
-        // --- 2. Cálculos GLOBALES (histórico completo) ---
         const totalIngresosEfectivo = (globalData.ingresos || []).reduce((sum, i) => sum + (i.monto_efectivo || 0), 0);
         const totalIngresosBanco = (globalData.ingresos || []).reduce((sum, i) => sum + (i.monto_tarjeta || 0), 0);
         
@@ -513,14 +499,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalRetirosEfectivo = (globalData.retiros || []).filter(r => r.metodo === 'Efectivo').reduce((sum, r) => sum + r.monto, 0);
         const totalRetirosBanco = (globalData.retiros || []).filter(r => r.metodo === 'Banco').reduce((sum, r) => sum + r.monto, 0);
 
-        const efectivoEnCaja = totalIngresosEfectivo - totalComprasEfectivo - totalGastosOp - totalRetirosEfectivo;
-        const saldoEnBanco = totalIngresosBanco - totalComprasBanco - totalRetirosBanco;
+        const abonosCpcEfectivo = (globalData.cuentasPorCobrar || []).flatMap(d => d.abonos || []).filter(a => a.metodo === 'Efectivo').reduce((sum, a) => sum + a.monto, 0);
+        const abonosCpcBanco = (globalData.cuentasPorCobrar || []).flatMap(d => d.abonos || []).filter(a => a.metodo === 'Banco').reduce((sum, a) => sum + a.monto, 0);
+        const abonosValesEfectivo = (globalData.vales || []).flatMap(d => d.abonos || []).filter(a => a.metodo === 'Efectivo').reduce((sum, a) => sum + a.monto, 0);
+        const abonosValesBanco = (globalData.vales || []).flatMap(d => d.abonos || []).filter(a => a.metodo === 'Banco').reduce((sum, a) => sum + a.monto, 0);
 
-        // Deudas y vales son siempre globales
+        const efectivoEnCaja = (totalIngresosEfectivo + abonosCpcEfectivo + abonosValesEfectivo) - totalComprasEfectivo - totalGastosOp - totalRetirosEfectivo;
+        const saldoEnBanco = (totalIngresosBanco + abonosCpcBanco + abonosValesBanco) - totalComprasBanco - totalRetirosBanco;
+
         const totalCPC = (globalData.cuentasPorCobrar || []).reduce((sum, d) => sum + (d.monto - ((d.abonos || []).reduce((s, a) => s + a.monto, 0))), 0);
-        const totalCPP = (globalData.cuentasPorPagar || []).filter(d => d.estado !== 'Pagada').reduce((sum, d) => sum + d.monto, 0);
+        const totalCPP = (globalData.cuentasPorPagar || []).filter(d => d.estado !== 'Pagada').reduce((sum, d) => sum + d.monto - ((d.abonos || []).reduce((s, a) => s + a.monto, 0)), 0);
         
-        // --- 3. Actualización de la Interfaz de Usuario (HTML) ---
         document.getElementById('total-ingresos').textContent = formatCurrency(totalIngresosMes);
         document.getElementById('total-compras').textContent = formatCurrency(totalComprasMes);
         document.getElementById('total-gastos-op').textContent = formatCurrency(totalGastosOpMes);
@@ -531,9 +520,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('cuentas-cobrar-total').textContent = formatCurrency(totalCPC);
         document.getElementById('cuentas-pagar-total').textContent = formatCurrency(totalCPP);
 
-        // --- 4. Actualización de Gráficos y Tablas Secundarias ---
         const allMovements = [...(globalData.ingresos || []), ...(globalData.compras || []), ...(globalData.gastos || []), ...(globalData.retiros || [])]
-            .filter(mov => mov.fecha instanceof Date) // Asegurarse de que la fecha es válida
+            .filter(mov => mov.fecha instanceof Date)
             .sort((a,b) => b.fecha - a.fecha)
             .slice(0, 10);
             
@@ -550,8 +538,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         updateGastosChart(periodData.gastos);
     };
-    // === CORRECCIÓN TERMINA ===
-
 
     const updateGastosChart = (gastos) => {
         const ctx = document.getElementById('gastos-chart').getContext('2d');
@@ -562,7 +548,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // =========================================================================
-    // LÓGICA DE FORMULARIOS Y ACCIONES (El resto del código se mantiene)
+    // LÓGICA DE FORMULARIOS Y ACCIONES
     // =========================================================================
     
     const changeTab = (tabName) => {
@@ -572,7 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
         document.querySelector(`button[data-tab="${tabName}"]`).classList.add('active');
 
-        if (tabName === 'resumen') refreshUI(); // Asegura que el resumen se recalcule al volver a la pestaña
+        if (tabName === 'resumen') refreshUI();
         else if (tabName === 'registros') renderAllTables();
         else if (tabName === 'deudas') { renderCuentasPorCobrar(); renderCuentasPorPagar(); }
         else if (tabName === 'vales') renderVales();
@@ -594,14 +580,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const getNumericValue = (formattedValue) => {
         if (!formattedValue || typeof formattedValue !== 'string') return 0;
-        return parseFloat(formattedValue.replace(/\./g, '')) || 0;
+        return parseFloat(formattedValue.replace(/\./g, '').replace(/,/g, '.')) || 0;
     };
 
     const addCurrencyFormatting = (container) => {
         container.querySelectorAll('[data-moneda]').forEach(input => {
             input.removeEventListener('input', formatInputAsCurrency);
             input.addEventListener('input', formatInputAsCurrency);
-            // Formatear el valor inicial si lo hay
             formatInputAsCurrency({ target: input });
         });
     };
@@ -623,10 +608,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const rowsHTML = data.map(item => {
             let cellsHTML = '';
-            if (type === 'ingresos') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString()}</td><td class="px-4 py-3">${formatCurrency(item.monto_efectivo)}</td><td class="px-4 py-3">${formatCurrency(item.monto_tarjeta)}</td><td class="px-4 py-3 font-bold">${formatCurrency(item.monto)}</td><td class="px-4 py-3">${item.notas || '-'}</td>`;
-            else if (type === 'compras') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString()}</td><td class="px-4 py-3">${item.proveedor}</td><td class="px-4 py-3">${item.descripcion}</td><td class="px-4 py-3">${formatCurrency(item.monto)}</td><td class="px-4 py-3">${item.metodo}</td>`;
-            else if (type === 'gastos') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString()}</td><td class="px-4 py-3">${item.descripcion}</td><td class="px-4 py-3">${item.categoria}</td><td class="px-4 py-3">${formatCurrency(item.monto)}</td>`;
-            else if (type === 'retiros') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString()}</td><td class="px-4 py-3">${item.metodo}</td><td class="px-4 py-3">${item.descripcion}</td><td class="px-4 py-3">${formatCurrency(item.monto)}</td>`;
+            if (type === 'ingresos') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td><td class="px-4 py-3">${formatCurrency(item.monto_efectivo)}</td><td class="px-4 py-3">${formatCurrency(item.monto_tarjeta)}</td><td class="px-4 py-3 font-bold">${formatCurrency(item.monto)}</td><td class="px-4 py-3">${item.notas || '-'}</td>`;
+            else if (type === 'compras') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td><td class="px-4 py-3">${item.proveedor}</td><td class="px-4 py-3">${item.descripcion}</td><td class="px-4 py-3">${formatCurrency(item.monto)}</td><td class="px-4 py-3">${item.metodo}</td>`;
+            else if (type === 'gastos') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td><td class="px-4 py-3">${item.descripcion}</td><td class="px-4 py-3">${item.categoria}</td><td class="px-4 py-3">${formatCurrency(item.monto)}</td>`;
+            else if (type === 'retiros') cellsHTML = `<td class="px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td><td class="px-4 py-3">${item.metodo}</td><td class="px-4 py-3">${item.descripcion}</td><td class="px-4 py-3">${formatCurrency(item.monto)}</td>`;
             cellsHTML += `<td class="px-4 py-3 flex items-center space-x-2"><button class="action-button text-red-600 delete-btn" data-type="${type}" data-id="${item.id}"><i class="fas fa-trash"></i></button></td>`;
             return `<tr class="bg-white border-b hover:bg-gray-50">${cellsHTML}</tr>`;
         }).join('');
@@ -777,7 +762,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = (allData[type] || []).find(i => i.id === id);
         if (!item) return;
 
-        if ((type === 'cuentasPorCobrar' || type === 'vales') && item.abonos && Object.keys(item.abonos).length > 0) {
+        if ((type === 'cuentasPorCobrar' || type === 'vales') && item.abonos && Object.values(item.abonos).length > 0) {
             showNotification('Acción no permitida', 'No puede eliminar un registro que ya tiene abonos. Esto protege la integridad de sus registros de ingresos.', 'error');
             return;
         }
@@ -837,24 +822,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const nowISO = new Date().toISOString();
             const abonoData = { fecha: nowISO, monto, metodo };
             await getRefFor(type).child(deudaId).child('abonos').push(abonoData);
-
-            const snapshot = await getRefFor(type).child(deudaId).once('value');
-            const deuda = snapshot.val();
-            if (!deuda) throw new Error("Registro no encontrado.");
             
-            const personKey = type === 'vales' ? 'persona' : 'cliente';
-            const personName = deuda[personKey];
-            
-            const ingresoData = {
-                fecha: nowISO,
-                monto: monto,
-                monto_efectivo: metodo === 'Efectivo' ? monto : 0,
-                monto_tarjeta: metodo === 'Banco' ? monto : 0,
-                notas: `Abono de ${type === 'vales' ? 'vale' : 'deuda'}: ${personName}`
-            };
-            await getRefFor('ingresos').push(ingresoData);
-            
-            showNotification('Éxito', 'Abono registrado y añadido a ingresos.');
+            showNotification('Éxito', 'Abono registrado correctamente.');
             document.getElementById('abono-modal').style.display = 'none';
             document.getElementById('form-abono').reset();
             document.getElementById('abono-monto').value = '';
@@ -942,13 +911,189 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (historialBtn) handleHistorial(historialBtn.dataset.id, historialBtn.dataset.type);
     });
 
-    // Las funciones de PDF no se han tocado aún. Las revisaremos en el siguiente paso.
+    // =========================================================================
+    // == INICIO DE LA SOLUCIÓN: FUNCIONES DE PDF CORREGIDAS Y COMPLETAS ==
+    // =========================================================================
+
+    const reportTitles = {
+        ingresos: 'Ingresos',
+        compras: 'Compras',
+        gastos: 'Gastos Operacionales',
+        retiros: 'Retiros del Jefe',
+        cuentasPorCobrar: 'Cuentas por Cobrar',
+        cuentasPorPagar: 'Cuentas por Pagar',
+        vales: 'Vales de Personal'
+    };
+
     const exportToPDF = (type) => {
-        showNotification('Función no disponible', 'La generación de PDFs está pendiente de revisión.', 'error');
+        const data = (allData[type] || []).filter(d => d.fecha instanceof Date).sort((a, b) => b.fecha - a.fecha);
+
+        if (data.length === 0) {
+            showNotification('Sin datos', `No hay registros de ${reportTitles[type]} para generar un PDF.`, 'error');
+            return;
+        }
+
+        const doc = new jsPDF();
+        const businessName = document.getElementById('app-title').textContent.replace('📊 Gestión: ', '');
+        let headers = [];
+        let body = [];
+
+        switch (type) {
+            case 'ingresos':
+                headers = [['Fecha', 'Notas', 'Efectivo', 'Tarjeta', 'Total']];
+                body = data.map(item => [
+                    item.fecha.toLocaleDateString('es-CO'),
+                    item.notas || '-',
+                    formatCurrency(item.monto_efectivo),
+                    formatCurrency(item.monto_tarjeta),
+                    formatCurrency(item.monto)
+                ]);
+                break;
+            case 'compras':
+                headers = [['Fecha', 'Proveedor', 'Descripción', 'Pagado con', 'Monto']];
+                body = data.map(item => [
+                    item.fecha.toLocaleDateString('es-CO'),
+                    item.proveedor,
+                    item.descripcion,
+                    item.metodo,
+                    formatCurrency(item.monto)
+                ]);
+                break;
+            case 'gastos':
+                headers = [['Fecha', 'Descripción', 'Categoría', 'Monto']];
+                body = data.map(item => [
+                    item.fecha.toLocaleDateString('es-CO'),
+                    item.descripcion,
+                    item.categoria,
+                    formatCurrency(item.monto)
+                ]);
+                break;
+            case 'retiros':
+                headers = [['Fecha', 'Descripción', 'Retirado de', 'Monto']];
+                body = data.map(item => [
+                    item.fecha.toLocaleDateString('es-CO'),
+                    item.descripcion,
+                    item.metodo,
+                    formatCurrency(item.monto)
+                ]);
+                break;
+        }
+
+        doc.setFontSize(18);
+        doc.text(`Reporte de ${reportTitles[type]}`, 14, 22);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Negocio: ${businessName}`, 14, 30);
+        doc.text(`Generado el: ${new Date().toLocaleString('es-CO')}`, 14, 36);
+
+        doc.autoTable({
+            head: headers,
+            body: body,
+            startY: 40,
+            theme: 'grid',
+            headStyles: { fillColor: [79, 70, 229] }, // Color índigo
+        });
+
+        doc.save(`Reporte_${reportTitles[type]}_${new Date().toISOString().slice(0, 10)}.pdf`);
+        showNotification('Éxito', 'El reporte en PDF se ha generado correctamente.');
     };
+
     const exportDeudasPDF = (type) => {
-        showNotification('Función no disponible', 'La generación de PDFs está pendiente de revisión.', 'error');
+        const data = (allData[type] || []).filter(d => d.fecha instanceof Date).sort((a, b) => b.fecha - a.fecha);
+
+        if (data.length === 0) {
+            showNotification('Sin datos', `No hay registros de ${reportTitles[type]} para generar un PDF.`, 'error');
+            return;
+        }
+
+        const doc = new jsPDF();
+        const businessName = document.getElementById('app-title').textContent.replace('📊 Gestión: ', '');
+        let headers = [];
+        let body = [];
+        let totalDeuda = 0;
+        let totalAbonadoGlobal = 0;
+
+        switch (type) {
+            case 'cuentasPorCobrar':
+            case 'vales':
+                const personHeader = type === 'vales' ? 'Persona' : 'Cliente';
+                headers = [[personHeader, 'Descripción', 'Total Deuda', 'Total Abonado', 'Saldo Pendiente', 'Estado']];
+                body = data.map(d => {
+                    const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
+                    const restante = d.monto - totalAbonado;
+                    const estado = restante <= 0 ? 'Saldado' : 'Pendiente';
+
+                    totalDeuda += d.monto;
+                    totalAbonadoGlobal += totalAbonado;
+
+                    return [
+                        d.cliente || d.persona,
+                        d.descripcion,
+                        formatCurrency(d.monto),
+                        formatCurrency(totalAbonado),
+                        formatCurrency(restante),
+                        estado
+                    ];
+                });
+                break;
+            case 'cuentasPorPagar':
+                headers = [['Proveedor', 'Concepto', 'Monto', 'Estado']];
+                body = data.map(d => {
+                    if (d.estado !== 'Pagada') {
+                        totalDeuda += d.monto;
+                    }
+                    return [
+                        d.acreedor,
+                        d.descripcion,
+                        formatCurrency(d.monto),
+                        d.estado
+                    ];
+                });
+                break;
+        }
+
+        doc.setFontSize(18);
+        doc.text(`Reporte de ${reportTitles[type]}`, 14, 22);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Negocio: ${businessName}`, 14, 30);
+        doc.text(`Generado el: ${new Date().toLocaleString('es-CO')}`, 14, 36);
+
+        doc.autoTable({
+            head: headers,
+            body: body,
+            startY: 40,
+            theme: 'grid',
+            headStyles: { fillColor: [79, 70, 229] },
+        });
+
+        // Añadir totales al final
+        let finalY = doc.lastAutoTable.finalY + 10;
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Resumen de Totales', 14, finalY);
+        finalY += 7;
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        if(type === 'cuentasPorPagar') {
+             doc.text(`Total Pendiente por Pagar: ${formatCurrency(totalDeuda)}`, 14, finalY);
+        } else {
+             doc.text(`Monto Total (Deudas/Vales): ${formatCurrency(totalDeuda)}`, 14, finalY);
+             finalY += 5;
+             doc.text(`Total Abonado: ${formatCurrency(totalAbonadoGlobal)}`, 14, finalY);
+             finalY += 5;
+             doc.setFont('helvetica', 'bold');
+             doc.text(`Saldo Pendiente Global: ${formatCurrency(totalDeuda - totalAbonadoGlobal)}`, 14, finalY);
+        }
+
+        doc.save(`Reporte_${reportTitles[type]}_${new Date().toISOString().slice(0, 10)}.pdf`);
+        showNotification('Éxito', 'El reporte en PDF se ha generado correctamente.');
     };
+
+    // =========================================================================
+    // == FIN DE LA SOLUCIÓN ==
+    // =========================================================================
 
 });
 </script>
