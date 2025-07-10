@@ -1142,11 +1142,7 @@ document.addEventListener('DOMContentLoaded', () => {
          confirmCallback = null;
     };
 
-    const getTimestampFromDateInput = (dateInputId) => {
-        const dateValue = document.getElementById(dateInputId).value;
-        const now = new Date();
-        const [year, month, day] = dateValue.split('-').map(Number);
-        return new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds()).toISOString();
+   
     };
 
     document.getElementById('notification-close').onclick = () => document.getElementById('notification-modal').style.display = 'none';
