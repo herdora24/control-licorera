@@ -29,10 +29,34 @@
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .slide-in { animation: slideIn 0.5s ease-out; }
+        
+        /* Mejoras para móvil */
+        @media (max-width: 768px) {
+            .tab-button { font-size: 0.75rem; padding: 0.5rem 0.25rem; }
+            .card { margin-bottom: 1rem; }
+            .grid { gap: 1rem; }
+            .overflow-x-auto { -webkit-overflow-scrolling: touch; }
+            .modal > div { margin: 1rem; max-height: 90vh; overflow-y: auto; }
+            #corte-mes-modal .relative { max-height: 95vh; overflow-y: auto; }
+            .text-3xl { font-size: 1.5rem; }
+            .text-4xl { font-size: 2rem; }
+            .px-8 { padding-left: 1rem; padding-right: 1rem; }
+            .py-8 { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+        }
+        
+        @media (max-width: 640px) {
+            .tab-button { font-size: 0.7rem; padding: 0.4rem 0.2rem; }
+            .text-2xl { font-size: 1.25rem; }
+            .px-6 { padding-left: 0.75rem; padding-right: 0.75rem; }
+            .py-6 { padding-top: 1rem; padding-bottom: 1rem; }
+            .space-x-6 > * + * { margin-left: 0.5rem; }
+            .gap-6 { gap: 0.75rem; }
+        }
+        
         @media print { body * { visibility: hidden; } #print-area, #print-area * { visibility: visible; } #print-area { position: absolute; left: 0; top: 0; width: 100%; } .no-print { display: none; } }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-2 sm:p-4 md:p-8">
 
     <div id="login-overlay" class="auth-overlay hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center">
         <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-sm">
@@ -71,9 +95,9 @@
     <div id="app-container" class="hidden">
         <div class="max-w-7xl mx-auto">
             <header class="relative text-center mb-4 no-print">
-                 <h1 id="app-title" class="text-3xl md:text-4xl font-bold text-gray-800">📊 Gestión Financiera</h1>
-                 <p class="text-gray-600 mt-2">Control de Flujo de Dinero, Compras, Gastos y Deudas.</p>
-                 <div class="absolute top-0 right-0 flex items-center space-x-2">
+                 <h1 id="app-title" class="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800">📊 Gestión Financiera</h1>
+                 <p class="text-sm sm:text-base text-gray-600 mt-2">Control de Flujo de Dinero, Compras, Gastos y Deudas.</p>
+                 <div class="absolute top-0 right-0 flex items-center space-x-1 sm:space-x-2">
                      <button id="switch-business-btn" class="hidden action-button text-gray-500 hover:text-indigo-600 text-2xl" title="Cambiar de Negocio">
                         <i class="fas fa-exchange-alt"></i>
                      </button>
@@ -84,67 +108,67 @@
             </header>
 
             <div class="border-b border-gray-200 mb-6 no-print">
-                <nav id="tabs-nav" class="-mb-px flex flex-wrap space-x-6" aria-label="Tabs">
-                    <button data-tab="resumen" class="tab-button active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"><i class="fas fa-chart-pie mr-2"></i>Resumen</button>
-                    <button data-tab="ingresos" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"><i class="fas fa-dollar-sign mr-2"></i>Ingreso</button>
-                    <button data-tab="compras" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"><i class="fas fa-shopping-cart mr-2"></i>Compras</button>
-                    <button data-tab="gastos" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"><i class="fas fa-receipt mr-2"></i>Gasto Op.</button>
-                    <button data-tab="retiros" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"><i class="fas fa-hand-holding-dollar mr-2"></i>Retiro Jefe</button>
-                    <button data-tab="deudas" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"><i class="fas fa-book mr-2"></i>Deudas</button>
-                    <button data-tab="vales" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"><i class="fas fa-user-tag mr-2"></i>Vales</button>
-                    <button data-tab="registros" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"><i class="fas fa-list-ul mr-2"></i>Ver Registros</button>
+                <nav id="tabs-nav" class="-mb-px flex flex-wrap space-x-2 sm:space-x-4 md:space-x-6 overflow-x-auto" aria-label="Tabs">
+                    <button data-tab="resumen" class="tab-button active whitespace-nowrap py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm"><i class="fas fa-chart-pie mr-1 sm:mr-2"></i><span class="hidden sm:inline">Resumen</span><span class="sm:hidden">📊</span></button>
+                    <button data-tab="ingresos" class="tab-button whitespace-nowrap py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm"><i class="fas fa-dollar-sign mr-1 sm:mr-2"></i><span class="hidden sm:inline">Ingreso</span><span class="sm:hidden">💰</span></button>
+                    <button data-tab="compras" class="tab-button whitespace-nowrap py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm"><i class="fas fa-shopping-cart mr-1 sm:mr-2"></i><span class="hidden sm:inline">Compras</span><span class="sm:hidden">🛒</span></button>
+                    <button data-tab="gastos" class="tab-button whitespace-nowrap py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm"><i class="fas fa-receipt mr-1 sm:mr-2"></i><span class="hidden sm:inline">Gasto Op.</span><span class="sm:hidden">🧾</span></button>
+                    <button data-tab="retiros" class="tab-button whitespace-nowrap py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm"><i class="fas fa-hand-holding-dollar mr-1 sm:mr-2"></i><span class="hidden sm:inline">Retiro</span><span class="sm:hidden">💸</span></button>
+                    <button data-tab="deudas" class="tab-button whitespace-nowrap py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm"><i class="fas fa-book mr-1 sm:mr-2"></i><span class="hidden sm:inline">Deudas</span><span class="sm:hidden">📚</span></button>
+                    <button data-tab="vales" class="tab-button whitespace-nowrap py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm"><i class="fas fa-user-tag mr-1 sm:mr-2"></i><span class="hidden sm:inline">Vales</span><span class="sm:hidden">🏷️</span></button>
+                    <button data-tab="registros" class="tab-button whitespace-nowrap py-2 sm:py-3 md:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm"><i class="fas fa-list-ul mr-1 sm:mr-2"></i><span class="hidden sm:inline">Registros</span><span class="sm:hidden">📋</span></button>
                 </nav>
             </div>
 
             <main>
                 <div id="resumen" class="tab-content">
                          <div id="print-area">
-                             <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-2 sm:gap-4">
                                 <div>
-                                     <h2 class="text-2xl font-semibold text-gray-700">Resumen del Periodo</h2>
+                                     <h2 class="text-lg sm:text-xl md:text-2xl font-semibold text-gray-700">Resumen del Periodo</h2>
                                      <p id="period-display" class="text-sm text-gray-500 mt-1">Calculando periodo...</p>
                                      <div id="period-status" class="hidden mt-2 px-3 py-1 rounded-full text-sm font-medium">
                                          <i class="fas fa-lock mr-1"></i>🔒 PERÍODO CERRADO - Solo consulta
                                      </div>
                                 </div>
-                                <div class="flex items-center space-x-4 no-print">
-                                    <input type="month" id="month-filter" class="p-2 border border-gray-300 rounded-md">
-                                    <button id="close-period-btn" class="bg-indigo-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
-                                        <i class="fas fa-calendar-check mr-2"></i>Realizar Corte de Mesa
+                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 md:space-x-4 no-print w-full sm:w-auto">
+                                    <input type="month" id="month-filter" class="p-2 border border-gray-300 rounded-md text-sm">
+                                    <button id="close-period-btn" class="bg-indigo-600 text-white font-semibold px-3 sm:px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-sm">
+                                        <i class="fas fa-calendar-check mr-1 sm:mr-2"></i><span class="hidden sm:inline">Realizar </span>Corte de Mes
                                     </button>
                                 </div>
                              </div>
-                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                                 <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Ingresos Totales (Periodo)</h3><p id="total-ingresos" class="text-2xl font-semibold text-green-600 mt-1">$0</p></div>
-                                 <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Compras Totales (Periodo)</h3><p id="total-compras" class="text-2xl font-semibold text-purple-600 mt-1">$0</p></div>
-                                 <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Gastos Op. Totales (Periodo)</h3><p id="total-gastos-op" class="text-2xl font-semibold text-red-600 mt-1">$0</p></div>
-                                 <div class="card p-5 bg-blue-50 border-blue-200 border"><h3 class="text-blue-800 text-sm font-medium">Efectivo en Caja (Actual)</h3><p id="efectivo-caja" class="text-2xl font-semibold text-blue-700 mt-1">$0</p></div>
-                                 <div class="card p-5 bg-green-50 border-green-200 border"><h3 class="text-green-800 text-sm font-medium">Saldo en Banco (Actual)</h3><p id="saldo-banco" class="text-2xl font-semibold text-green-700 mt-1">$0</p></div>
-                                 <div class="card p-5 bg-yellow-50 border-yellow-200 border"><h3 class="text-yellow-800 text-sm font-medium">Cuentas por Cobrar</h3><p id="cuentas-cobrar-total" class="text-2xl font-semibold text-yellow-700 mt-1">$0</p></div>
-                                 <div class="card p-5 bg-red-50 border-red-200 border"><h3 class="text-red-800 text-sm font-medium">Cuentas por Pagar</h3><p id="cuentas-pagar-total" class="text-2xl font-semibold text-red-700 mt-1">$0</p></div>
-                                 <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Retiros del Jefe (Periodo)</h3><p id="total-retiros" class="text-2xl font-semibold text-orange-500 mt-1">$0</p></div>
+                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
+                                 <div class="card p-3 sm:p-4 md:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Ingresos Totales (Periodo)</h3><p id="total-ingresos" class="text-lg sm:text-xl md:text-2xl font-semibold text-green-600 mt-1">$0</p></div>
+                                 <div class="card p-3 sm:p-4 md:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Compras Totales (Periodo)</h3><p id="total-compras" class="text-lg sm:text-xl md:text-2xl font-semibold text-purple-600 mt-1">$0</p></div>
+                                 <div class="card p-3 sm:p-4 md:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Gastos Op. Totales (Periodo)</h3><p id="total-gastos-op" class="text-lg sm:text-xl md:text-2xl font-semibold text-red-600 mt-1">$0</p></div>
+                                 <div class="card p-3 sm:p-4 md:p-5 bg-blue-50 border-blue-200 border"><h3 class="text-blue-800 text-xs sm:text-sm font-medium">Efectivo en Caja (Actual)</h3><p id="efectivo-caja" class="text-lg sm:text-xl md:text-2xl font-semibold text-blue-700 mt-1">$0</p></div>
+                                 <div class="card p-3 sm:p-4 md:p-5 bg-green-50 border-green-200 border"><h3 class="text-green-800 text-xs sm:text-sm font-medium">Saldo en Banco (Actual)</h3><p id="saldo-banco" class="text-lg sm:text-xl md:text-2xl font-semibold text-green-700 mt-1">$0</p></div>
+                                 <div class="card p-3 sm:p-4 md:p-5 bg-yellow-50 border-yellow-200 border"><h3 class="text-yellow-800 text-xs sm:text-sm font-medium">Cuentas por Cobrar</h3><p id="cuentas-cobrar-total" class="text-lg sm:text-xl md:text-2xl font-semibold text-yellow-700 mt-1">$0</p></div>
+                                 <div class="card p-3 sm:p-4 md:p-5 bg-red-50 border-red-200 border"><h3 class="text-red-800 text-xs sm:text-sm font-medium">Cuentas por Pagar</h3><p id="cuentas-pagar-total" class="text-lg sm:text-xl md:text-2xl font-semibold text-red-700 mt-1">$0</p></div>
+                                 <div class="card p-3 sm:p-4 md:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Retiros del Jefe (Periodo)</h3><p id="total-retiros" class="text-lg sm:text-xl md:text-2xl font-semibold text-orange-500 mt-1">$0</p></div>
                                  </div>
-                             <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                                 <div class="lg:col-span-2 card p-6"><h3 class="text-lg font-semibold text-gray-700 mb-4">Distribución de Gastos (Periodo)</h3><canvas id="gastos-chart"></canvas></div>
-                                 <div class="lg:col-span-3 card p-6"><h3 class="text-lg font-semibold text-gray-700 mb-4">Últimos Movimientos (Global)</h3><div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-6 py-3">Fecha</th><th class="px-6 py-3">Descripción</th><th class="px-6 py-3">Monto</th></tr></thead><tbody id="ultimos-movimientos-body"></tbody></table></div></div>
+                             <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6 md:gap-8">
+                                 <div class="lg:col-span-2 card p-3 sm:p-4 md:p-6"><h3 class="text-base sm:text-lg font-semibold text-gray-700 mb-4">Distribución de Gastos (Periodo)</h3><canvas id="gastos-chart"></canvas></div>
+                                 <div class="lg:col-span-3 card p-3 sm:p-4 md:p-6"><h3 class="text-base sm:text-lg font-semibold text-gray-700 mb-4">Últimos Movimientos (Global)</h3><div class="overflow-x-auto"><table class="w-full text-xs sm:text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Fecha</th><th class="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Descripción</th><th class="px-2 sm:px-4 md:px-6 py-2 sm:py-3">Monto</th></tr></thead><tbody id="ultimos-movimientos-body"></tbody></table></div></div>
                              </div>
                          </div>
                 </div>
-                <div id="ingresos" class="tab-content hidden"><div class="max-w-xl mx-auto card p-8"><h2 class="text-2xl font-semibold">Registrar Venta</h2><form id="form-ingresos" class="space-y-6"><div><label for="ingreso-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="ingreso-fecha" class="mt-1 block w-full rounded-md" required></div><div><label for="ingreso-efectivo" class="block text-sm font-medium">Ventas en Efectivo</label><input type="text" data-moneda inputmode="numeric" id="ingreso-efectivo" value="0" class="mt-1 block w-full" required></div><div><label for="ingreso-tarjeta" class="block text-sm font-medium">Ventas Tarjeta/Transf.</label><input type="text" data-moneda inputmode="numeric" id="ingreso-tarjeta" value="0" class="mt-1 block w-full" required></div><div><label for="ingreso-notas" class="block text-sm font-medium">Notas</label><textarea id="ingreso-notas" rows="3" class="mt-1 block w-full"></textarea></div><button type="submit" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Ingreso</button></form></div></div>
-                <div id="compras" class="tab-content hidden"><div class="max-w-xl mx-auto card p-8"><h2 class="text-2xl font-semibold">Registrar Compra</h2><form id="form-compras" class="space-y-6"><div><label for="compra-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="compra-fecha" class="mt-1 block w-full" required></div><div><label for="compra-proveedor" class="block text-sm font-medium">Proveedor</label><input type="text" id="compra-proveedor" class="mt-1 block w-full" required></div><div><label for="compra-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="compra-descripcion" class="mt-1 block w-full" required></div><div><label for="compra-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="compra-monto" class="mt-1 block w-full" required></div><div><label for="compra-metodo" class="block text-sm font-medium">Pagado con</label><select id="compra-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div><button type="submit" class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Compra</button></form></div></div>
-                <div id="gastos" class="tab-content hidden"><div class="max-w-xl mx-auto card p-8"><h2 class="text-2xl font-semibold">Registrar Gasto Op. (del Efectivo)</h2><form id="form-gastos" class="space-y-6"><div><label for="gasto-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="gasto-fecha" class="mt-1 block w-full" required></div><div><label for="gasto-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="gasto-descripcion" class="mt-1 block w-full" required></div><div><label for="gasto-categoria" class="block text-sm font-medium">Categoría</label><select id="gasto-categoria" class="mt-1 block w-full" required><option>Arriendo</option><option>Servicios</option><option>Nómina</option><option>Marketing</option><option>Mantenimiento</option><option>Impuestos</option><option>Insumos</option><option>Otro</option></select></div><div><label for="gasto-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="gasto-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Gasto</button></form></div></div>
-                <div id="retiros" class="tab-content hidden"><div class="max-w-xl mx-auto card p-8"><h2 class="text-2xl font-semibold">Registrar Retiro Jefe</h2><form id="form-retiros" class="space-y-6"><div><label for="retiro-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="retiro-fecha" class="mt-1 block w-full" required></div><div><label for="retiro-metodo" class="block text-sm font-medium">Retirar de</label><select id="retiro-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo (Caja)</option><option value="Banco">Banco (Transferencia)</option></select></div><div><label for="retiro-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="retiro-descripcion" class="mt-1 block w-full" required></div><div><label for="retiro-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="retiro-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold">Añadir Retiro</button></form></div></div>
-                <div id="deudas" class="tab-content hidden grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <div class="space-y-6"><h2 class="text-2xl font-semibold">Cuentas por Cobrar (Fiado)</h2><div class="card p-6"><form id="form-cuentas-cobrar" class="space-y-4"><div><label for="cpc-cliente" class="block text-sm font-medium">Nombre Cliente</label><input type="text" id="cpc-cliente" class="mt-1 block w-full" required></div><div><label for="cpc-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="cpc-descripcion" class="mt-1 block w-full" required></div><div><label for="cpc-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="cpc-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-yellow-500 text-white py-2 rounded-lg font-semibold">Añadir Deuda</button></form></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-cuentas-cobrar"></table></div></div>
-                    <div class="space-y-6"><h2 class="text-2xl font-semibold">Cuentas por Pagar</h2><div class="card p-6"><form id="form-cuentas-pagar" class="space-y-4"><div><label for="cpp-acreedor" class="block text-sm font-medium">Proveedor/Acreedor</label><input type="text" id="cpp-acreedor" class="mt-1 block w-full" required></div><div><label for="cpp-descripcion" class="block text-sm font-medium">Concepto</label><input type="text" id="cpp-descripcion" class="mt-1 block w-full" required></div><div><label for="cpp-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="cpp-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-red-500 text-white py-2 rounded-lg font-semibold">Añadir Cuenta por Pagar</button></form></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-cuentas-pagar"></table></div></div>
+                <div id="ingresos" class="tab-content hidden"><div class="max-w-xl mx-auto card p-4 sm:p-6 md:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Venta</h2><form id="form-ingresos" class="space-y-4 sm:space-y-6"><div><label for="ingreso-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="ingreso-fecha" class="mt-1 block w-full rounded-md" required></div><div><label for="ingreso-efectivo" class="block text-sm font-medium">Ventas en Efectivo</label><input type="text" data-moneda inputmode="numeric" id="ingreso-efectivo" value="0" class="mt-1 block w-full" required></div><div><label for="ingreso-tarjeta" class="block text-sm font-medium">Ventas Tarjeta/Transf.</label><input type="text" data-moneda inputmode="numeric" id="ingreso-tarjeta" value="0" class="mt-1 block w-full" required></div><div><label for="ingreso-notas" class="block text-sm font-medium">Notas</label><textarea id="ingreso-notas" rows="3" class="mt-1 block w-full"></textarea></div><button type="submit" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Ingreso</button></form></div></div>
+                <div id="compras" class="tab-content hidden"><div class="max-w-xl mx-auto card p-4 sm:p-6 md:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Compra</h2><form id="form-compras" class="space-y-4 sm:space-y-6"><div><label for="compra-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="compra-fecha" class="mt-1 block w-full" required></div><div><label for="compra-proveedor" class="block text-sm font-medium">Proveedor</label><input type="text" id="compra-proveedor" class="mt-1 block w-full" required></div><div><label for="compra-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="compra-descripcion" class="mt-1 block w-full" required></div><div><label for="compra-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="compra-monto" class="mt-1 block w-full" required></div><div><label for="compra-metodo" class="block text-sm font-medium">Pagado con</label><select id="compra-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div><button type="submit" class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Compra</button></form></div></div>
+                <div id="gastos" class="tab-content hidden"><div class="max-w-xl mx-auto card p-4 sm:p-6 md:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Gasto Op. (del Efectivo)</h2><form id="form-gastos" class="space-y-4 sm:space-y-6"><div><label for="gasto-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="gasto-fecha" class="mt-1 block w-full" required></div><div><label for="gasto-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="gasto-descripcion" class="mt-1 block w-full" required></div><div><label for="gasto-categoria" class="block text-sm font-medium">Categoría</label><select id="gasto-categoria" class="mt-1 block w-full" required><option>Arriendo</option><option>Servicios</option><option>Nómina</option><option>Marketing</option><option>Mantenimiento</option><option>Impuestos</option><option>Insumos</option><option>Otro</option></select></div><div><label for="gasto-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="gasto-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Gasto</button></form></div></div>
+                <div id="retiros" class="tab-content hidden"><div class="max-w-xl mx-auto card p-4 sm:p-6 md:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Retiro Jefe</h2><form id="form-retiros" class="space-y-4 sm:space-y-6"><div><label for="retiro-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="retiro-fecha" class="mt-1 block w-full" required></div><div><label for="retiro-metodo" class="block text-sm font-medium">Retirar de</label><select id="retiro-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo (Caja)</option><option value="Banco">Banco (Transferencia)</option></select></div><div><label for="retiro-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="retiro-descripcion" class="mt-1 block w-full" required></div><div><label for="retiro-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="retiro-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold">Añadir Retiro</button></form></div></div>
+                <div id="deudas" class="tab-content hidden grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
+                    <div class="space-y-4 sm:space-y-6"><h2 class="text-xl sm:text-2xl font-semibold">Cuentas por Cobrar (Fiado)</h2><div class="card p-4 sm:p-6"><form id="form-cuentas-cobrar" class="space-y-4"><div><label for="cpc-cliente" class="block text-sm font-medium">Nombre Cliente</label><input type="text" id="cpc-cliente" class="mt-1 block w-full" required></div><div><label for="cpc-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="cpc-descripcion" class="mt-1 block w-full" required></div><div><label for="cpc-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="cpc-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-yellow-500 text-white py-2 rounded-lg font-semibold">Añadir Deuda</button></form></div><div class="card p-2 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-cuentas-cobrar"></table></div></div>
+                    <div class="space-y-4 sm:space-y-6"><h2 class="text-xl sm:text-2xl font-semibold">Cuentas por Pagar</h2><div class="card p-4 sm:p-6"><form id="form-cuentas-pagar" class="space-y-4"><div><label for="cpp-acreedor" class="block text-sm font-medium">Proveedor/Acreedor</label><input type="text" id="cpp-acreedor" class="mt-1 block w-full" required></div><div><label for="cpp-descripcion" class="block text-sm font-medium">Concepto</label><input type="text" id="cpp-descripcion" class="mt-1 block w-full" required></div><div><label for="cpp-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="cpp-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-red-500 text-white py-2 rounded-lg font-semibold">Añadir Cuenta por Pagar</button></form></div><div class="card p-2 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-cuentas-pagar"></table></div></div>
                 </div>
 
                 <div id="vales" class="tab-content hidden">
-                    <div class="max-w-4xl mx-auto">
-                        <h2 class="text-2xl font-semibold mb-6">Control de Vales (Personal y Dueño)</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div class="md:col-span-1 space-y-6">
-                                <div class="card p-6">
+                    <div class="max-w-6xl mx-auto">
+                        <h2 class="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6">Control de Vales (Personal y Dueño)</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+                            <div class="md:col-span-1 space-y-4 sm:space-y-6">
+                                <div class="card p-4 sm:p-6">
                                     <h3 class="text-lg font-semibold mb-4">Registrar Nuevo Vale</h3>
                                     <form id="form-vales" class="space-y-4">
                                         <div>
@@ -163,45 +187,45 @@
                                     </form>
                                 </div>
                             </div>
-                            <div class="md:col-span-2 card p-4 overflow-x-auto">
+                            <div class="md:col-span-2 card p-2 sm:p-4 overflow-x-auto">
                                 <h3 class="text-lg font-semibold mb-4 px-2">Historial de Vales</h3>
-                                <table class="w-full text-sm" id="tabla-vales"></table>
+                                <table class="w-full text-xs sm:text-sm" id="tabla-vales"></table>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div id="registros" class="tab-content hidden space-y-8">
-                    <div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todos los Ingresos</h2><button data-type="ingresos" class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-ingresos"></table></div></div>
-                    <div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todas las Compras</h2><button data-type="compras" class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-compras"></table></div></div>
-                    <div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todos los Gastos Op.</h2><button data-type="gastos" class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-gastos"></table></div></div>
-                    <div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todos los Retiros</h2><button data-type="retiros" class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-retiros"></table></div></div>
+                <div id="registros" class="tab-content hidden space-y-4 sm:space-y-6 md:space-y-8">
+                    <div><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2"><h2 class="text-xl sm:text-2xl font-semibold">Todos los Ingresos</h2><button data-type="ingresos" class="btn-pdf bg-gray-700 text-white px-3 sm:px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-1 sm:mr-2"></i>PDF</button></div><div class="card p-2 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-ingresos"></table></div></div>
+                    <div><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2"><h2 class="text-xl sm:text-2xl font-semibold">Todas las Compras</h2><button data-type="compras" class="btn-pdf bg-gray-700 text-white px-3 sm:px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-1 sm:mr-2"></i>PDF</button></div><div class="card p-2 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-compras"></table></div></div>
+                    <div><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2"><h2 class="text-xl sm:text-2xl font-semibold">Todos los Gastos Op.</h2><button data-type="gastos" class="btn-pdf bg-gray-700 text-white px-3 sm:px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-1 sm:mr-2"></i>PDF</button></div><div class="card p-2 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-gastos"></table></div></div>
+                    <div><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2"><h2 class="text-xl sm:text-2xl font-semibold">Todos los Retiros</h2><button data-type="retiros" class="btn-pdf bg-gray-700 text-white px-3 sm:px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-1 sm:mr-2"></i>PDF</button></div><div class="card p-2 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-retiros"></table></div></div>
 
                     <div class="pt-4">
                         <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-2xl font-semibold">Reportes Avanzados</h2>
+                            <h2 class="text-xl sm:text-2xl font-semibold">Reportes Avanzados</h2>
                         </div>
-                        <div class="card p-6 space-y-4">
-                            <div class="flex justify-between items-center border-b pb-4">
+                        <div class="card p-4 sm:p-6 space-y-4">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-4 gap-2">
                                 <div>
                                     <p class="font-medium text-gray-800">Resumen de Cuentas por Cobrar</p>
                                     <p class="text-sm text-gray-500">Genera un PDF con el detalle de lo que te deben los clientes.</p>
                                 </div>
-                                <button data-type="deudas-cobrar" class="btn-pdf bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm flex-shrink-0"><i class="fas fa-download mr-2"></i>Descargar PDF</button>
+                                <button data-type="deudas-cobrar" class="btn-pdf bg-yellow-500 text-white px-3 sm:px-4 py-2 rounded-lg text-sm flex-shrink-0"><i class="fas fa-download mr-1 sm:mr-2"></i>Descargar PDF</button>
                             </div>
-                            <div class="flex justify-between items-center border-b pb-4">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-4 gap-2">
                                 <div>
                                     <p class="font-medium text-gray-800">Resumen de Vales de Personal</p>
                                     <p class="text-sm text-gray-500">Genera un PDF con el detalle de los vales de consumo interno.</p>
                                 </div>
-                                <button data-type="vales" class="btn-pdf bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm flex-shrink-0"><i class="fas fa-download mr-2"></i>Descargar PDF</button>
+                                <button data-type="vales" class="btn-pdf bg-cyan-600 text-white px-3 sm:px-4 py-2 rounded-lg text-sm flex-shrink-0"><i class="fas fa-download mr-1 sm:mr-2"></i>Descargar PDF</button>
                             </div>
-                            <div class="flex justify-between items-center">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                 <div>
                                     <p class="font-medium text-gray-800">Resumen de Cuentas por Pagar</p>
                                     <p class="text-sm text-gray-500">Genera un PDF con el detalle de tus deudas a proveedores.</p>
                                 </div>
-                                <button data-type="deudas-pagar" class="btn-pdf bg-red-500 text-white px-4 py-2 rounded-lg text-sm flex-shrink-0"><i class="fas fa-download mr-2"></i>Descargar PDF</button>
+                                <button data-type="deudas-pagar" class="btn-pdf bg-red-500 text-white px-3 sm:px-4 py-2 rounded-lg text-sm flex-shrink-0"><i class="fas fa-download mr-1 sm:mr-2"></i>Descargar PDF</button>
                             </div>
                         </div>
                     </div>
@@ -210,55 +234,55 @@
         </div>
     </div>
     
-    <!-- Modal de Corte de Mesa -->
-    <div id="corte-mesa-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-75 h-full w-full hidden z-50 items-center justify-center p-4">
-        <div class="relative mx-auto border w-full max-w-4xl shadow-2xl rounded-lg bg-white overflow-hidden">
+    <!-- Modal de Corte de Mes -->
+    <div id="corte-mes-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-75 h-full w-full hidden z-50 items-center justify-center p-2 sm:p-4">
+        <div class="relative mx-auto border w-full max-w-xs sm:max-w-2xl md:max-w-4xl shadow-2xl rounded-lg bg-white overflow-hidden">
             <!-- Header del Modal -->
-            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-6 text-white">
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 sm:px-6 md:px-8 py-4 sm:py-6 text-white">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
-                        <i class="fas fa-calendar-check text-2xl"></i>
-                        <h3 class="text-2xl font-bold">Corte de Mesa</h3>
+                        <i class="fas fa-calendar-check text-xl sm:text-2xl"></i>
+                        <h3 class="text-lg sm:text-xl md:text-2xl font-bold">Corte de Mes</h3>
                     </div>
-                    <button id="close-corte-modal" class="text-white hover:text-gray-200 text-2xl">
+                    <button id="close-corte-modal" class="text-white hover:text-gray-200 text-xl sm:text-2xl">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
-                <p class="mt-2 text-indigo-100">Cierre contable del período actual</p>
+                <p class="mt-2 text-indigo-100 text-sm sm:text-base">Cierre contable del período actual</p>
             </div>
 
             <!-- Contenido del Modal -->
-            <div class="p-8">
+            <div class="p-4 sm:p-6 md:p-8">
                 <!-- Paso 1: Configuración -->
                 <div id="corte-step-1" class="corte-step">
                     <div class="text-center mb-8">
-                        <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mb-4">
-                            <i class="fas fa-cog text-indigo-600 text-2xl"></i>
+                        <div class="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-indigo-100 rounded-full mb-4">
+                            <i class="fas fa-cog text-indigo-600 text-lg sm:text-2xl"></i>
                         </div>
-                        <h4 class="text-xl font-semibold text-gray-800">Configuración del Corte</h4>
-                        <p class="text-gray-600 mt-2">Define los parámetros para el cierre del período</p>
+                        <h4 class="text-lg sm:text-xl font-semibold text-gray-800">Configuración del Corte</h4>
+                        <p class="text-gray-600 mt-2 text-sm sm:text-base">Define los parámetros para el cierre del período</p>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Período a Cerrar</label>
-                                <input type="month" id="corte-periodo" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                <input type="month" id="corte-periodo" class="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Corte</label>
-                                <input type="date" id="corte-fecha" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                                <input type="date" id="corte-fecha" class="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base">
                             </div>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Notas del Corte</label>
-                            <textarea id="corte-notas" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Observaciones sobre el cierre del período..."></textarea>
+                            <textarea id="corte-notas" rows="4" class="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm sm:text-base" placeholder="Observaciones sobre el cierre del período..."></textarea>
                         </div>
                     </div>
 
-                    <div class="mt-8 flex justify-end">
-                        <button id="corte-next-step1" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
-                            Continuar <i class="fas fa-arrow-right ml-2"></i>
+                    <div class="mt-6 sm:mt-8 flex justify-end">
+                        <button id="corte-next-step1" class="bg-indigo-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors text-sm sm:text-base">
+                            Continuar <i class="fas fa-arrow-right ml-1 sm:ml-2"></i>
                         </button>
                     </div>
                 </div>
@@ -266,18 +290,18 @@
                 <!-- Paso 2: Vista Previa -->
                 <div id="corte-step-2" class="corte-step hidden">
                     <div class="text-center mb-8">
-                        <div class="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-4">
-                            <i class="fas fa-eye text-yellow-600 text-2xl"></i>
+                        <div class="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-yellow-100 rounded-full mb-4">
+                            <i class="fas fa-eye text-yellow-600 text-lg sm:text-2xl"></i>
                         </div>
-                        <h4 class="text-xl font-semibold text-gray-800">Vista Previa del Corte</h4>
-                        <p class="text-gray-600 mt-2">Revisa lo que se procesará antes de confirmar</p>
+                        <h4 class="text-lg sm:text-xl font-semibold text-gray-800">Vista Previa del Corte</h4>
+                        <p class="text-gray-600 mt-2 text-sm sm:text-base">Revisa lo que se procesará antes de confirmar</p>
                     </div>
 
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
                         <div class="flex items-start">
-                            <i class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-3"></i>
+                            <i class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-2 sm:mr-3"></i>
                             <div>
-                                <h5 class="font-semibold text-yellow-800">¡Atención!</h5>
+                                <h5 class="font-semibold text-yellow-800 text-sm sm:text-base">¡Atención!</h5>
                                 <p class="text-yellow-700 text-sm mt-1">Esta acción es irreversible. El período se cerrará permanentemente y no podrá modificarse.</p>
                             </div>
                         </div>
@@ -287,12 +311,12 @@
                         <!-- El contenido se generará dinámicamente -->
                     </div>
 
-                    <div class="mt-8 flex justify-between">
-                        <button id="corte-back-step2" class="bg-gray-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-600 transition-colors">
-                            <i class="fas fa-arrow-left mr-2"></i> Volver
+                    <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-between gap-2 sm:gap-0">
+                        <button id="corte-back-step2" class="bg-gray-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold hover:bg-gray-600 transition-colors text-sm sm:text-base">
+                            <i class="fas fa-arrow-left mr-1 sm:mr-2"></i> Volver
                         </button>
-                        <button id="corte-confirm" class="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors">
-                            <i class="fas fa-check mr-2"></i> Confirmar Corte
+                        <button id="corte-confirm" class="bg-red-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors text-sm sm:text-base">
+                            <i class="fas fa-check mr-1 sm:mr-2"></i> Confirmar Corte
                         </button>
                     </div>
                 </div>
@@ -300,19 +324,19 @@
                 <!-- Paso 3: Procesando -->
                 <div id="corte-step-3" class="corte-step hidden">
                     <div class="text-center">
-                        <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                            <i class="fas fa-cogs text-green-600 text-2xl animate-spin"></i>
+                        <div class="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-green-100 rounded-full mb-4">
+                            <i class="fas fa-cogs text-green-600 text-lg sm:text-2xl animate-spin"></i>
                         </div>
-                        <h4 class="text-xl font-semibold text-gray-800 mb-4">Procesando Corte de Mesa</h4>
+                        <h4 class="text-lg sm:text-xl font-semibold text-gray-800 mb-4">Procesando Corte de Mes</h4>
                         
                         <div class="max-w-md mx-auto">
-                            <div class="bg-gray-200 rounded-full h-3 mb-4">
-                                <div id="corte-progress-bar" class="bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            <div class="bg-gray-200 rounded-full h-2 sm:h-3 mb-4">
+                                <div id="corte-progress-bar" class="bg-gradient-to-r from-green-400 to-blue-500 h-2 sm:h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
                             </div>
-                            <p id="corte-progress-text" class="text-gray-600">Iniciando proceso...</p>
+                            <p id="corte-progress-text" class="text-gray-600 text-sm sm:text-base">Iniciando proceso...</p>
                         </div>
 
-                        <div id="corte-steps-list" class="mt-8 text-left max-w-md mx-auto space-y-2">
+                        <div id="corte-steps-list" class="mt-6 sm:mt-8 text-left max-w-md mx-auto space-y-2">
                             <!-- Los pasos se agregarán dinámicamente -->
                         </div>
                     </div>
@@ -321,21 +345,21 @@
                 <!-- Paso 4: Completado -->
                 <div id="corte-step-4" class="corte-step hidden">
                     <div class="text-center">
-                        <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
-                            <i class="fas fa-check-circle text-green-600 text-3xl"></i>
+                        <div class="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-full mb-4 sm:mb-6">
+                            <i class="fas fa-check-circle text-green-600 text-2xl sm:text-3xl"></i>
                         </div>
-                        <h4 class="text-2xl font-bold text-gray-800 mb-4">¡Corte Completado!</h4>
-                        <p class="text-gray-600 mb-6">El período ha sido cerrado exitosamente</p>
+                        <h4 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4">¡Corte Completado!</h4>
+                        <p class="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">El período ha sido cerrado exitosamente</p>
 
-                        <div id="corte-summary" class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+                        <div id="corte-summary" class="bg-green-50 border border-green-200 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
                             <!-- Resumen del corte -->
                         </div>
 
-                        <div class="flex justify-center space-x-4">
-                            <button id="corte-download-report" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-                                <i class="fas fa-download mr-2"></i> Descargar Reporte
+                        <div class="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4">
+                            <button id="corte-download-report" class="bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm sm:text-base">
+                                <i class="fas fa-download mr-1 sm:mr-2"></i> Descargar Reporte
                             </button>
-                            <button id="corte-close-modal" class="bg-gray-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-600 transition-colors">
+                            <button id="corte-close-modal" class="bg-gray-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold hover:bg-gray-600 transition-colors text-sm sm:text-base">
                                 Cerrar
                             </button>
                         </div>
@@ -543,12 +567,12 @@ document.addEventListener('DOMContentLoaded', () => {
             statusEl.className = 'mt-2 px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 locked-indicator';
             closePeriodBtn.disabled = true;
             closePeriodBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            closePeriodBtn.innerHTML = '<i class="fas fa-lock mr-2"></i>Período Cerrado';
+            closePeriodBtn.innerHTML = '<i class="fas fa-lock mr-1 sm:mr-2"></i><span class="hidden sm:inline">Período </span>Cerrado';
         } else {
             statusEl.classList.add('hidden');
             closePeriodBtn.disabled = false;
             closePeriodBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            closePeriodBtn.innerHTML = '<i class="fas fa-calendar-check mr-2"></i>Realizar Corte de Mesa';
+            closePeriodBtn.innerHTML = '<i class="fas fa-calendar-check mr-1 sm:mr-2"></i><span class="hidden sm:inline">Realizar </span>Corte de Mes';
         }
     };
 
@@ -651,7 +675,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const type = mov.monto_efectivo !== undefined ? 'ingreso' : (mov.proveedor !== undefined ? 'compra' : (mov.categoria !== undefined ? 'gasto' : 'retiro'));
             const desc = mov.notas || mov.descripcion || mov.proveedor || `Venta del día`;
             const montoClass = type === 'ingreso' ? 'text-green-600' : (type === 'compra' ? 'text-purple-600' : (type === 'gasto' ? 'text-red-600' : 'text-orange-500'));
-            tr.innerHTML = `<td class="px-6 py-4">${mov.fecha.toLocaleDateString()}</td><td class="px-6 py-4">${desc}</td><td class="px-6 py-4 font-medium ${montoClass}">${formatCurrency(mov.monto)}</td>`;
+            tr.innerHTML = `<td class="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs sm:text-sm">${mov.fecha.toLocaleDateString()}</td><td class="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 text-xs sm:text-sm">${desc}</td><td class="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 font-medium ${montoClass} text-xs sm:text-sm">${formatCurrency(mov.monto)}</td>`;
             tbody.appendChild(tr);
         });
         updateGastosChart(periodData.gastos);
@@ -666,7 +690,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // =========================================================================
-    // FUNCIONES DE CORTE DE MESA
+    // FUNCIONES DE CORTE DE MES
     // =========================================================================
     const initializeCorteModal = () => {
         const today = new Date();
@@ -768,8 +792,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <li>• El período ${periodo} se cerrará permanentemente</li>
                     <li>• Se creará un nuevo período para el siguiente mes</li>
                     <li>• Las cuentas pendientes se transferirán al nuevo período</li>
-                    <li>• El efectivo y banco se mantendrán como reporte histórico</li>
                     <li>• El nuevo período empezará con $0 en efectivo y banco</li>
+                    <li>• Los saldos actuales quedarán como reporte histórico</li>
                 </ul>
             </div>
         `;
@@ -839,7 +863,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Error en el corte:', error);
-            showNotification('Error', 'Ocurrió un error durante el corte de mesa.', 'error');
+            showNotification('Error', 'Ocurrió un error durante el corte de mes.', 'error');
         }
     };
 
@@ -856,7 +880,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const transferPendingAccounts = async (type) => {
         const accounts = allData[type] || [];
-        const nextMonth = getNextMonth(document.getElementById('corte-periodo').value);
 
         for (const account of accounts) {
             let shouldTransfer = false;
@@ -869,15 +892,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (shouldTransfer) {
+                // Crear una copia del registro sin duplicar
                 const newAccount = {
                     ...account,
-                    fecha: new Date().toISOString(),
-                    transferredFrom: account.fecha,
-                    originalPeriod: document.getElementById('corte-periodo').value
+                    id: undefined, // Se generará un nuevo ID
+                    transferredFrom: account.id,
+                    originalPeriod: document.getElementById('corte-periodo').value,
+                    transferDate: new Date().toISOString()
                 };
                 delete newAccount.id;
 
-                await database.ref(`businesses/${selectedBusinessId}/${type}`).push(newAccount);
+                // Solo transferir si no existe ya una transferencia de este registro
+                const existingTransfers = (allData[type] || []).filter(a => a.transferredFrom === account.id);
+                if (existingTransfers.length === 0) {
+                    await database.ref(`businesses/${selectedBusinessId}/${type}`).push(newAccount);
+                }
             }
         }
     };
@@ -914,11 +943,12 @@ document.addEventListener('DOMContentLoaded', () => {
         
         summaryEl.innerHTML = `
             <div class="text-center">
-                <h5 class="font-semibold text-green-800 mb-4">Corte de Mesa Completado</h5>
+                <h5 class="font-semibold text-green-800 mb-4">Corte de Mes Completado</h5>
                 <div class="space-y-2 text-sm">
                     <p><strong>Período cerrado:</strong> ${periodo}</p>
                     <p><strong>Fecha de corte:</strong> ${document.getElementById('corte-fecha').value}</p>
                     <p><strong>Nuevo período activo:</strong> ${getNextMonth(periodo)}</p>
+                    <p class="text-green-700 mt-4"><strong>Importante:</strong> El nuevo período inicia con $0 en efectivo y banco. Las cuentas pendientes se han transferido correctamente.</p>
                 </div>
             </div>
         `;
@@ -932,7 +962,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Header
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
-        doc.text('REPORTE DE CORTE DE MESA', 14, 22);
+        doc.text('REPORTE DE CORTE DE MES', 14, 22);
         
         doc.setFontSize(12);
         doc.setFont('helvetica', 'normal');
@@ -949,11 +979,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Aquí puedes agregar más detalles del reporte
         
-        doc.save(`Corte_Mesa_${periodo}.pdf`);
+        doc.save(`Corte_Mes_${periodo}.pdf`);
     };
 
     // =========================================================================
-    // EVENT LISTENERS PARA CORTE DE MESA
+    // EVENT LISTENERS PARA CORTE DE MES
     // =========================================================================
     document.getElementById('close-period-btn').addEventListener('click', () => {
         if (isPeriodClosed()) {
@@ -962,11 +992,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         initializeCorteModal();
-        document.getElementById('corte-mesa-modal').style.display = 'flex';
+        document.getElementById('corte-mes-modal').style.display = 'flex';
     });
 
     document.getElementById('close-corte-modal').addEventListener('click', () => {
-        document.getElementById('corte-mesa-modal').style.display = 'none';
+        document.getElementById('corte-mes-modal').style.display = 'none';
     });
 
     document.getElementById('corte-next-step1').addEventListener('click', () => {
@@ -987,7 +1017,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('corte-close-modal').addEventListener('click', () => {
-        document.getElementById('corte-mesa-modal').style.display = 'none';
+        document.getElementById('corte-mes-modal').style.display = 'none';
         location.reload(); // Recargar para mostrar los cambios
     });
 
