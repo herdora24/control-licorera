@@ -88,16 +88,16 @@
     <div id="app-container" class="hidden">
         <div class="max-w-7xl mx-auto">
             <header class="relative text-center mb-4 no-print">
-                 <h1 id="app-title" class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800">📊 Gestión Financiera</h1>
-                 <p class="text-gray-600 mt-2 text-sm sm:text-base">Control de Flujo de Dinero, Compras, Gastos y Deudas.</p>
-                 <div class="absolute top-0 right-0 flex items-center space-x-2">
-                     <button id="switch-business-btn" class="hidden action-button text-gray-500 hover:text-indigo-600 text-xl sm:text-2xl" title="Cambiar de Negocio">
+                <h1 id="app-title" class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800">📊 Gestión Financiera</h1>
+                <p class="text-gray-600 mt-2 text-sm sm:text-base">Control de Flujo de Dinero, Compras, Gastos y Deudas.</p>
+                <div class="absolute top-0 right-0 flex items-center space-x-2">
+                    <button id="switch-business-btn" class="hidden action-button text-gray-500 hover:text-indigo-600 text-xl sm:text-2xl" title="Cambiar de Negocio">
                         <i class="fas fa-exchange-alt"></i>
-                     </button>
-                     <button id="logout-btn-main" class="action-button text-gray-500 hover:text-red-600 text-xl sm:text-2xl" title="Cerrar Sesión">
-                         <i class="fas fa-sign-out-alt"></i>
-                     </button>
-                 </div>
+                    </button>
+                    <button id="logout-btn-main" class="action-button text-gray-500 hover:text-red-600 text-xl sm:text-2xl" title="Cerrar Sesión">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
             </header>
 
             <div class="border-b border-gray-200 mb-4 sm:mb-6 no-print overflow-x-auto">
@@ -133,19 +133,19 @@
                 <div id="resumen" class="tab-content">
                          <div id="print-area">
                              <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-4">
-                                <div>
+                                 <div>
                                      <h2 class="text-xl sm:text-2xl font-semibold text-gray-700">Resumen del Periodo</h2>
                                      <p id="period-display" class="text-xs sm:text-sm text-gray-500 mt-1">Calculando periodo...</p>
                                      <div id="period-status" class="hidden mt-2 px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
                                          <i class="fas fa-lock mr-1"></i>🔒 PERÍODO CERRADO - Solo consulta
                                      </div>
-                                </div>
-                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto no-print">
-                                    <input type="month" id="month-filter" class="p-2 border border-gray-300 rounded-md text-sm">
-                                    <button id="close-period-btn" class="bg-indigo-600 text-white font-semibold px-3 sm:px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-xs sm:text-sm">
-                                        <i class="fas fa-calendar-check mr-1 sm:mr-2"></i><span class="hidden sm:inline">Realizar </span>Corte de Mes
-                                    </button>
-                                </div>
+                                 </div>
+                                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto no-print">
+                                     <input type="month" id="month-filter" class="p-2 border border-gray-300 rounded-md text-sm">
+                                     <button id="close-period-btn" class="bg-indigo-600 text-white font-semibold px-3 sm:px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-xs sm:text-sm">
+                                         <i class="fas fa-calendar-check mr-1 sm:mr-2"></i><span class="hidden sm:inline">Realizar </span>Corte de Mes
+                                     </button>
+                                 </div>
                              </div>
                              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
                                  <div class="card p-3 sm:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Ingresos Totales (Periodo)</h3><p id="total-ingresos" class="text-lg sm:text-2xl font-semibold text-green-600 mt-1">$0</p></div>
@@ -797,14 +797,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
             
-            <div class="mt-4 sm:mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h5 class="font-semibold text-blue-800 mb-2">¿Qué sucederá después del corte?</h5>
-                <ul class="text-sm text-blue-700 space-y-1">
-                    <li>• El período ${periodo} se cerrará permanentemente</li>
-                    <li>• Se crearán retiros automáticos por ${formatCurrency(saldos.efectivo)} (efectivo) y ${formatCurrency(saldos.banco)} (banco)</li>
-                    <li>• Se eliminarán TODOS los registros del período cerrado</li>
-                    <li>• Las cuentas pendientes se transferirán al nuevo período SIN los abonos (solo el saldo pendiente)</li>
-                    <li>• El nuevo período empezará con $0 en efectivo y banco</li>
+            <div class="mt-4 sm:mt-6 p-4 bg-yellow-50 border border-yellow-300 rounded-lg">
+                <h5 class="font-semibold text-yellow-800 mb-2">¡Atención! ¿Qué sucederá después del corte?</h5>
+                <ul class="text-sm text-yellow-700 space-y-1 list-disc list-inside">
+                    <li>El período <strong>${periodo}</strong> se marcará como <strong>CERRADO</strong> y no podrá ser modificado.</li>
+                    <li>Se crearán retiros automáticos por el total de caja y banco para dejar los saldos en cero.</li>
+                    <li>Las <strong>cuentas pendientes</strong> (por cobrar, por pagar, vales) serán <strong>transferidas</strong> al nuevo período con su <strong>saldo restante</strong>.</li>
+                    <li>Los <strong>registros originales</strong> de estas cuentas pendientes serán <strong>eliminados</strong> para evitar duplicados.</li>
+                    <li>Los registros de <strong>ingresos, compras y gastos</strong> del período cerrado serán eliminados.</li>
                 </ul>
             </div>
         `;
@@ -839,61 +839,63 @@ document.addEventListener('DOMContentLoaded', () => {
         const steps = [
             'Validando período...',
             'Calculando saldos actuales...',
-            'Creando retiros automáticos...',
-            'Cerrando período actual...',
-            'Transfiriendo cuentas por cobrar pendientes...',
-            'Transfiriendo cuentas por pagar pendientes...',
-            'Transfiriendo vales pendientes...',
-            'Eliminando registros del período cerrado...',
-            'Creando nuevo período...',
+            'Creando retiros automáticos de cierre...',
+            'Transfiriendo cuentas pendientes (cobrar, pagar, vales)...',
+            'Eliminando registros transaccionales del período cerrado...',
+            'Cerrando período actual y creando el nuevo...',
             'Finalizando proceso...'
         ];
 
         const stepsList = document.getElementById('corte-steps-list');
         const progressBar = document.getElementById('corte-progress-bar');
         const progressText = document.getElementById('corte-progress-text');
+        stepsList.innerHTML = '';
 
         try {
             for (let i = 0; i < steps.length; i++) {
-                const progress = ((i + 1) / steps.length) * 100;
-                progressBar.style.width = `${progress}%`;
-                progressText.textContent = steps[i];
-
                 const stepEl = document.createElement('div');
-                stepEl.className = 'flex items-center text-sm slide-in';
+                stepEl.className = 'flex items-center text-sm slide-in text-gray-500';
                 stepEl.innerHTML = `
-                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                    <i class="fas fa-spinner fa-spin mr-2"></i>
                     <span>${steps[i]}</span>
                 `;
                 stepsList.appendChild(stepEl);
 
-                // Simular procesamiento
-                await new Promise(resolve => setTimeout(resolve, 800));
-
+                progressText.textContent = `Paso ${i + 1} de ${steps.length}: ${steps[i]}`;
+                
                 // Ejecutar la lógica real según el paso
                 switch(i) {
+                    case 0: // Validando
+                        await new Promise(res => setTimeout(res, 200));
+                        break;
+                    case 1: // Calculando
+                        await new Promise(res => setTimeout(res, 200));
+                        break;
                     case 2: // Crear retiros automáticos
                         await createAutomaticWithdrawals(fechaCorte);
                         break;
-                    case 3: // Cerrar período actual
-                        await closePeriod(periodo, fechaCorte, notas);
-                        break;
-                    case 4: // Transferir cuentas por cobrar
+                    case 3: // Transferir cuentas
                         await transferPendingAccounts('cuentasPorCobrar', periodo);
-                        break;
-                    case 5: // Transferir cuentas por pagar
                         await transferPendingAccounts('cuentasPorPagar', periodo);
-                        break;
-                    case 6: // Transferir vales
                         await transferPendingAccounts('vales', periodo);
                         break;
-                    case 7: // Eliminar registros del período
+                    case 4: // Eliminar registros del período
                         await deleteClosedPeriodRecords(periodo);
                         break;
-                    case 8: // Crear nuevo período
+                    case 5: // Cerrar y crear período
+                        await closePeriod(periodo, fechaCorte, notas);
                         await createNewPeriod(periodo);
                         break;
+                    case 6: // Finalizando
+                        await new Promise(res => setTimeout(res, 200));
+                        break;
                 }
+                
+                stepEl.innerHTML = `
+                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                    <span class="text-gray-800">${steps[i]}</span>
+                `;
+                progressBar.style.width = `${((i + 1) / steps.length) * 100}%`;
             }
 
             showCorteStep(4);
@@ -901,14 +903,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Error en el corte:', error);
-            showNotification('Error', 'Ocurrió un error durante el corte de mes.', 'error');
+            showNotification('Error', 'Ocurrió un error durante el corte de mes: ' + error.message, 'error');
+            // Opcional: volver al paso 1 o cerrar modal
+            showCorteStep(1);
         }
     };
 
     const createAutomaticWithdrawals = async (fechaCorte) => {
         const saldos = calculateCurrentBalances();
+        const updates = {};
         
-        // Crear retiro automático del efectivo si hay saldo
         if (saldos.efectivo > 0) {
             const retiroEfectivo = {
                 fecha: fechaCorte,
@@ -916,10 +920,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 descripcion: 'Retiro automático - Cierre de mes',
                 monto: saldos.efectivo
             };
-            await database.ref(`businesses/${selectedBusinessId}/retiros`).push(retiroEfectivo);
+            const newKey = database.ref(`businesses/${selectedBusinessId}/retiros`).push().key;
+            updates[`/retiros/${newKey}`] = retiroEfectivo;
         }
 
-        // Crear retiro automático del banco si hay saldo
         if (saldos.banco > 0) {
             const retiroBanco = {
                 fecha: fechaCorte,
@@ -927,7 +931,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 descripcion: 'Retiro automático - Cierre de mes',
                 monto: saldos.banco
             };
-            await database.ref(`businesses/${selectedBusinessId}/retiros`).push(retiroBanco);
+            const newKey = database.ref(`businesses/${selectedBusinessId}/retiros`).push().key;
+            updates[`/retiros/${newKey}`] = retiroBanco;
+        }
+
+        if (Object.keys(updates).length > 0) {
+            await database.ref(`businesses/${selectedBusinessId}`).update(updates);
         }
     };
 
@@ -936,80 +945,102 @@ document.addEventListener('DOMContentLoaded', () => {
         if (periodToClose) {
             await database.ref(`businesses/${selectedBusinessId}/periods/${periodToClose.id}`).update({
                 isClosed: true,
+                endDate: fechaCorte,
                 closedDate: fechaCorte,
                 notes: notas
             });
         }
     };
 
-    // FUNCIÓN CORREGIDA: transferPendingAccounts
+    // =========================================================================
+    // ========= FUNCIÓN CORREGIDA PARA EVITAR DUPLICACIÓN DE DEUDAS =========
+    // =========================================================================
     const transferPendingAccounts = async (type, fromPeriod) => {
-        const accounts = allData[type] || [];
-        
+        // Obtenemos una referencia a la base de datos para el tipo de cuenta
+        const accountsRef = database.ref(`businesses/${selectedBusinessId}/${type}`);
+        const snapshot = await accountsRef.once('value');
+        const accounts = firebaseObjectToArray(snapshot);
+
+        // Usaremos una actualización multi-path para asegurar que la operación sea atómica.
+        // Esto significa que todas las eliminaciones y creaciones se envían como una sola operación.
+        const updates = {};
+
         for (const account of accounts) {
             const totalAbonado = (account.abonos || []).reduce((sum, a) => sum + a.monto, 0);
             const balance = account.monto - totalAbonado;
-            
-            if (balance > 0) {
-                let shouldTransfer = false;
-                
-                if (type === 'cuentasPorCobrar') {
-                    shouldTransfer = true;
-                } else if (type === 'cuentasPorPagar') {
-                    shouldTransfer = account.estado !== 'Pagada';
-                } else if (type === 'vales') {
-                    shouldTransfer = true;
-                }
 
-                if (shouldTransfer) {
-                    // AQUÍ ESTÁ LA CORRECCIÓN: Crear una nueva cuenta con solo el saldo pendiente
-                    // y SIN los abonos del período anterior
-                    const transferData = {
-                        fecha: new Date().toISOString(),
-                        monto: balance, // Solo el saldo pendiente
-                        transferredFrom: account.id,
-                        originalPeriod: fromPeriod,
-                        // Copiar los datos básicos según el tipo
-                        ...(type === 'cuentasPorCobrar' && {
-                            cliente: account.cliente,
-                            descripcion: `${account.descripcion} (Transferido de ${fromPeriod})`
-                        }),
-                        ...(type === 'cuentasPorPagar' && {
-                            acreedor: account.acreedor,
-                            descripcion: `${account.descripcion} (Transferido de ${fromPeriod})`,
-                            estado: 'Pendiente'
-                        }),
-                        ...(type === 'vales' && {
-                            persona: account.persona,
-                            descripcion: `${account.descripcion} (Transferido de ${fromPeriod})`
-                        }),
-                        // IMPORTANTE: NO incluir los abonos del período anterior
-                        abonos: {} // Empezar con abonos vacíos
-                    };
-                    
-                    await database.ref(`businesses/${selectedBusinessId}/${type}`).push(transferData);
-                }
+            let shouldTransfer = false;
+            if (type === 'cuentasPorPagar') {
+                shouldTransfer = account.estado !== 'Pagada' && balance > 0;
+            } else { // Para cuentasPorCobrar y vales
+                shouldTransfer = balance > 0;
             }
+            
+            if (shouldTransfer) {
+                // 1. Preparamos la eliminación del registro antiguo.
+                // Al establecer la ruta en 'null', Firebase la eliminará.
+                updates[`/${type}/${account.id}`] = null;
+
+                // 2. Generamos una nueva clave y preparamos la creación del nuevo registro.
+                const newId = accountsRef.push().key;
+                const transferData = {
+                    fecha: new Date().toISOString(),
+                    // CRÍTICO: El nuevo monto es el saldo restante, no el monto original.
+                    monto: balance,
+                    // CRÍTICO: Los abonos se reinician para el nuevo período.
+                    abonos: {},
+                    transferredFrom: account.id,
+                    originalPeriod: fromPeriod,
+                    // Copiamos los otros datos relevantes, añadiendo una nota de transferencia.
+                    ...(type === 'cuentasPorCobrar' && {
+                        cliente: account.cliente,
+                        descripcion: `${account.descripcion} (Saldo anterior)`
+                    }),
+                    ...(type === 'cuentasPorPagar' && {
+                        acreedor: account.acreedor,
+                        descripcion: `${account.descripcion} (Saldo anterior)`,
+                        estado: 'Pendiente'
+                    }),
+                    ...(type === 'vales' && {
+                        persona: account.persona,
+                        descripcion: `${account.descripcion} (Saldo anterior)`
+                    }),
+                };
+                
+                // 3. Añadimos el nuevo registro a nuestro objeto de actualizaciones.
+                updates[`/${type}/${newId}`] = transferData;
+            }
+        }
+
+        // Finalmente, ejecutamos todas las actualizaciones (creaciones y eliminaciones) a la vez.
+        // Si no hay nada que actualizar, no hacemos nada.
+        if (Object.keys(updates).length > 0) {
+            await database.ref(`businesses/${selectedBusinessId}`).update(updates);
         }
     };
 
-    const deleteClosedPeriodRecords = async (currentPeriod) => {
-        const [year, month] = currentPeriod.split('-').map(Number);
+
+    const deleteClosedPeriodRecords = async (periodo) => {
+        const [year, month] = periodo.split('-').map(Number);
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 1);
 
-        // Eliminar registros de ingresos, compras, gastos y retiros del período cerrado
+        const updates = {};
         const typesToDelete = ['ingresos', 'compras', 'gastos', 'retiros'];
         
         for (const type of typesToDelete) {
             const records = allData[type] || [];
             const recordsToDelete = records.filter(record => 
-                record.fecha && record.fecha >= startDate && record.fecha < endDate
+                record.fecha && record.fecha >= startDate && record.fecha < endDate && !record.descripcion?.includes('Retiro automático')
             );
 
             for (const record of recordsToDelete) {
-                await database.ref(`businesses/${selectedBusinessId}/${type}/${record.id}`).remove();
+                updates[`/${type}/${record.id}`] = null;
             }
+        }
+
+        if (Object.keys(updates).length > 0) {
+            await database.ref(`businesses/${selectedBusinessId}`).update(updates);
         }
     };
 
@@ -1035,13 +1066,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const getNextMonth = (currentMonth) => {
         const [year, month] = currentMonth.split('-').map(Number);
-        const nextDate = new Date(year, month, 1);
+        const nextDate = new Date(year, month, 1); // El mes es 0-indexado, así que 'month' ya es el siguiente mes
         return nextDate.toISOString().slice(0, 7);
     };
 
     const generateCorteSummary = () => {
         const periodo = document.getElementById('corte-periodo').value;
-        const saldos = calculateCurrentBalances();
         const summaryEl = document.getElementById('corte-summary');
         
         summaryEl.innerHTML = `
@@ -1050,10 +1080,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="space-y-2 text-sm">
                     <p><strong>Período cerrado:</strong> ${periodo}</p>
                     <p><strong>Fecha de corte:</strong> ${document.getElementById('corte-fecha').value}</p>
-                    <p><strong>Retiro automático efectivo:</strong> ${formatCurrency(saldos.efectivo)}</p>
-                    <p><strong>Retiro automático banco:</strong> ${formatCurrency(saldos.banco)}</p>
                     <p><strong>Nuevo período activo:</strong> ${getNextMonth(periodo)}</p>
-                    <p class="text-green-700 font-medium mt-4">✅ Las cuentas pendientes se transfirieron SIN los abonos anteriores</p>
+                    <p class="text-green-700 font-medium mt-4">✅ Las cuentas pendientes se transfirieron correctamente.</p>
                 </div>
             </div>
         `;
@@ -1082,7 +1110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         doc.setFont('helvetica', 'bold');
         doc.text('RESUMEN DEL PERÍODO CERRADO', 14, yPos);
         
-        doc.save(`Corte_Mes_${periodo}.pdf`);
+        doc.save(`Corte_Mes_${periodo}_${businessName}.pdf`);
     };
 
     // =========================================================================
@@ -1129,7 +1157,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     const getNumericValue = (formattedValue) => {
         if (!formattedValue || typeof formattedValue !== 'string') return 0;
-        return parseFloat(formattedValue.replace(/\./g, '').replace(/,/g, '.')) || 0;
+        return parseFloat(formattedValue.replace(/\D/g, '')) || 0;
     };
 
     const changeTab = (tabName) => {
