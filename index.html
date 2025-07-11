@@ -1671,24 +1671,54 @@
                 const payableData = payableSnapshot.val() || {};
                 const vouchersData = vouchersSnapshot.val() || {};
                 
-                // Calculate total cash and bank from all sources
-                let totalCash = 0;
-                let totalBank = 0;
+                // Resetear efectivo y banco para el nuevo período
+                const currentPeriodRef = database.ref(`periods/${currentPeriod}`);
+                const currentPeriodSnapshot = await currentPeriodRef.once('value');
+                const currentPeriodData = currentPeriodSnapshot.val() || {};
                 
-                // Add direct cash entries
-                Object.values(cashData).forEach(entry => {
-                    totalCash += entry.cash || 0;
-                    totalBank += entry.bank || 0;
-                });
+                // Calcular TODOS los totales del período actual (incluyendo abonos de cuentas transferidas)
+                let totalCash = currentPeriodData.cash || 0;
+                let totalBank = currentPeriodData.bank || 0;
                 
-                // Add collections from accounts receivable
-                Object.values(receivableData).forEach(account => {
-                    // This is already included in cash entries when payments are made
-                    // No need to add again
-                });
+                // Sumar abonos de cuentas por cobrar
+                if (currentPeriodData.accountsReceivable) {
+                  Object.values(currentPeriodData.accountsReceivable).forEach(account => {
+                    if (account.payments) {
+                      Object.values(account.payments).forEach(payment => {
+                        if (payment.method === 'cash') totalCash += payment.amount;
+                        if (payment.method === 'transfer') totalBank += payment.amount;
+                      });
+                    }
+                  });
+                }
                 
-                // Subtract payments made (accounts payable and vouchers)
-                // This is already included in cash entries as negative amounts
+                // Sumar pagos de vales
+                if (currentPeriodData.vouchers) {
+                  Object.values(currentPeriodData.vouchers).forEach(voucher => {
+                    if (voucher.payments) {
+                      Object.values(voucher.payments).forEach(payment => {
+                        if (payment.method === 'cash') totalCash += payment.amount;
+                        if (payment.method === 'transfer') totalBank += payment.amount;
+                      });
+                    }
+                  });
+                }
+                
+                // Restar pagos de cuentas por pagar
+                if (currentPeriodData.accountsPayable) {
+                  Object.values(currentPeriodData.accountsPayable).forEach(account => {
+                    if (account.payments) {
+                      Object.values(account.payments).forEach(payment => {
+                        if (payment.method === 'cash') totalCash -= payment.amount;
+                        if (payment.method === 'transfer') totalBank -= payment.amount;
+                      });
+                    }
+                  });
+                }
+                
+                // Resetear efectivo y banco en el nuevo período
+                await database.ref(`periods/${newPeriod}/cash`).set(0);
+                await database.ref(`periods/${newPeriod}/bank`).set(0);
                 
                 console.log(`Resetting cash - Total Cash: ${totalCash}, Total Bank: ${totalBank}`);
                 
