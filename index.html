@@ -1,52 +1,364 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Control Financiero - Multi-Negocio</title>
-<script src="https://cdn.tailwindcss.com">
-document.getElementById('close-period-btn').addEventListener('click', async () => {
-    // Confirm that the user wants to close the month
-    const confirm = window.confirm('¿Está seguro de que desea cerrar este mes? Una vez cerrado, no se podrán agregar ni retirar más movimientos.');
-    if (!confirm) return;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Financiero - Multi-Negocio</title>
+    <script src="https://cdn.tailwindcss.com">
+    // Lógica para el botón de cierre de mes
+    document.getElementById('close-period-btn').addEventListener('click', async () => {
+        // Obtener la fecha actual y calcular el final del mes
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();  // Los meses en JavaScript son 0-indexados, enero es 0
 
-    // Get the current period
-    const currentPeriodRef = database.ref(`businesses/${selectedBusinessId}/periods`).orderByChild('endDate').equalTo(null).limitToFirst(1);
-    const snapshot = await currentPeriodRef.once('value');
-    const currentPeriod = snapshot.val();
+        // Establecer la fecha de inicio y fin del nuevo período
+        const startDate = new Date(currentYear, currentMonth, 1).toISOString();
+        const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString(); // Fin del mes actual
 
-    if (!currentPeriod) {
-        alert('No se encontró un período abierto para cerrar.');
-        return;
-    }
+        // Archivar los datos del mes actual en una colección histórica
+        const historicalData = {
+            period: { startDate, endDate },
+            ingresos: allData.ingresos,
+            compras: allData.compras,
+            gastos: allData.gastos,
+            retiros: allData.retiros,
+            cuentasPorCobrar: allData.cuentasPorCobrar,
+            cuentasPorPagar: allData.cuentasPorPagar,
+            vales: allData.vales
+        };
 
-    // Mark the month as closed
-    const periodKey = Object.keys(currentPeriod)[0];
-    const closedPeriod = { ...currentPeriod[periodKey], endDate: new Date().toISOString() };
-    await database.ref(`businesses/${selectedBusinessId}/periods/${periodKey}`).update(closedPeriod);
+        // Guardar en Firebase bajo una colección de períodos históricos
+        await database.ref(`businesses/${selectedBusinessId}/historicalPeriods`).push(historicalData);
 
-    // Disable the "ingreso" and "retiro" forms by marking the period as closed in settings
-    await database.ref(`businesses/${selectedBusinessId}/settings`).update({ periodClosed: true });
+        // Crear el nuevo período para el próximo mes
+        const newPeriod = {
+            startDate: new Date(currentYear, currentMonth + 1, 1).toISOString(),
+            endDate: null, // Se llenará al final del nuevo período
+            monthKey: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+        };
 
-    // Disable input fields for ingreso and retiro forms (to stop further entries)
-    document.querySelectorAll('#form-ingresos input, #form-ingresos button').forEach(el => el.disabled = true);
-    document.querySelectorAll('#form-retiros input, #form-retiros button').forEach(el => el.disabled = true);
+        await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
 
-    alert('Corte de mes realizado exitosamente. El período está cerrado.');
+        // Limpiar los datos del mes actual
+        await database.ref(`businesses/${selectedBusinessId}/ingresos`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/compras`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/gastos`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/retiros`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/vales`).remove();
 
-    // Refresh the UI to reflect the change
-});
-</script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<style>
+        // Mostrar una notificación de éxito
+        showNotification('Éxito', 'Corte de mes realizado exitosamente.');
+    });
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js">
+    // Lógica para el botón de cierre de mes
+    document.getElementById('close-period-btn').addEventListener('click', async () => {
+        // Obtener la fecha actual y calcular el final del mes
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();  // Los meses en JavaScript son 0-indexados, enero es 0
+
+        // Establecer la fecha de inicio y fin del nuevo período
+        const startDate = new Date(currentYear, currentMonth, 1).toISOString();
+        const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString(); // Fin del mes actual
+
+        // Archivar los datos del mes actual en una colección histórica
+        const historicalData = {
+            period: { startDate, endDate },
+            ingresos: allData.ingresos,
+            compras: allData.compras,
+            gastos: allData.gastos,
+            retiros: allData.retiros,
+            cuentasPorCobrar: allData.cuentasPorCobrar,
+            cuentasPorPagar: allData.cuentasPorPagar,
+            vales: allData.vales
+        };
+
+        // Guardar en Firebase bajo una colección de períodos históricos
+        await database.ref(`businesses/${selectedBusinessId}/historicalPeriods`).push(historicalData);
+
+        // Crear el nuevo período para el próximo mes
+        const newPeriod = {
+            startDate: new Date(currentYear, currentMonth + 1, 1).toISOString(),
+            endDate: null, // Se llenará al final del nuevo período
+            monthKey: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+        };
+
+        await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
+
+        // Limpiar los datos del mes actual
+        await database.ref(`businesses/${selectedBusinessId}/ingresos`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/compras`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/gastos`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/retiros`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/vales`).remove();
+
+        // Mostrar una notificación de éxito
+        showNotification('Éxito', 'Corte de mes realizado exitosamente.');
+    });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+    // Lógica para el botón de cierre de mes
+    document.getElementById('close-period-btn').addEventListener('click', async () => {
+        // Obtener la fecha actual y calcular el final del mes
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();  // Los meses en JavaScript son 0-indexados, enero es 0
+
+        // Establecer la fecha de inicio y fin del nuevo período
+        const startDate = new Date(currentYear, currentMonth, 1).toISOString();
+        const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString(); // Fin del mes actual
+
+        // Archivar los datos del mes actual en una colección histórica
+        const historicalData = {
+            period: { startDate, endDate },
+            ingresos: allData.ingresos,
+            compras: allData.compras,
+            gastos: allData.gastos,
+            retiros: allData.retiros,
+            cuentasPorCobrar: allData.cuentasPorCobrar,
+            cuentasPorPagar: allData.cuentasPorPagar,
+            vales: allData.vales
+        };
+
+        // Guardar en Firebase bajo una colección de períodos históricos
+        await database.ref(`businesses/${selectedBusinessId}/historicalPeriods`).push(historicalData);
+
+        // Crear el nuevo período para el próximo mes
+        const newPeriod = {
+            startDate: new Date(currentYear, currentMonth + 1, 1).toISOString(),
+            endDate: null, // Se llenará al final del nuevo período
+            monthKey: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+        };
+
+        await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
+
+        // Limpiar los datos del mes actual
+        await database.ref(`businesses/${selectedBusinessId}/ingresos`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/compras`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/gastos`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/retiros`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/vales`).remove();
+
+        // Mostrar una notificación de éxito
+        showNotification('Éxito', 'Corte de mes realizado exitosamente.');
+    });
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js">
+    // Lógica para el botón de cierre de mes
+    document.getElementById('close-period-btn').addEventListener('click', async () => {
+        // Obtener la fecha actual y calcular el final del mes
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();  // Los meses en JavaScript son 0-indexados, enero es 0
+
+        // Establecer la fecha de inicio y fin del nuevo período
+        const startDate = new Date(currentYear, currentMonth, 1).toISOString();
+        const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString(); // Fin del mes actual
+
+        // Archivar los datos del mes actual en una colección histórica
+        const historicalData = {
+            period: { startDate, endDate },
+            ingresos: allData.ingresos,
+            compras: allData.compras,
+            gastos: allData.gastos,
+            retiros: allData.retiros,
+            cuentasPorCobrar: allData.cuentasPorCobrar,
+            cuentasPorPagar: allData.cuentasPorPagar,
+            vales: allData.vales
+        };
+
+        // Guardar en Firebase bajo una colección de períodos históricos
+        await database.ref(`businesses/${selectedBusinessId}/historicalPeriods`).push(historicalData);
+
+        // Crear el nuevo período para el próximo mes
+        const newPeriod = {
+            startDate: new Date(currentYear, currentMonth + 1, 1).toISOString(),
+            endDate: null, // Se llenará al final del nuevo período
+            monthKey: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+        };
+
+        await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
+
+        // Limpiar los datos del mes actual
+        await database.ref(`businesses/${selectedBusinessId}/ingresos`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/compras`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/gastos`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/retiros`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/vales`).remove();
+
+        // Mostrar una notificación de éxito
+        showNotification('Éxito', 'Corte de mes realizado exitosamente.');
+    });
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js">
+    // Lógica para el botón de cierre de mes
+    document.getElementById('close-period-btn').addEventListener('click', async () => {
+        // Obtener la fecha actual y calcular el final del mes
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();  // Los meses en JavaScript son 0-indexados, enero es 0
+
+        // Establecer la fecha de inicio y fin del nuevo período
+        const startDate = new Date(currentYear, currentMonth, 1).toISOString();
+        const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString(); // Fin del mes actual
+
+        // Archivar los datos del mes actual en una colección histórica
+        const historicalData = {
+            period: { startDate, endDate },
+            ingresos: allData.ingresos,
+            compras: allData.compras,
+            gastos: allData.gastos,
+            retiros: allData.retiros,
+            cuentasPorCobrar: allData.cuentasPorCobrar,
+            cuentasPorPagar: allData.cuentasPorPagar,
+            vales: allData.vales
+        };
+
+        // Guardar en Firebase bajo una colección de períodos históricos
+        await database.ref(`businesses/${selectedBusinessId}/historicalPeriods`).push(historicalData);
+
+        // Crear el nuevo período para el próximo mes
+        const newPeriod = {
+            startDate: new Date(currentYear, currentMonth + 1, 1).toISOString(),
+            endDate: null, // Se llenará al final del nuevo período
+            monthKey: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+        };
+
+        await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
+
+        // Limpiar los datos del mes actual
+        await database.ref(`businesses/${selectedBusinessId}/ingresos`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/compras`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/gastos`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/retiros`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/vales`).remove();
+
+        // Mostrar una notificación de éxito
+        showNotification('Éxito', 'Corte de mes realizado exitosamente.');
+    });
+    </script>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js">
+    // Lógica para el botón de cierre de mes
+    document.getElementById('close-period-btn').addEventListener('click', async () => {
+        // Obtener la fecha actual y calcular el final del mes
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();  // Los meses en JavaScript son 0-indexados, enero es 0
+
+        // Establecer la fecha de inicio y fin del nuevo período
+        const startDate = new Date(currentYear, currentMonth, 1).toISOString();
+        const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString(); // Fin del mes actual
+
+        // Archivar los datos del mes actual en una colección histórica
+        const historicalData = {
+            period: { startDate, endDate },
+            ingresos: allData.ingresos,
+            compras: allData.compras,
+            gastos: allData.gastos,
+            retiros: allData.retiros,
+            cuentasPorCobrar: allData.cuentasPorCobrar,
+            cuentasPorPagar: allData.cuentasPorPagar,
+            vales: allData.vales
+        };
+
+        // Guardar en Firebase bajo una colección de períodos históricos
+        await database.ref(`businesses/${selectedBusinessId}/historicalPeriods`).push(historicalData);
+
+        // Crear el nuevo período para el próximo mes
+        const newPeriod = {
+            startDate: new Date(currentYear, currentMonth + 1, 1).toISOString(),
+            endDate: null, // Se llenará al final del nuevo período
+            monthKey: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+        };
+
+        await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
+
+        // Limpiar los datos del mes actual
+        await database.ref(`businesses/${selectedBusinessId}/ingresos`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/compras`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/gastos`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/retiros`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/vales`).remove();
+
+        // Mostrar una notificación de éxito
+        showNotification('Éxito', 'Corte de mes realizado exitosamente.');
+    });
+    </script>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js">
+    // Lógica para el botón de cierre de mes
+    document.getElementById('close-period-btn').addEventListener('click', async () => {
+        // Obtener la fecha actual y calcular el final del mes
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();  // Los meses en JavaScript son 0-indexados, enero es 0
+
+        // Establecer la fecha de inicio y fin del nuevo período
+        const startDate = new Date(currentYear, currentMonth, 1).toISOString();
+        const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString(); // Fin del mes actual
+
+        // Archivar los datos del mes actual en una colección histórica
+        const historicalData = {
+            period: { startDate, endDate },
+            ingresos: allData.ingresos,
+            compras: allData.compras,
+            gastos: allData.gastos,
+            retiros: allData.retiros,
+            cuentasPorCobrar: allData.cuentasPorCobrar,
+            cuentasPorPagar: allData.cuentasPorPagar,
+            vales: allData.vales
+        };
+
+        // Guardar en Firebase bajo una colección de períodos históricos
+        await database.ref(`businesses/${selectedBusinessId}/historicalPeriods`).push(historicalData);
+
+        // Crear el nuevo período para el próximo mes
+        const newPeriod = {
+            startDate: new Date(currentYear, currentMonth + 1, 1).toISOString(),
+            endDate: null, // Se llenará al final del nuevo período
+            monthKey: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+        };
+
+        await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
+
+        // Limpiar los datos del mes actual
+        await database.ref(`businesses/${selectedBusinessId}/ingresos`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/compras`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/gastos`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/retiros`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/vales`).remove();
+
+        // Mostrar una notificación de éxito
+        showNotification('Éxito', 'Corte de mes realizado exitosamente.');
+    });
+    </script>
+    
+
+    <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
         .tab-button.active { border-bottom-color: #4f46e5; color: #4f46e5; font-weight: 600; }
         .card { background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
@@ -59,176 +371,186 @@ document.getElementById('close-period-btn').addEventListener('click', async () =
     </style>
 </head>
 <body class="p-4 md:p-8">
-<div class="auth-overlay hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center" id="login-overlay">
-<div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-sm">
-<div class="text-center mb-6">
-<i class="fas fa-store text-4xl text-indigo-600"></i>
-<h2 class="text-2xl font-bold text-gray-800 mt-4">Acceso al Sistema</h2>
-<p class="text-gray-500 text-sm">Por favor, inicie sesión.</p>
-</div>
-<form id="login-form">
-<div class="mb-4">
-<label class="sr-only" for="email">Correo Electrónico</label>
-<input class="w-full px-4 py-3 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" id="email" placeholder="Correo Electrónico" required="" type="email"/>
-</div>
-<div class="mb-4">
-<label class="sr-only" for="password">Contraseña</label>
-<input class="w-full px-4 py-3 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" id="password" placeholder="Contraseña" required="" type="password"/>
-</div>
-<p class="text-red-500 text-sm text-center mb-4 hidden" id="login-error"></p>
-<button class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors" type="submit">Ingresar</button>
-</form>
-</div>
-</div>
-<div class="auth-overlay hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-40 flex items-center justify-center p-4" id="business-selector-overlay">
-<div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
-<h2 class="text-2xl font-bold text-gray-800 text-center">Seleccionar Negocio</h2>
-<p class="text-gray-500 text-sm text-center mb-6">Elige el local que deseas gestionar.</p>
-<div class="space-y-3" id="business-list">
-</div>
-<div class="mt-6 text-center">
-<button class="text-sm text-gray-600 hover:text-indigo-600" id="logout-btn-selector">Cerrar Sesión</button>
-</div>
-</div>
-</div>
-<div class="hidden" id="app-container">
-<div class="max-w-7xl mx-auto">
-<header class="relative text-center mb-4 no-print">
-<h1 class="text-3xl md:text-4xl font-bold text-gray-800" id="app-title">📊 Gestión Financiera</h1>
-<p class="text-gray-600 mt-2">Control de Flujo de Dinero, Compras, Gastos y Deudas.</p>
-<div class="absolute top-0 right-0 flex items-center space-x-2">
-<button class="hidden action-button text-gray-500 hover:text-indigo-600 text-2xl" id="switch-business-btn" title="Cambiar de Negocio">
-<i class="fas fa-exchange-alt"></i>
-</button>
-<button class="action-button text-gray-500 hover:text-red-600 text-2xl" id="logout-btn-main" title="Cerrar Sesión">
-<i class="fas fa-sign-out-alt"></i>
-</button>
-</div>
-</header>
-<div class="border-b border-gray-200 mb-6 no-print">
-<nav aria-label="Tabs" class="-mb-px flex flex-wrap space-x-6" id="tabs-nav">
-<button class="tab-button active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="resumen"><i class="fas fa-chart-pie mr-2"></i>Resumen</button>
-<button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="ingresos"><i class="fas fa-dollar-sign mr-2"></i>Ingreso</button>
-<button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="compras"><i class="fas fa-shopping-cart mr-2"></i>Compras</button>
-<button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="gastos"><i class="fas fa-receipt mr-2"></i>Gasto Op.</button>
-<button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="retiros"><i class="fas fa-hand-holding-dollar mr-2"></i>Retiro Jefe</button>
-<button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="deudas"><i class="fas fa-book mr-2"></i>Deudas</button>
-<button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="vales"><i class="fas fa-user-tag mr-2"></i>Vales</button>
-<button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="registros"><i class="fas fa-list-ul mr-2"></i>Ver Registros</button>
-</nav>
-</div>
-<main>
-<div class="tab-content" id="resumen">
-<div id="print-area">
-<div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-<div>
-<h2 class="text-2xl font-semibold text-gray-700">Resumen del Periodo</h2>
-<p class="text-sm text-gray-500 mt-1" id="period-display">Calculando periodo...</p>
-</div>
-<div class="flex items-center space-x-4 no-print">
-<input class="p-2 border border-gray-300 rounded-md" id="month-filter" type="month"/>
-<button class="bg-indigo-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors" id="close-period-btn">
-<i class="fas fa-calendar-check mr-2"></i>Realizar Corte de Mes
+
+    <div id="login-overlay" class="auth-overlay hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-sm">
+            <div class="text-center mb-6">
+                <i class="fas fa-store text-4xl text-indigo-600"></i>
+                <h2 class="text-2xl font-bold text-gray-800 mt-4">Acceso al Sistema</h2>
+                <p class="text-gray-500 text-sm">Por favor, inicie sesión.</p>
+            </div>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="email" class="sr-only">Correo Electrónico</label>
+                    <input type="email" id="email" placeholder="Correo Electrónico" class="w-full px-4 py-3 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="sr-only">Contraseña</label>
+                    <input type="password" id="password" placeholder="Contraseña" class="w-full px-4 py-3 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                </div>
+                <p id="login-error" class="text-red-500 text-sm text-center mb-4 hidden"></p>
+                <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">Ingresar</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="business-selector-overlay" class="auth-overlay hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-40 flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
+            <h2 class="text-2xl font-bold text-gray-800 text-center">Seleccionar Negocio</h2>
+            <p class="text-gray-500 text-sm text-center mb-6">Elige el local que deseas gestionar.</p>
+            <div id="business-list" class="space-y-3">
+                </div>
+            <div class="mt-6 text-center">
+                 <button id="logout-btn-selector" class="text-sm text-gray-600 hover:text-indigo-600">Cerrar Sesión</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="app-container" class="hidden">
+        <div class="max-w-7xl mx-auto">
+            <header class="relative text-center mb-4 no-print">
+                 <h1 id="app-title" class="text-3xl md:text-4xl font-bold text-gray-800">📊 Gestión Financiera</h1>
+                 <p class="text-gray-600 mt-2">Control de Flujo de Dinero, Compras, Gastos y Deudas.</p>
+                 <div class="absolute top-0 right-0 flex items-center space-x-2">
+                     <button id="switch-business-btn" class="hidden action-button text-gray-500 hover:text-indigo-600 text-2xl" title="Cambiar de Negocio">
+                        <i class="fas fa-exchange-alt"></i>
+                     </button>
+                     <button id="logout-btn-main" class="action-button text-gray-500 hover:text-red-600 text-2xl" title="Cerrar Sesión">
+                         <i class="fas fa-sign-out-alt"></i>
+                     </button>
+                 </div>
+            </header>
+
+            <div class="border-b border-gray-200 mb-6 no-print">
+                <nav id="tabs-nav" class="-mb-px flex flex-wrap space-x-6" aria-label="Tabs">
+                    <button data-tab="resumen" class="tab-button active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"><i class="fas fa-chart-pie mr-2"></i>Resumen</button>
+                    <button data-tab="ingresos" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"><i class="fas fa-dollar-sign mr-2"></i>Ingreso</button>
+                    <button data-tab="compras" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"><i class="fas fa-shopping-cart mr-2"></i>Compras</button>
+                    <button data-tab="gastos" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"><i class="fas fa-receipt mr-2"></i>Gasto Op.</button>
+                    <button data-tab="retiros" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"><i class="fas fa-hand-holding-dollar mr-2"></i>Retiro Jefe</button>
+                    <button data-tab="deudas" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"><i class="fas fa-book mr-2"></i>Deudas</button>
+                    <button data-tab="vales" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"><i class="fas fa-user-tag mr-2"></i>Vales</button>
+                    <button data-tab="registros" class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"><i class="fas fa-list-ul mr-2"></i>Ver Registros</button>
+                </nav>
+            </div>
+
+            <main>
+                <div id="resumen" class="tab-content">
+                         <div id="print-area">
+                             <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                                <div>
+                                     <h2 class="text-2xl font-semibold text-gray-700">Resumen del Periodo</h2>
+                                     <p id="period-display" class="text-sm text-gray-500 mt-1">Calculando periodo...</p>
+                                </div>
+                                <div class="flex items-center space-x-4 no-print">
+                                    <input type="month" id="month-filter" class="p-2 border border-gray-300 rounded-md">
+                                    <button id="close-period-btn" class="bg-indigo-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                                        <i class="fas fa-calendar-check mr-2"></i>Realizar Corte de Mes
                                     </button>
-</div>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-<div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Ingresos Totales (Periodo)</h3><p class="text-2xl font-semibold text-green-600 mt-1" id="total-ingresos">$0</p></div>
-<div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Compras Totales (Periodo)</h3><p class="text-2xl font-semibold text-purple-600 mt-1" id="total-compras">$0</p></div>
-<div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Gastos Op. Totales (Periodo)</h3><p class="text-2xl font-semibold text-red-600 mt-1" id="total-gastos-op">$0</p></div>
-<div class="card p-5 bg-blue-50 border-blue-200 border"><h3 class="text-blue-800 text-sm font-medium">Efectivo en Caja (Actual)</h3><p class="text-2xl font-semibold text-blue-700 mt-1" id="efectivo-caja">$0</p></div>
-<div class="card p-5 bg-green-50 border-green-200 border"><h3 class="text-green-800 text-sm font-medium">Saldo en Banco (Actual)</h3><p class="text-2xl font-semibold text-green-700 mt-1" id="saldo-banco">$0</p></div>
-<div class="card p-5 bg-yellow-50 border-yellow-200 border"><h3 class="text-yellow-800 text-sm font-medium">Cuentas por Cobrar</h3><p class="text-2xl font-semibold text-yellow-700 mt-1" id="cuentas-cobrar-total">$0</p></div>
-<div class="card p-5 bg-red-50 border-red-200 border"><h3 class="text-red-800 text-sm font-medium">Cuentas por Pagar</h3><p class="text-2xl font-semibold text-red-700 mt-1" id="cuentas-pagar-total">$0</p></div>
-<div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Retiros del Jefe (Periodo)</h3><p class="text-2xl font-semibold text-orange-500 mt-1" id="total-retiros">$0</p></div>
-</div>
-<div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-<div class="lg:col-span-2 card p-6"><h3 class="text-lg font-semibold text-gray-700 mb-4">Distribución de Gastos (Periodo)</h3><canvas id="gastos-chart"></canvas></div>
-<div class="lg:col-span-3 card p-6"><h3 class="text-lg font-semibold text-gray-700 mb-4">Últimos Movimientos (Global)</h3><div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-6 py-3">Fecha</th><th class="px-6 py-3">Descripción</th><th class="px-6 py-3">Monto</th></tr></thead><tbody id="ultimos-movimientos-body"></tbody></table></div></div>
-</div>
-</div>
-</div>
-<div class="tab-content hidden" id="ingresos"><div class="max-w-xl mx-auto card p-8"><h2 class="text-2xl font-semibold">Registrar Venta</h2><form class="space-y-6" id="form-ingresos"><div><label class="block text-sm font-medium" for="ingreso-fecha">Fecha</label><input class="mt-1 block w-full rounded-md" id="ingreso-fecha" required="" type="date"/></div><div><label class="block text-sm font-medium" for="ingreso-efectivo">Ventas en Efectivo</label><input class="mt-1 block w-full" data-moneda="" id="ingreso-efectivo" inputmode="numeric" required="" type="text" value="0"/></div><div><label class="block text-sm font-medium" for="ingreso-tarjeta">Ventas Tarjeta/Transf.</label><input class="mt-1 block w-full" data-moneda="" id="ingreso-tarjeta" inputmode="numeric" required="" type="text" value="0"/></div><div><label class="block text-sm font-medium" for="ingreso-notas">Notas</label><textarea class="mt-1 block w-full" id="ingreso-notas" rows="3"></textarea></div><button class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold" type="submit">Añadir Ingreso</button></form></div></div>
-<div class="tab-content hidden" id="compras"><div class="max-w-xl mx-auto card p-8"><h2 class="text-2xl font-semibold">Registrar Compra</h2><form class="space-y-6" id="form-compras"><div><label class="block text-sm font-medium" for="compra-fecha">Fecha</label><input class="mt-1 block w-full" id="compra-fecha" required="" type="date"/></div><div><label class="block text-sm font-medium" for="compra-proveedor">Proveedor</label><input class="mt-1 block w-full" id="compra-proveedor" required="" type="text"/></div><div><label class="block text-sm font-medium" for="compra-descripcion">Descripción</label><input class="mt-1 block w-full" id="compra-descripcion" required="" type="text"/></div><div><label class="block text-sm font-medium" for="compra-monto">Monto</label><input class="mt-1 block w-full" data-moneda="" id="compra-monto" inputmode="numeric" required="" type="text"/></div><div><label class="block text-sm font-medium" for="compra-metodo">Pagado con</label><select class="mt-1 block w-full" id="compra-metodo" required=""><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div><button class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-semibold" type="submit">Añadir Compra</button></form></div></div>
-<div class="tab-content hidden" id="gastos"><div class="max-w-xl mx-auto card p-8"><h2 class="text-2xl font-semibold">Registrar Gasto Op. (del Efectivo)</h2><form class="space-y-6" id="form-gastos"><div><label class="block text-sm font-medium" for="gasto-fecha">Fecha</label><input class="mt-1 block w-full" id="gasto-fecha" required="" type="date"/></div><div><label class="block text-sm font-medium" for="gasto-descripcion">Descripción</label><input class="mt-1 block w-full" id="gasto-descripcion" required="" type="text"/></div><div><label class="block text-sm font-medium" for="gasto-categoria">Categoría</label><select class="mt-1 block w-full" id="gasto-categoria" required=""><option>Arriendo</option><option>Servicios</option><option>Nómina</option><option>Marketing</option><option>Mantenimiento</option><option>Impuestos</option><option>Insumos</option><option>Otro</option></select></div><div><label class="block text-sm font-medium" for="gasto-monto">Monto</label><input class="mt-1 block w-full" data-moneda="" id="gasto-monto" inputmode="numeric" required="" type="text"/></div><button class="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-semibold" type="submit">Añadir Gasto</button></form></div></div>
-<div class="tab-content hidden" id="retiros"><div class="max-w-xl mx-auto card p-8"><h2 class="text-2xl font-semibold">Registrar Retiro Jefe</h2><form class="space-y-6" id="form-retiros"><div><label class="block text-sm font-medium" for="retiro-fecha">Fecha</label><input class="mt-1 block w-full" id="retiro-fecha" required="" type="date"/></div><div><label class="block text-sm font-medium" for="retiro-metodo">Retirar de</label><select class="mt-1 block w-full" id="retiro-metodo" required=""><option value="Efectivo">Efectivo (Caja)</option><option value="Banco">Banco (Transferencia)</option></select></div><div><label class="block text-sm font-medium" for="retiro-descripcion">Descripción</label><input class="mt-1 block w-full" id="retiro-descripcion" required="" type="text"/></div><div><label class="block text-sm font-medium" for="retiro-monto">Monto</label><input class="mt-1 block w-full" data-moneda="" id="retiro-monto" inputmode="numeric" required="" type="text"/></div><button class="w-full bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold" type="submit">Añadir Retiro</button></form></div></div>
-<div class="tab-content hidden grid grid-cols-1 lg:grid-cols-2 gap-8" id="deudas">
-<div class="space-y-6"><h2 class="text-2xl font-semibold">Cuentas por Cobrar (Fiado)</h2><div class="card p-6"><form class="space-y-4" id="form-cuentas-cobrar"><div><label class="block text-sm font-medium" for="cpc-cliente">Nombre Cliente</label><input class="mt-1 block w-full" id="cpc-cliente" required="" type="text"/></div><div><label class="block text-sm font-medium" for="cpc-descripcion">Descripción</label><input class="mt-1 block w-full" id="cpc-descripcion" required="" type="text"/></div><div><label class="block text-sm font-medium" for="cpc-monto">Monto</label><input class="mt-1 block w-full" data-moneda="" id="cpc-monto" inputmode="numeric" required="" type="text"/></div><button class="w-full bg-yellow-500 text-white py-2 rounded-lg font-semibold" type="submit">Añadir Deuda</button></form></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-cuentas-cobrar"></table></div></div>
-<div class="space-y-6"><h2 class="text-2xl font-semibold">Cuentas por Pagar</h2><div class="card p-6"><form class="space-y-4" id="form-cuentas-pagar"><div><label class="block text-sm font-medium" for="cpp-acreedor">Proveedor/Acreedor</label><input class="mt-1 block w-full" id="cpp-acreedor" required="" type="text"/></div><div><label class="block text-sm font-medium" for="cpp-descripcion">Concepto</label><input class="mt-1 block w-full" id="cpp-descripcion" required="" type="text"/></div><div><label class="block text-sm font-medium" for="cpp-monto">Monto</label><input class="mt-1 block w-full" data-moneda="" id="cpp-monto" inputmode="numeric" required="" type="text"/></div><button class="w-full bg-red-500 text-white py-2 rounded-lg font-semibold" type="submit">Añadir Cuenta por Pagar</button></form></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-cuentas-pagar"></table></div></div>
-</div>
-<div class="tab-content hidden" id="vales">
-<div class="max-w-4xl mx-auto">
-<h2 class="text-2xl font-semibold mb-6">Control de Vales (Personal y Dueño)</h2>
-<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-<div class="md:col-span-1 space-y-6">
-<div class="card p-6">
-<h3 class="text-lg font-semibold mb-4">Registrar Nuevo Vale</h3>
-<form class="space-y-4" id="form-vales">
-<div>
-<label class="block text-sm font-medium" for="vale-persona">Nombre Persona</label>
-<input class="mt-1 block w-full" id="vale-persona" required="" type="text"/>
-</div>
-<div>
-<label class="block text-sm font-medium" for="vale-descripcion">Descripción</label>
-<input class="mt-1 block w-full" id="vale-descripcion" required="" type="text"/>
-</div>
-<div>
-<label class="block text-sm font-medium" for="vale-monto">Monto</label>
-<input class="mt-1 block w-full" data-moneda="" id="vale-monto" inputmode="numeric" required="" type="text"/>
-</div>
-<button class="w-full bg-cyan-600 text-white py-2 rounded-lg font-semibold hover:bg-cyan-700" type="submit">Añadir Vale</button>
-</form>
-</div>
-</div>
-<div class="md:col-span-2 card p-4 overflow-x-auto">
-<h3 class="text-lg font-semibold mb-4 px-2">Historial de Vales</h3>
-<table class="w-full text-sm" id="tabla-vales"></table>
-</div>
-</div>
-</div>
-</div>
-<div class="tab-content hidden space-y-8" id="registros">
-<div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todos los Ingresos</h2><button class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm" data-type="ingresos"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-ingresos"></table></div></div>
-<div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todas las Compras</h2><button class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm" data-type="compras"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-compras"></table></div></div>
-<div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todos los Gastos Op.</h2><button class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm" data-type="gastos"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-gastos"></table></div></div>
-<div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todos los Retiros</h2><button class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm" data-type="retiros"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-retiros"></table></div></div>
-<div class="pt-4">
-<div class="flex justify-between items-center mb-4">
-<h2 class="text-2xl font-semibold">Reportes Avanzados</h2>
-</div>
-<div class="card p-6 space-y-4">
-<div class="flex justify-between items-center border-b pb-4">
-<div>
-<p class="font-medium text-gray-800">Resumen de Cuentas por Cobrar</p>
-<p class="text-sm text-gray-500">Genera un PDF con el detalle de lo que te deben los clientes.</p>
-</div>
-<button class="btn-pdf bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm flex-shrink-0" data-type="deudas-cobrar"><i class="fas fa-download mr-2"></i>Descargar PDF</button>
-</div>
-<div class="flex justify-between items-center border-b pb-4">
-<div>
-<p class="font-medium text-gray-800">Resumen de Vales de Personal</p>
-<p class="text-sm text-gray-500">Genera un PDF con el detalle de los vales de consumo interno.</p>
-</div>
-<button class="btn-pdf bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm flex-shrink-0" data-type="vales"><i class="fas fa-download mr-2"></i>Descargar PDF</button>
-</div>
-<div class="flex justify-between items-center">
-<div>
-<p class="font-medium text-gray-800">Resumen de Cuentas por Pagar</p>
-<p class="text-sm text-gray-500">Genera un PDF con el detalle de tus deudas a proveedores.</p>
-</div>
-<button class="btn-pdf bg-red-500 text-white px-4 py-2 rounded-lg text-sm flex-shrink-0" data-type="deudas-pagar"><i class="fas fa-download mr-2"></i>Descargar PDF</button>
-</div>
-</div>
-</div>
-</div>
-</main>
-</div>
-</div>
-<div class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center p-4" id="abono-modal"><div class="relative mx-auto p-8 border w-full max-w-md shadow-lg rounded-md bg-white"><h3 class="text-2xl font-semibold mb-6" id="abono-modal-title">Registrar Abono</h3><form id="form-abono"><input id="abono-deuda-id" type="hidden"/><input id="abono-type" type="hidden"/><div><label class="block text-sm font-medium">Monto a Abonar</label><input class="mt-1 block w-full" data-moneda="" id="abono-monto" inputmode="numeric" required="" type="text"/></div><div><label class="block text-sm font-medium">Recibido en</label><select class="mt-1 block w-full" id="abono-metodo" required=""><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div></form><div class="flex justify-end items-center mt-6 space-x-4"><button class="px-4 py-2 bg-gray-200 rounded-md" id="cancel-abono-btn">Cancelar</button><button class="px-4 py-2 bg-green-600 text-white rounded-md" id="save-abono-btn">Registrar Abono</button></div></div></div>
-<div class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center" id="notification-modal"><div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white"><div class="mt-3 text-center"><div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full" id="notification-icon"></div><h3 class="text-lg leading-6 font-medium text-gray-900" id="notification-title"></h3><div class="mt-2 px-7 py-3"><p class="text-sm text-gray-500" id="notification-message"></p></div><div class="items-center px-4 py-3"><button class="px-4 py-2 bg-indigo-500 text-white text-base font-medium rounded-md w-full" id="notification-close">Cerrar</button></div></div></div></div>
-<div class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center" id="confirm-modal"><div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white"><div class="mt-3 text-center"><div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100"><i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i></div><h3 class="text-lg leading-6 font-medium text-gray-900 mt-4" id="confirm-title"></h3><div class="mt-2 px-7 py-3" id="confirm-message-container"><p class="text-sm text-gray-500" id="confirm-message"></p></div><div class="flex justify-center items-center px-4 py-3 space-x-4"><button class="px-4 py-2 bg-gray-200 rounded-md w-full" id="cancel-confirm-btn">Cancelar</button><button class="px-4 py-2 bg-red-600 text-white rounded-md w-full" id="confirm-btn">Confirmar</button></div></div></div></div>
-<div class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center overflow-y-auto p-4" id="edit-modal"><div class="relative mx-auto p-8 border w-full max-w-xl shadow-lg rounded-md bg-white"><h3 class="text-2xl font-semibold mb-6" id="edit-modal-title"></h3><form class="space-y-4" id="edit-form"></form><div class="flex justify-end items-center mt-6 space-x-4"><button class="px-4 py-2 bg-gray-200 rounded-md" id="cancel-edit-btn">Cancelar</button><button class="px-4 py-2 bg-indigo-600 text-white rounded-md" id="save-edit-btn">Guardar Cambios</button></div></div></div>
-<div class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center p-4" id="historial-modal"><div class="relative mx-auto p-8 border w-full max-w-2xl shadow-lg rounded-md bg-white"><div class="flex justify-between items-start"><div><h3 class="text-2xl font-semibold mb-2" id="historial-modal-title">Historial de Abonos</h3><p class="text-gray-600" id="historial-modal-subtitle"></p></div><button class="p-2 -mt-4 -mr-4" id="cancel-historial-btn"><i class="fas fa-times text-gray-500"></i></button></div><div class="mt-6 overflow-y-auto max-h-96"><table class="w-full text-sm"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-4 py-3">Fecha</th><th class="px-4 py-3">Hora</th><th class="px-4 py-3">Monto Abonado</th><th class="px-4 py-3">Recibido en</th></tr></thead><tbody id="historial-abonos-body"></tbody></table></div></div></div>
+                                </div>
+                             </div>
+                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                                 <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Ingresos Totales (Periodo)</h3><p id="total-ingresos" class="text-2xl font-semibold text-green-600 mt-1">$0</p></div>
+                                 <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Compras Totales (Periodo)</h3><p id="total-compras" class="text-2xl font-semibold text-purple-600 mt-1">$0</p></div>
+                                 <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Gastos Op. Totales (Periodo)</h3><p id="total-gastos-op" class="text-2xl font-semibold text-red-600 mt-1">$0</p></div>
+                                 <div class="card p-5 bg-blue-50 border-blue-200 border"><h3 class="text-blue-800 text-sm font-medium">Efectivo en Caja (Actual)</h3><p id="efectivo-caja" class="text-2xl font-semibold text-blue-700 mt-1">$0</p></div>
+                                 <div class="card p-5 bg-green-50 border-green-200 border"><h3 class="text-green-800 text-sm font-medium">Saldo en Banco (Actual)</h3><p id="saldo-banco" class="text-2xl font-semibold text-green-700 mt-1">$0</p></div>
+                                 <div class="card p-5 bg-yellow-50 border-yellow-200 border"><h3 class="text-yellow-800 text-sm font-medium">Cuentas por Cobrar</h3><p id="cuentas-cobrar-total" class="text-2xl font-semibold text-yellow-700 mt-1">$0</p></div>
+                                 <div class="card p-5 bg-red-50 border-red-200 border"><h3 class="text-red-800 text-sm font-medium">Cuentas por Pagar</h3><p id="cuentas-pagar-total" class="text-2xl font-semibold text-red-700 mt-1">$0</p></div>
+                                 <div class="card p-5"><h3 class="text-gray-500 text-sm font-medium">Retiros del Jefe (Periodo)</h3><p id="total-retiros" class="text-2xl font-semibold text-orange-500 mt-1">$0</p></div>
+                                 </div>
+                             <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                                 <div class="lg:col-span-2 card p-6"><h3 class="text-lg font-semibold text-gray-700 mb-4">Distribución de Gastos (Periodo)</h3><canvas id="gastos-chart"></canvas></div>
+                                 <div class="lg:col-span-3 card p-6"><h3 class="text-lg font-semibold text-gray-700 mb-4">Últimos Movimientos (Global)</h3><div class="overflow-x-auto"><table class="w-full text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-6 py-3">Fecha</th><th class="px-6 py-3">Descripción</th><th class="px-6 py-3">Monto</th></tr></thead><tbody id="ultimos-movimientos-body"></tbody></table></div></div>
+                             </div>
+                         </div>
+                </div>
+                <div id="ingresos" class="tab-content hidden"><div class="max-w-xl mx-auto card p-8"><h2 class="text-2xl font-semibold">Registrar Venta</h2><form id="form-ingresos" class="space-y-6"><div><label for="ingreso-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="ingreso-fecha" class="mt-1 block w-full rounded-md" required></div><div><label for="ingreso-efectivo" class="block text-sm font-medium">Ventas en Efectivo</label><input type="text" data-moneda inputmode="numeric" id="ingreso-efectivo" value="0" class="mt-1 block w-full" required></div><div><label for="ingreso-tarjeta" class="block text-sm font-medium">Ventas Tarjeta/Transf.</label><input type="text" data-moneda inputmode="numeric" id="ingreso-tarjeta" value="0" class="mt-1 block w-full" required></div><div><label for="ingreso-notas" class="block text-sm font-medium">Notas</label><textarea id="ingreso-notas" rows="3" class="mt-1 block w-full"></textarea></div><button type="submit" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Ingreso</button></form></div></div>
+                <div id="compras" class="tab-content hidden"><div class="max-w-xl mx-auto card p-8"><h2 class="text-2xl font-semibold">Registrar Compra</h2><form id="form-compras" class="space-y-6"><div><label for="compra-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="compra-fecha" class="mt-1 block w-full" required></div><div><label for="compra-proveedor" class="block text-sm font-medium">Proveedor</label><input type="text" id="compra-proveedor" class="mt-1 block w-full" required></div><div><label for="compra-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="compra-descripcion" class="mt-1 block w-full" required></div><div><label for="compra-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="compra-monto" class="mt-1 block w-full" required></div><div><label for="compra-metodo" class="block text-sm font-medium">Pagado con</label><select id="compra-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div><button type="submit" class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Compra</button></form></div></div>
+                <div id="gastos" class="tab-content hidden"><div class="max-w-xl mx-auto card p-8"><h2 class="text-2xl font-semibold">Registrar Gasto Op. (del Efectivo)</h2><form id="form-gastos" class="space-y-6"><div><label for="gasto-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="gasto-fecha" class="mt-1 block w-full" required></div><div><label for="gasto-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="gasto-descripcion" class="mt-1 block w-full" required></div><div><label for="gasto-categoria" class="block text-sm font-medium">Categoría</label><select id="gasto-categoria" class="mt-1 block w-full" required><option>Arriendo</option><option>Servicios</option><option>Nómina</option><option>Marketing</option><option>Mantenimiento</option><option>Impuestos</option><option>Insumos</option><option>Otro</option></select></div><div><label for="gasto-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="gasto-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Gasto</button></form></div></div>
+                <div id="retiros" class="tab-content hidden"><div class="max-w-xl mx-auto card p-8"><h2 class="text-2xl font-semibold">Registrar Retiro Jefe</h2><form id="form-retiros" class="space-y-6"><div><label for="retiro-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="retiro-fecha" class="mt-1 block w-full" required></div><div><label for="retiro-metodo" class="block text-sm font-medium">Retirar de</label><select id="retiro-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo (Caja)</option><option value="Banco">Banco (Transferencia)</option></select></div><div><label for="retiro-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="retiro-descripcion" class="mt-1 block w-full" required></div><div><label for="retiro-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="retiro-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold">Añadir Retiro</button></form></div></div>
+                <div id="deudas" class="tab-content hidden grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="space-y-6"><h2 class="text-2xl font-semibold">Cuentas por Cobrar (Fiado)</h2><div class="card p-6"><form id="form-cuentas-cobrar" class="space-y-4"><div><label for="cpc-cliente" class="block text-sm font-medium">Nombre Cliente</label><input type="text" id="cpc-cliente" class="mt-1 block w-full" required></div><div><label for="cpc-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="cpc-descripcion" class="mt-1 block w-full" required></div><div><label for="cpc-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="cpc-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-yellow-500 text-white py-2 rounded-lg font-semibold">Añadir Deuda</button></form></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-cuentas-cobrar"></table></div></div>
+                    <div class="space-y-6"><h2 class="text-2xl font-semibold">Cuentas por Pagar</h2><div class="card p-6"><form id="form-cuentas-pagar" class="space-y-4"><div><label for="cpp-acreedor" class="block text-sm font-medium">Proveedor/Acreedor</label><input type="text" id="cpp-acreedor" class="mt-1 block w-full" required></div><div><label for="cpp-descripcion" class="block text-sm font-medium">Concepto</label><input type="text" id="cpp-descripcion" class="mt-1 block w-full" required></div><div><label for="cpp-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="cpp-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-red-500 text-white py-2 rounded-lg font-semibold">Añadir Cuenta por Pagar</button></form></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-cuentas-pagar"></table></div></div>
+                </div>
+
+                <div id="vales" class="tab-content hidden">
+                    <div class="max-w-4xl mx-auto">
+                        <h2 class="text-2xl font-semibold mb-6">Control de Vales (Personal y Dueño)</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <div class="md:col-span-1 space-y-6">
+                                <div class="card p-6">
+                                    <h3 class="text-lg font-semibold mb-4">Registrar Nuevo Vale</h3>
+                                    <form id="form-vales" class="space-y-4">
+                                        <div>
+                                            <label for="vale-persona" class="block text-sm font-medium">Nombre Persona</label>
+                                            <input type="text" id="vale-persona" class="mt-1 block w-full" required>
+                                        </div>
+                                        <div>
+                                            <label for="vale-descripcion" class="block text-sm font-medium">Descripción</label>
+                                            <input type="text" id="vale-descripcion" class="mt-1 block w-full" required>
+                                        </div>
+                                        <div>
+                                            <label for="vale-monto" class="block text-sm font-medium">Monto</label>
+                                            <input type="text" data-moneda inputmode="numeric" id="vale-monto" class="mt-1 block w-full" required>
+                                        </div>
+                                        <button type="submit" class="w-full bg-cyan-600 text-white py-2 rounded-lg font-semibold hover:bg-cyan-700">Añadir Vale</button>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="md:col-span-2 card p-4 overflow-x-auto">
+                                <h3 class="text-lg font-semibold mb-4 px-2">Historial de Vales</h3>
+                                <table class="w-full text-sm" id="tabla-vales"></table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="registros" class="tab-content hidden space-y-8">
+                    <div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todos los Ingresos</h2><button data-type="ingresos" class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-ingresos"></table></div></div>
+                    <div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todas las Compras</h2><button data-type="compras" class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-compras"></table></div></div>
+                    <div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todos los Gastos Op.</h2><button data-type="gastos" class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-gastos"></table></div></div>
+                    <div><div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-semibold">Todos los Retiros</h2><button data-type="retiros" class="btn-pdf bg-gray-700 text-white px-4 py-2 rounded-lg text-sm"><i class="fas fa-file-pdf mr-2"></i>PDF</button></div><div class="card p-4 overflow-x-auto"><table class="w-full text-sm" id="tabla-retiros"></table></div></div>
+
+                    <div class="pt-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-2xl font-semibold">Reportes Avanzados</h2>
+                        </div>
+                        <div class="card p-6 space-y-4">
+                            <div class="flex justify-between items-center border-b pb-4">
+                                <div>
+                                    <p class="font-medium text-gray-800">Resumen de Cuentas por Cobrar</p>
+                                    <p class="text-sm text-gray-500">Genera un PDF con el detalle de lo que te deben los clientes.</p>
+                                </div>
+                                <button data-type="deudas-cobrar" class="btn-pdf bg-yellow-500 text-white px-4 py-2 rounded-lg text-sm flex-shrink-0"><i class="fas fa-download mr-2"></i>Descargar PDF</button>
+                            </div>
+                            <div class="flex justify-between items-center border-b pb-4">
+                                <div>
+                                    <p class="font-medium text-gray-800">Resumen de Vales de Personal</p>
+                                    <p class="text-sm text-gray-500">Genera un PDF con el detalle de los vales de consumo interno.</p>
+                                </div>
+                                <button data-type="vales" class="btn-pdf bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm flex-shrink-0"><i class="fas fa-download mr-2"></i>Descargar PDF</button>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="font-medium text-gray-800">Resumen de Cuentas por Pagar</p>
+                                    <p class="text-sm text-gray-500">Genera un PDF con el detalle de tus deudas a proveedores.</p>
+                                </div>
+                                <button data-type="deudas-pagar" class="btn-pdf bg-red-500 text-white px-4 py-2 rounded-lg text-sm flex-shrink-0"><i class="fas fa-download mr-2"></i>Descargar PDF</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <div id="abono-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center p-4"><div class="relative mx-auto p-8 border w-full max-w-md shadow-lg rounded-md bg-white"><h3 class="text-2xl font-semibold mb-6" id="abono-modal-title">Registrar Abono</h3><form id="form-abono"><input type="hidden" id="abono-deuda-id"><input type="hidden" id="abono-type"><div><label class="block text-sm font-medium">Monto a Abonar</label><input type="text" data-moneda inputmode="numeric" id="abono-monto" class="mt-1 block w-full" required></div><div><label class="block text-sm font-medium">Recibido en</label><select id="abono-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div></form><div class="flex justify-end items-center mt-6 space-x-4"><button id="cancel-abono-btn" class="px-4 py-2 bg-gray-200 rounded-md">Cancelar</button><button id="save-abono-btn" class="px-4 py-2 bg-green-600 text-white rounded-md">Registrar Abono</button></div></div></div>
+    <div id="notification-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center"><div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white"><div class="mt-3 text-center"><div id="notification-icon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full"></div><h3 id="notification-title" class="text-lg leading-6 font-medium text-gray-900"></h3><div class="mt-2 px-7 py-3"><p id="notification-message" class="text-sm text-gray-500"></p></div><div class="items-center px-4 py-3"><button id="notification-close" class="px-4 py-2 bg-indigo-500 text-white text-base font-medium rounded-md w-full">Cerrar</button></div></div></div></div>
+    <div id="confirm-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center"><div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white"><div class="mt-3 text-center"><div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100"><i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i></div><h3 id="confirm-title" class="text-lg leading-6 font-medium text-gray-900 mt-4"></h3><div id="confirm-message-container" class="mt-2 px-7 py-3"><p id="confirm-message" class="text-sm text-gray-500"></p></div><div class="flex justify-center items-center px-4 py-3 space-x-4"><button id="cancel-confirm-btn" class="px-4 py-2 bg-gray-200 rounded-md w-full">Cancelar</button><button id="confirm-btn" class="px-4 py-2 bg-red-600 text-white rounded-md w-full">Confirmar</button></div></div></div></div>
+    <div id="edit-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center overflow-y-auto p-4"><div class="relative mx-auto p-8 border w-full max-w-xl shadow-lg rounded-md bg-white"><h3 id="edit-modal-title" class="text-2xl font-semibold mb-6"></h3><form id="edit-form" class="space-y-4"></form><div class="flex justify-end items-center mt-6 space-x-4"><button id="cancel-edit-btn" class="px-4 py-2 bg-gray-200 rounded-md">Cancelar</button><button id="save-edit-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-md">Guardar Cambios</button></div></div></div>
+    <div id="historial-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center p-4"><div class="relative mx-auto p-8 border w-full max-w-2xl shadow-lg rounded-md bg-white"><div class="flex justify-between items-start"><div><h3 class="text-2xl font-semibold mb-2" id="historial-modal-title">Historial de Abonos</h3><p class="text-gray-600" id="historial-modal-subtitle"></p></div><button id="cancel-historial-btn" class="p-2 -mt-4 -mr-4"><i class="fas fa-times text-gray-500"></i></button></div><div class="mt-6 overflow-y-auto max-h-96"><table class="w-full text-sm"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-4 py-3">Fecha</th><th class="px-4 py-3">Hora</th><th class="px-4 py-3">Monto Abonado</th><th class="px-4 py-3">Recibido en</th></tr></thead><tbody id="historial-abonos-body"></tbody></table></div></div></div>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -781,6 +1103,55 @@ document.addEventListener('DOMContentLoaded', () => {
     // == FIN DE LA SOLUCIÓN ==
     // =========================================================================
 });
-</script>
+
+    // Lógica para el botón de cierre de mes
+    document.getElementById('close-period-btn').addEventListener('click', async () => {
+        // Obtener la fecha actual y calcular el final del mes
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();  // Los meses en JavaScript son 0-indexados, enero es 0
+
+        // Establecer la fecha de inicio y fin del nuevo período
+        const startDate = new Date(currentYear, currentMonth, 1).toISOString();
+        const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString(); // Fin del mes actual
+
+        // Archivar los datos del mes actual en una colección histórica
+        const historicalData = {
+            period: { startDate, endDate },
+            ingresos: allData.ingresos,
+            compras: allData.compras,
+            gastos: allData.gastos,
+            retiros: allData.retiros,
+            cuentasPorCobrar: allData.cuentasPorCobrar,
+            cuentasPorPagar: allData.cuentasPorPagar,
+            vales: allData.vales
+        };
+
+        // Guardar en Firebase bajo una colección de períodos históricos
+        await database.ref(`businesses/${selectedBusinessId}/historicalPeriods`).push(historicalData);
+
+        // Crear el nuevo período para el próximo mes
+        const newPeriod = {
+            startDate: new Date(currentYear, currentMonth + 1, 1).toISOString(),
+            endDate: null, // Se llenará al final del nuevo período
+            monthKey: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+        };
+
+        await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
+
+        // Limpiar los datos del mes actual
+        await database.ref(`businesses/${selectedBusinessId}/ingresos`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/compras`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/gastos`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/retiros`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).remove();
+        await database.ref(`businesses/${selectedBusinessId}/vales`).remove();
+
+        // Mostrar una notificación de éxito
+        showNotification('Éxito', 'Corte de mes realizado exitosamente.');
+    });
+    </script>
+    
 </body>
 </html>
