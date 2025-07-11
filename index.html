@@ -642,19 +642,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalGastosOpMes = (periodData.gastos || []).reduce((sum, item) => sum + item.monto, 0);
         const totalRetirosMes = (periodData.retiros || []).reduce((sum, item) => sum + item.monto, 0);
 
-        const totalIngresosEfectivo = (globalData.ingresos || []).reduce((sum, i) => sum + (i.monto_efectivo || 0), 0);
-        const totalIngresosBanco = (globalData.ingresos || []).reduce((sum, i) => sum + (i.monto_tarjeta || 0), 0);
-        const totalComprasEfectivo = (globalData.compras || []).filter(c => c.metodo === 'Efectivo').reduce((sum, c) => sum + c.monto, 0);
-        const totalComprasBanco = (globalData.compras || []).filter(c => c.metodo === 'Banco').reduce((sum, c) => sum + c.monto, 0);
-        const totalGastosOp = (globalData.gastos || []).reduce((sum, g) => sum + g.monto, 0);
-        const totalRetirosEfectivo = (globalData.retiros || []).filter(r => r.metodo === 'Efectivo').reduce((sum, r) => sum + r.monto, 0);
-        const totalRetirosBanco = (globalData.retiros || []).filter(r => r.metodo === 'Banco').reduce((sum, r) => sum + r.monto, 0);
-        const abonosCpcEfectivo = (globalData.cuentasPorCobrar || []).flatMap(d => d.abonos || []).filter(a => a.metodo === 'Efectivo').reduce((sum, a) => sum + a.monto, 0);
-        const abonosCpcBanco = (globalData.cuentasPorCobrar || []).flatMap(d => d.abonos || []).filter(a => a.metodo === 'Banco').reduce((sum, a) => sum + a.monto, 0);
-        const abonosValesEfectivo = (globalData.vales || []).flatMap(d => d.abonos || []).filter(a => a.metodo === 'Efectivo').reduce((sum, a) => sum + a.monto, 0);
-        const abonosValesBanco = (globalData.vales || []).flatMap(d => d.abonos || []).filter(a => a.metodo === 'Banco').reduce((sum, a) => sum + a.monto, 0);
-        const efectivoEnCaja = (totalIngresosEfectivo + abonosCpcEfectivo + abonosValesEfectivo) - totalComprasEfectivo - totalGastosOp - totalRetirosEfectivo;
-        const saldoEnBanco = (totalIngresosBanco + abonosCpcBanco + abonosValesBanco) - totalComprasBanco - totalRetirosBanco;
+        const { efectivo, banco } = calculateCurrentBalances();
+        
         const totalCPC = (globalData.cuentasPorCobrar || []).reduce((sum, d) => sum + (d.monto - ((d.abonos || []).reduce((s, a) => s + a.monto, 0))), 0);
         const totalCPP = (globalData.cuentasPorPagar || []).filter(d => d.estado !== 'Pagada').reduce((sum, d) => sum + d.monto - ((d.abonos || []).reduce((s, a) => s + a.monto, 0)), 0);
         
@@ -662,8 +651,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('total-compras').textContent = formatCurrency(totalComprasMes);
         document.getElementById('total-gastos-op').textContent = formatCurrency(totalGastosOpMes);
         document.getElementById('total-retiros').textContent = formatCurrency(totalRetirosMes);
-        document.getElementById('efectivo-caja').textContent = formatCurrency(efectivoEnCaja);
-        document.getElementById('saldo-banco').textContent = formatCurrency(saldoEnBanco);
+        document.getElementById('efectivo-caja').textContent = formatCurrency(efectivo);
+        document.getElementById('saldo-banco').textContent = formatCurrency(banco);
         document.getElementById('cuentas-cobrar-total').textContent = formatCurrency(totalCPC);
         document.getElementById('cuentas-pagar-total').textContent = formatCurrency(totalCPP);
 
@@ -810,6 +799,11 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     };
 
+    // =========================================================================
+    // ========= CAMBIO #1: CALCULAR SALDOS SIN ABONOS DIRECTOS =========
+    // Se simplifica la función. Los abonos ya se registran como ingresos,
+    // por lo que no es necesario sumarlos aquí de nuevo.
+    // =========================================================================
     const calculateCurrentBalances = () => {
         const totalIngresosEfectivo = (allData.ingresos || []).reduce((sum, i) => sum + (i.monto_efectivo || 0), 0);
         const totalIngresosBanco = (allData.ingresos || []).reduce((sum, i) => sum + (i.monto_tarjeta || 0), 0);
@@ -818,14 +812,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalGastosOp = (allData.gastos || []).reduce((sum, g) => sum + g.monto, 0);
         const totalRetirosEfectivo = (allData.retiros || []).filter(r => r.metodo === 'Efectivo').reduce((sum, r) => sum + r.monto, 0);
         const totalRetirosBanco = (allData.retiros || []).filter(r => r.metodo === 'Banco').reduce((sum, r) => sum + r.monto, 0);
-        const abonosCpcEfectivo = (allData.cuentasPorCobrar || []).flatMap(d => d.abonos || []).filter(a => a.metodo === 'Efectivo').reduce((sum, a) => sum + a.monto, 0);
-        const abonosCpcBanco = (allData.cuentasPorCobrar || []).flatMap(d => d.abonos || []).filter(a => a.metodo === 'Banco').reduce((sum, a) => sum + a.monto, 0);
-        const abonosValesEfectivo = (allData.vales || []).flatMap(d => d.abonos || []).filter(a => a.metodo === 'Efectivo').reduce((sum, a) => sum + a.monto, 0);
-        const abonosValesBanco = (allData.vales || []).flatMap(d => d.abonos || []).filter(a => a.metodo === 'Banco').reduce((sum, a) => sum + a.monto, 0);
         
         return {
-            efectivo: (totalIngresosEfectivo + abonosCpcEfectivo + abonosValesEfectivo) - totalComprasEfectivo - totalGastosOp - totalRetirosEfectivo,
-            banco: (totalIngresosBanco + abonosCpcBanco + abonosValesBanco) - totalComprasBanco - totalRetirosBanco
+            efectivo: totalIngresosEfectivo - totalComprasEfectivo - totalGastosOp - totalRetirosEfectivo,
+            banco: totalIngresosBanco - totalComprasBanco - totalRetirosBanco
         };
     };
 
@@ -952,17 +942,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // =========================================================================
-    // ========= FUNCIÓN CORREGIDA PARA EVITAR DUPLICACIÓN DE DEUDAS =========
-    // =========================================================================
     const transferPendingAccounts = async (type, fromPeriod) => {
-        // Obtenemos una referencia a la base de datos para el tipo de cuenta
         const accountsRef = database.ref(`businesses/${selectedBusinessId}/${type}`);
         const snapshot = await accountsRef.once('value');
         const accounts = firebaseObjectToArray(snapshot);
 
-        // Usaremos una actualización multi-path para asegurar que la operación sea atómica.
-        // Esto significa que todas las eliminaciones y creaciones se envían como una sola operación.
         const updates = {};
 
         for (const account of accounts) {
@@ -977,21 +961,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             if (shouldTransfer) {
-                // 1. Preparamos la eliminación del registro antiguo.
-                // Al establecer la ruta en 'null', Firebase la eliminará.
                 updates[`/${type}/${account.id}`] = null;
 
-                // 2. Generamos una nueva clave y preparamos la creación del nuevo registro.
                 const newId = accountsRef.push().key;
                 const transferData = {
                     fecha: new Date().toISOString(),
-                    // CRÍTICO: El nuevo monto es el saldo restante, no el monto original.
                     monto: balance,
-                    // CRÍTICO: Los abonos se reinician para el nuevo período.
                     abonos: {},
                     transferredFrom: account.id,
                     originalPeriod: fromPeriod,
-                    // Copiamos los otros datos relevantes, añadiendo una nota de transferencia.
                     ...(type === 'cuentasPorCobrar' && {
                         cliente: account.cliente,
                         descripcion: `${account.descripcion} (Saldo anterior)`
@@ -1007,13 +985,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     }),
                 };
                 
-                // 3. Añadimos el nuevo registro a nuestro objeto de actualizaciones.
                 updates[`/${type}/${newId}`] = transferData;
             }
         }
 
-        // Finalmente, ejecutamos todas las actualizaciones (creaciones y eliminaciones) a la vez.
-        // Si no hay nada que actualizar, no hacemos nada.
         if (Object.keys(updates).length > 0) {
             await database.ref(`businesses/${selectedBusinessId}`).update(updates);
         }
@@ -1066,7 +1041,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const getNextMonth = (currentMonth) => {
         const [year, month] = currentMonth.split('-').map(Number);
-        const nextDate = new Date(year, month, 1); // El mes es 0-indexado, así que 'month' ya es el siguiente mes
+        const nextDate = new Date(year, month, 1);
         return nextDate.toISOString().slice(0, 7);
     };
 
@@ -1092,7 +1067,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const businessName = document.getElementById('app-title').textContent.replace('📊 Gestión: ', '');
         const periodo = document.getElementById('corte-periodo').value;
         
-        // Header
         doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
         doc.text('REPORTE DE CORTE DE MES', 14, 22);
@@ -1104,7 +1078,6 @@ document.addEventListener('DOMContentLoaded', () => {
         doc.text(`Fecha de corte: ${document.getElementById('corte-fecha').value}`, 14, 44);
         doc.text(`Generado: ${new Date().toLocaleString('es-CO')}`, 14, 50);
 
-        // Contenido del reporte
         let yPos = 60;
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
@@ -1149,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('corte-close-modal').addEventListener('click', () => {
         document.getElementById('corte-mes-modal').style.display = 'none';
-        location.reload(); // Recargar para mostrar los cambios
+        location.reload(); 
     });
 
     // =========================================================================
@@ -1287,6 +1260,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handleHistorial = (deudaId, type) => { const deuda = (allData[type] || []).find(d => d.id === deudaId); if (!deuda) return; const modal = document.getElementById('historial-modal'); const personKey = type === 'vales' ? 'persona' : 'cliente'; document.getElementById('historial-modal-subtitle').textContent = `Detalle para: ${deuda[personKey]} | Total: ${formatCurrency(deuda.monto)}`; const tbody = document.getElementById('historial-abonos-body'); const abonos = (deuda.abonos || []).filter(a => a.fecha instanceof Date).sort((a,b) => b.fecha - a.fecha); if (abonos.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">No se han registrado abonos.</td></tr>`; } else { tbody.innerHTML = abonos.map(abono => `<tr class="border-b"><td class="px-3 sm:px-4 py-3">${abono.fecha.toLocaleDateString('es-CO')}</td><td class="px-3 sm:px-4 py-3">${abono.fecha.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</td><td class="px-3 sm:px-4 py-3 font-medium">${formatCurrency(abono.monto)}</td><td class="px-3 sm:px-4 py-3">${abono.metodo}</td></tr>`).join(''); } modal.style.display = 'flex'; };
     
+    // =========================================================================
+    // ========= CAMBIO #2: REGISTRAR ABONOS COMO INGRESOS REALES =========
+    // Ahora, al guardar un abono, también se crea un registro de ingreso.
+    // Esto asegura que el dinero entre al flujo de caja correctamente.
+    // =========================================================================
     document.getElementById('save-abono-btn').addEventListener('click', async () => { 
         if (!validatePeriodAccess()) return;
         const deudaId = document.getElementById('abono-deuda-id').value; 
@@ -1299,9 +1277,24 @@ document.addEventListener('DOMContentLoaded', () => {
         } 
         try { 
             const nowISO = new Date().toISOString(); 
+            
+            // 1. Crear el registro de abono en la deuda/vale
             const abonoData = { fecha: nowISO, monto, metodo }; 
             await getRefFor(type).child(deudaId).child('abonos').push(abonoData); 
-            showNotification('Éxito', 'Abono registrado correctamente.'); 
+
+            // 2. Crear un registro de INGRESO para reflejar el dinero en caja/banco
+            const deuda = (allData[type] || []).find(d => d.id === deudaId);
+            const persona = type === 'vales' ? (deuda?.persona || 'Vale') : (deuda?.cliente || 'Cliente');
+            const ingresoData = {
+                fecha: nowISO,
+                monto: monto,
+                monto_efectivo: metodo === 'Efectivo' ? monto : 0,
+                monto_tarjeta: metodo === 'Banco' ? monto : 0,
+                notas: `Abono de: ${persona}`
+            };
+            await getRefFor('ingresos').push(ingresoData);
+            
+            showNotification('Éxito', 'Abono registrado correctamente como un ingreso.'); 
             document.getElementById('abono-modal').style.display = 'none'; 
             document.getElementById('form-abono').reset(); 
             document.getElementById('abono-monto').value = ''; 
