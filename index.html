@@ -928,25 +928,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 monto: saldos.banco
             };
             await database.ref(`businesses/${selectedBusinessId}/retiros`).push(retiroBanco);
-        }
     };
 
     const closePeriod = async (periodo, fechaCorte, notas) => {
         const periodToClose = periods.find(p => p.monthKey === periodo);
         if (periodToClose) {
             await database.ref(`businesses/${selectedBusinessId}/periods/${periodToClose.id}`).update({
+            // Obtener cuentas ya existentes en el nuevo período
+            const existingAccountsReceivableRef = database.ref(`periods/${toPeriod}/accountsReceivable`);
+            const existingAccountsReceivableSnapshot = await existingAccountsReceivableRef.once('value');
+            const existingAccountsReceivable = existingAccountsReceivableSnapshot.val() || {};
+            
                 isClosed: true,
-                closedDate: fechaCorte,
-                closedNotes: notas
-            });
-        }
-    };
-
-    const transferPendingAccounts = async (type, currentPeriod) => {
-        const accounts = allData[type] || [];
-        const nextMonth = getNextMonth(currentPeriod);
-        
-        // Crear un Set para rastrear las cuentas ya transferidas
+                // Solo transferir si tiene saldo Y no existe ya una transferencia de esta cuenta
+                const alreadyTransferred = Object.values(existingAccountsReceivable).some(existing => 
+                    existing.transferredFrom === key || existing.name === account.name
+                );
+                
+                if (account.balance > 0 && !alreadyTransferred) {
+                    await database.ref(`periods/${toPeriod}/accountsReceivable`).push({
+                        ...account,
+                        transferredFrom: key,
+                        originalPeriod: fromPeriod
+                    });
         const transferredAccountIds = new Set();
 
         for (const account of accounts) {
@@ -955,18 +959,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 continue;
             }
 
-            // Verificar si ya tiene marca de transferencia de este período
-            if (account.originalPeriod === currentPeriod && account.transferredFrom) {
-                continue;
-            }
-
-            let shouldTransfer = false;
+            // Obtener cuentas por pagar ya existentes
+            const existingAccountsPayableRef = database.ref(`periods/${toPeriod}/accountsPayable`);
+            const existingAccountsPayableSnapshot = await existingAccountsPayableRef.once('value');
+            const existingAccountsPayable = existingAccountsPayableSnapshot.val() || {};
             
-            if (type === 'cuentasPorPagar') {
-                shouldTransfer = account.estado !== 'Pagada';
-            } else {
-                const totalAbonado = (account.abonos || []).reduce((sum, a) => sum + a.monto, 0);
-                shouldTransfer = account.monto > totalAbonado;
+            // Verificar si ya tiene marca de transferencia de este período
+                // Solo transferir si tiene saldo Y no existe ya
+                const alreadyTransferred = Object.values(existingAccountsPayable).some(existing => 
+                    existing.transferredFrom === key || existing.name === account.name
+                );
+                
+                if (account.balance > 0 && !alreadyTransferred) {
+                    await database.ref(`periods/${toPeriod}/accountsPayable`).push({
+                        ...account,
+                        transferredFrom: key,
+                        originalPeriod: fromPeriod
+                    });
             }
 
             if (shouldTransfer) {
@@ -975,18 +984,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     a.transferredFrom === account.id && 
                     a.originalPeriod === currentPeriod
                 );
+            // Obtener vales ya existentes
+            const existingVouchersRef = database.ref(`periods/${toPeriod}/vouchers`);
+            const existingVouchersSnapshot = await existingVouchersRef.once('value');
+            const existingVouchers = existingVouchersSnapshot.val() || {};
+            
 
-                if (!existingTransfer) {
-                    const newAccount = {
-                        ...account,
-                        fecha: new Date().toISOString(),
-                        transferredFrom: account.id,
-                        originalPeriod: currentPeriod
-                    };
-                    delete newAccount.id;
-
-                    await database.ref(`businesses/${selectedBusinessId}/${type}`).push(newAccount);
-                    transferredAccountIds.add(account.id);
+                // Solo transferir si tiene saldo Y no existe ya
+                const alreadyTransferred = Object.values(existingVouchers).some(existing => 
+                    existing.transferredFrom === key || existing.name === voucher.name
+                );
+                
+                if (voucher.balance > 0 && !alreadyTransferred) {
+                    await database.ref(`periods/${toPeriod}/vouchers`).push({
+                        ...voucher,
+                        transferredFrom: key,
+                        originalPeriod: fromPeriod
+                    });
                 }
             }
         }
