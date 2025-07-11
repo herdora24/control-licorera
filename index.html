@@ -825,7 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Lógica de cada paso
                 switch (i) {
                     case 0: // Iniciando...
-                        await new Promise(res => setTimeout(res, 200));
+                        await new Promise(res => setTimeout(res, 100));
                         break;
                     
                     case 1: // Archivar transacciones
@@ -854,18 +854,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             if (balance > 0 && (type !== 'cuentasPorPagar' || account.estado !== 'Pagada')) {
                                 const newId = database.ref().child(`businesses/${selectedBusinessId}/${type}`).push().key;
-                                updates[`/${type}/${newId}`] = {
+                                
+                                // CORRECCIÓN: Construir el objeto de forma segura
+                                const newPendingAccount = {
                                     fecha: new Date().toISOString(),
                                     monto: balance,
                                     abonos: {},
                                     transferredFrom: account.id,
                                     originalPeriod: periodo,
-                                    cliente: account.cliente,
                                     descripcion: account.descripcion,
-                                    acreedor: account.acreedor,
-                                    estado: account.estado === 'Pagada' ? 'Pagada' : 'Pendiente',
-                                    persona: account.persona
                                 };
+
+                                if (type === 'cuentasPorCobrar') {
+                                    newPendingAccount.cliente = account.cliente;
+                                } else if (type === 'cuentasPorPagar') {
+                                    newPendingAccount.acreedor = account.acreedor;
+                                    newPendingAccount.estado = 'Pendiente';
+                                } else if (type === 'vales') {
+                                    newPendingAccount.persona = account.persona;
+                                }
+
+                                updates[`/${type}/${newId}`] = newPendingAccount;
                             }
                         }
                         break;
@@ -916,11 +925,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showNotification('Error', 'Ocurrió un error durante el archivado: ' + error.message, 'error');
             showCorteStep(1);
         }
-    };
-
-    const createNewPeriod = async (currentPeriod) => {
-        // Esta función ahora solo calcula el siguiente mes,
-        // la creación se hace dentro de la transacción de 'executeCorte'.
     };
 
     const getNextMonth = (currentMonth) => {
