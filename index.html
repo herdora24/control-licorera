@@ -796,20 +796,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const steps = [
             'Iniciando proceso de archivado...',
-            'Recopilando y archivando transacciones (Ingresos, Compras, etc.)...',
-            'Procesando y archivando Cuentas por Cobrar...',
-            'Procesando y archivando Cuentas por Pagar...',
-            'Procesando y archivando Vales...',
+            'Archivando transacciones (Ingresos, Compras, etc.)...',
+            'Archivando Cuentas por Cobrar...',
+            'Archivando Cuentas por Pagar...',
+            'Archivando Vales...',
             'Creando retiros automáticos de cierre...',
-            'Limpiando período actual...',
-            'Marcando período como cerrado y creando el nuevo...',
-            'Finalizando proceso...'
+            'Finalizando y creando nuevo período...'
         ];
 
         const stepsList = document.getElementById('corte-steps-list');
         const progressBar = document.getElementById('corte-progress-bar');
         const progressText = document.getElementById('corte-progress-text');
-        stepsList.innerHTML = '';
+        stepsList.innerHTML = ''; // Limpiar logs anteriores
 
         try {
             const updates = {};
@@ -817,88 +815,99 @@ document.addEventListener('DOMContentLoaded', () => {
             const startDate = new Date(year, month - 1, 1);
             const endDate = new Date(year, month, 1);
 
-            // Función para actualizar la UI de progreso
-            const updateProgress = (index) => {
+            for (let i = 0; i < steps.length; i++) {
+                progressText.textContent = `Paso ${i + 1} de ${steps.length}: ${steps[i]}`;
                 const stepEl = document.createElement('div');
-                stepEl.className = 'flex items-center text-sm slide-in text-gray-800';
-                stepEl.innerHTML = `<i class="fas fa-check-circle text-green-500 mr-2"></i><span>${steps[index]}</span>`;
-                if (index > 0) {
-                    stepsList.replaceChild(stepEl, stepsList.children[index-1]);
-                } else {
-                    stepsList.appendChild(stepEl);
-                }
-                progressBar.style.width = `${((index + 1) / steps.length) * 100}%`;
-                progressText.textContent = `Paso ${index + 1} de ${steps.length}: ${steps[index+1] || 'Completando...'}`;
-            };
-            
-            updateProgress(0);
+                stepEl.className = 'flex items-center text-sm slide-in text-gray-500';
+                stepEl.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i><span>${steps[i]}</span>`;
+                stepsList.appendChild(stepEl);
 
-            // Paso 1: Archivar transacciones simples
-            const transaccionales = ['ingresos', 'compras', 'gastos', 'retiros'];
-            for (const type of transaccionales) {
-                const dataToArchive = (allData[type] || []).filter(d => d.fecha >= startDate && d.fecha < endDate);
-                for (const item of dataToArchive) {
-                    updates[`/historial_periodos/${periodo}/${type}/${item.id}`] = item;
-                    updates[`/${type}/${item.id}`] = null;
-                }
-            }
-            updateProgress(1);
+                // Lógica de cada paso
+                switch (i) {
+                    case 0: // Iniciando...
+                        await new Promise(res => setTimeout(res, 200));
+                        break;
+                    
+                    case 1: // Archivar transacciones
+                        const transaccionales = ['ingresos', 'compras', 'gastos', 'retiros'];
+                        for (const type of transaccionales) {
+                            const dataToArchive = (allData[type] || []).filter(d => d.fecha >= startDate && d.fecha < endDate);
+                            for (const item of dataToArchive) {
+                                updates[`/historial_periodos/${periodo}/${type}/${item.id}`] = item;
+                                updates[`/${type}/${item.id}`] = null;
+                            }
+                        }
+                        break;
 
-            // Pasos 2, 3, 4: Archivar cuentas (cobrar, pagar, vales)
-            const tiposDeCuentas = ['cuentasPorCobrar', 'cuentasPorPagar', 'vales'];
-            for (const type of tiposDeCuentas) {
-                const accounts = allData[type] || [];
-                for (const account of accounts) {
-                    const totalAbonado = (account.abonos || []).reduce((sum, a) => sum + a.monto, 0);
-                    const balance = account.monto - totalAbonado;
+                    case 2: // Archivar Cuentas por Cobrar
+                    case 3: // Archivar Cuentas por Pagar
+                    case 4: // Archivar Vales
+                        const accountTypes = ['cuentasPorCobrar', 'cuentasPorPagar', 'vales'];
+                        const type = accountTypes[i - 2];
+                        const accounts = allData[type] || [];
+                        for (const account of accounts) {
+                            const totalAbonado = (account.abonos || []).reduce((sum, a) => sum + a.monto, 0);
+                            const balance = account.monto - totalAbonado;
 
-                    // Siempre se archiva el registro original
-                    updates[`/historial_periodos/${periodo}/${type}/${account.id}`] = account;
-                    updates[`/${type}/${account.id}`] = null;
+                            updates[`/historial_periodos/${periodo}/${type}/${account.id}`] = account;
+                            updates[`/${type}/${account.id}`] = null;
 
-                    // Si hay saldo pendiente, se crea un nuevo registro "limpio"
-                    if (balance > 0 && (type !== 'cuentasPorPagar' || account.estado !== 'Pagada')) {
-                        const newId = database.ref().child(`businesses/${selectedBusinessId}/${type}`).push().key;
-                        updates[`/${type}/${newId}`] = {
-                            fecha: new Date().toISOString(),
-                            monto: balance,
-                            abonos: {},
-                            transferredFrom: account.id,
-                            originalPeriod: periodo,
-                            cliente: account.cliente,
-                            descripcion: account.descripcion,
-                            acreedor: account.acreedor,
-                            estado: account.estado === 'Pagada' ? 'Pagada' : 'Pendiente',
-                            persona: account.persona
+                            if (balance > 0 && (type !== 'cuentasPorPagar' || account.estado !== 'Pagada')) {
+                                const newId = database.ref().child(`businesses/${selectedBusinessId}/${type}`).push().key;
+                                updates[`/${type}/${newId}`] = {
+                                    fecha: new Date().toISOString(),
+                                    monto: balance,
+                                    abonos: {},
+                                    transferredFrom: account.id,
+                                    originalPeriod: periodo,
+                                    cliente: account.cliente,
+                                    descripcion: account.descripcion,
+                                    acreedor: account.acreedor,
+                                    estado: account.estado === 'Pagada' ? 'Pagada' : 'Pendiente',
+                                    persona: account.persona
+                                };
+                            }
+                        }
+                        break;
+
+                    case 5: // Crear retiros automáticos
+                        const saldos = calculateCurrentBalances();
+                        if (saldos.efectivo > 0) {
+                            updates[`/retiros/${database.ref().push().key}`] = { fecha: fechaCorte, metodo: 'Efectivo', descripcion: 'Retiro automático - Cierre de mes', monto: saldos.efectivo };
+                        }
+                        if (saldos.banco > 0) {
+                            updates[`/retiros/${database.ref().push().key}`] = { fecha: fechaCorte, metodo: 'Banco', descripcion: 'Retiro automático - Cierre de mes', monto: saldos.banco };
+                        }
+                        break;
+
+                    case 6: // Finalizar y crear nuevo período
+                        const periodToClose = periods.find(p => p.monthKey === periodo);
+                        if (periodToClose) {
+                            updates[`/periods/${periodToClose.id}/isClosed`] = true;
+                            updates[`/periods/${periodToClose.id}/endDate`] = fechaCorte;
+                            updates[`/periods/${periodToClose.id}/closedDate`] = fechaCorte;
+                            updates[`/periods/${periodToClose.id}/notes`] = notas;
+                        }
+                        
+                        const nextMonth = getNextMonth(periodo);
+                        const [nextYear, nextMonthNum] = nextMonth.split('-').map(Number);
+                        const newPeriod = {
+                            startDate: new Date(nextYear, nextMonthNum - 1, 1).toISOString(),
+                            endDate: null,
+                            monthKey: nextMonth,
+                            isClosed: false,
+                            createdFrom: periodo
                         };
-                    }
+                        updates[`/periods/${database.ref().push().key}`] = newPeriod;
+                        
+                        await database.ref(`businesses/${selectedBusinessId}`).update(updates);
+                        break;
                 }
-                updateProgress(tiposDeCuentas.indexOf(type) + 2);
+
+                stepEl.innerHTML = `<i class="fas fa-check-circle text-green-500 mr-2"></i><span class="text-gray-800">${steps[i]}</span>`;
+                progressBar.style.width = `${((i + 1) / steps.length) * 100}%`;
             }
 
-            // Paso 5: Crear retiros automáticos
-            const saldos = calculateCurrentBalances();
-            if (saldos.efectivo > 0) {
-                updates[`/retiros/${database.ref().push().key}`] = { fecha: fechaCorte, metodo: 'Efectivo', descripcion: 'Retiro automático - Cierre de mes', monto: saldos.efectivo };
-            }
-            if (saldos.banco > 0) {
-                updates[`/retiros/${database.ref().push().key}`] = { fecha: fechaCorte, metodo: 'Banco', descripcion: 'Retiro automático - Cierre de mes', monto: saldos.banco };
-            }
-            updateProgress(5);
-            
-            // Paso 6: Ejecutar todas las actualizaciones en la BD
-            await database.ref(`businesses/${selectedBusinessId}`).update(updates);
-            updateProgress(6);
-
-            // Paso 7: Cerrar período y crear el nuevo
-            const periodToClose = periods.find(p => p.monthKey === periodo);
-            if (periodToClose) {
-                await database.ref(`businesses/${selectedBusinessId}/periods/${periodToClose.id}`).update({ isClosed: true, endDate: fechaCorte, closedDate: fechaCorte, notes: notas });
-            }
-            await createNewPeriod(periodo);
-            updateProgress(7);
-            
-            updateProgress(8);
             showCorteStep(4);
             generateCorteSummary();
 
@@ -910,21 +919,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const createNewPeriod = async (currentPeriod) => {
-        const nextMonth = getNextMonth(currentPeriod);
-        const [year, month] = nextMonth.split('-').map(Number);
-        
-        const newPeriod = {
-            startDate: new Date(year, month - 1, 1).toISOString(),
-            endDate: null,
-            monthKey: nextMonth,
-            isClosed: false,
-            createdFrom: currentPeriod
-        };
-
-        await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
-        
-        document.getElementById('month-filter').value = nextMonth;
-        // No refrescar UI aquí para evitar problemas de concurrencia, se hará al cerrar el modal.
+        // Esta función ahora solo calcula el siguiente mes,
+        // la creación se hace dentro de la transacción de 'executeCorte'.
     };
 
     const getNextMonth = (currentMonth) => {
