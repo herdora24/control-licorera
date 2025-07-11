@@ -24,9 +24,12 @@
         .action-button { background: none; border: none; cursor: pointer; padding: 0.5rem; border-radius: 9999px; }
         .action-button:hover { background-color: #f0f0f0; }
         .auth-overlay { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+        .period-locked { background: linear-gradient(135deg, #fee2e2, #fef3c7); border: 2px solid #f59e0b; }
+        .locked-indicator { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .slide-in { animation: slideIn 0.5s ease-out; }
         @media print { body * { visibility: hidden; } #print-area, #print-area * { visibility: visible; } #print-area { position: absolute; left: 0; top: 0; width: 100%; } .no-print { display: none; } }
-        .corte-modal { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-        .progress-bar { transition: width 0.3s ease-in-out; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -61,127 +64,6 @@
                 </div>
             <div class="mt-6 text-center">
                  <button id="logout-btn-selector" class="text-sm text-gray-600 hover:text-indigo-600">Cerrar Sesión</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal de Corte de Mesa -->
-    <div id="corte-mesa-modal" class="corte-modal fixed inset-0 bg-gray-900 bg-opacity-60 z-50 hidden items-center justify-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div class="p-6 border-b border-gray-200">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="bg-indigo-100 p-3 rounded-full">
-                            <i class="fas fa-calendar-check text-indigo-600 text-xl"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-800">Corte de Mesa</h3>
-                            <p class="text-sm text-gray-500">Cierre del período contable</p>
-                        </div>
-                    </div>
-                    <button id="close-corte-modal" class="text-gray-400 hover:text-gray-600">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="p-6">
-                <div id="corte-step-1" class="corte-step">
-                    <div class="mb-6">
-                        <h4 class="text-lg font-semibold text-gray-800 mb-3">Información del Corte</h4>
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                            <div class="flex items-start space-x-3">
-                                <i class="fas fa-info-circle text-blue-500 mt-1"></i>
-                                <div>
-                                    <p class="text-sm text-blue-800 font-medium">¿Qué hace el Corte de Mesa?</p>
-                                    <ul class="text-sm text-blue-700 mt-2 space-y-1">
-                                        <li>• Cierra el período contable actual</li>
-                                        <li>• Transfiere cuentas por cobrar pendientes</li>
-                                        <li>• Transfiere cuentas por pagar pendientes</li>
-                                        <li>• Transfiere vales de empleados pendientes</li>
-                                        <li>• Genera reporte de cierre automático</li>
-                                        <li>• Inicia nuevo período contable</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Período a Cerrar</label>
-                                <input type="month" id="corte-periodo" class="w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Corte</label>
-                                <input type="date" id="corte-fecha" class="w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Notas del Corte (Opcional)</label>
-                            <textarea id="corte-notas" rows="3" class="w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" placeholder="Observaciones sobre este corte de mesa..."></textarea>
-                        </div>
-                    </div>
-                    
-                    <div class="flex justify-end space-x-3">
-                        <button id="cancel-corte" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
-                            Cancelar
-                        </button>
-                        <button id="preview-corte" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                            <i class="fas fa-eye mr-2"></i>Vista Previa
-                        </button>
-                    </div>
-                </div>
-                
-                <div id="corte-step-2" class="corte-step hidden">
-                    <div class="mb-6">
-                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Vista Previa del Corte</h4>
-                        
-                        <div id="corte-preview" class="space-y-4">
-                            <!-- El contenido se generará dinámicamente -->
-                        </div>
-                    </div>
-                    
-                    <div class="flex justify-between">
-                        <button id="back-to-step1" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
-                            <i class="fas fa-arrow-left mr-2"></i>Volver
-                        </button>
-                        <button id="confirm-corte" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                            <i class="fas fa-check mr-2"></i>Confirmar Corte
-                        </button>
-                    </div>
-                </div>
-                
-                <div id="corte-step-3" class="corte-step hidden">
-                    <div class="text-center py-8">
-                        <div class="mb-6">
-                            <div class="bg-green-100 p-4 rounded-full w-20 h-20 mx-auto flex items-center justify-center">
-                                <i class="fas fa-spinner fa-spin text-green-600 text-2xl" id="processing-icon"></i>
-                                <i class="fas fa-check text-green-600 text-2xl hidden" id="success-icon"></i>
-                            </div>
-                        </div>
-                        
-                        <h4 class="text-lg font-semibold text-gray-800 mb-2" id="processing-title">Procesando Corte de Mesa...</h4>
-                        <p class="text-gray-600 mb-6" id="processing-subtitle">Por favor espere mientras se completa el proceso</p>
-                        
-                        <div class="bg-gray-200 rounded-full h-2 mb-4">
-                            <div id="progress-bar" class="bg-indigo-600 h-2 rounded-full progress-bar" style="width: 0%"></div>
-                        </div>
-                        
-                        <div id="processing-steps" class="text-left space-y-2 text-sm text-gray-600">
-                            <!-- Los pasos se mostrarán aquí -->
-                        </div>
-                        
-                        <div id="corte-complete" class="hidden">
-                            <button id="download-corte-report" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mr-3">
-                                <i class="fas fa-download mr-2"></i>Descargar Reporte
-                            </button>
-                            <button id="close-corte-success" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
-                                Cerrar
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -221,6 +103,9 @@
                                 <div>
                                      <h2 class="text-2xl font-semibold text-gray-700">Resumen del Periodo</h2>
                                      <p id="period-display" class="text-sm text-gray-500 mt-1">Calculando periodo...</p>
+                                     <div id="period-status" class="hidden mt-2 px-3 py-1 rounded-full text-sm font-medium">
+                                         <i class="fas fa-lock mr-1"></i>🔒 PERÍODO CERRADO - Solo consulta
+                                     </div>
                                 </div>
                                 <div class="flex items-center space-x-4 no-print">
                                     <input type="month" id="month-filter" class="p-2 border border-gray-300 rounded-md">
@@ -325,6 +210,141 @@
         </div>
     </div>
     
+    <!-- Modal de Corte de Mesa -->
+    <div id="corte-mesa-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-75 h-full w-full hidden z-50 items-center justify-center p-4">
+        <div class="relative mx-auto border w-full max-w-4xl shadow-2xl rounded-lg bg-white overflow-hidden">
+            <!-- Header del Modal -->
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-6 text-white">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-calendar-check text-2xl"></i>
+                        <h3 class="text-2xl font-bold">Corte de Mesa</h3>
+                    </div>
+                    <button id="close-corte-modal" class="text-white hover:text-gray-200 text-2xl">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <p class="mt-2 text-indigo-100">Cierre contable del período actual</p>
+            </div>
+
+            <!-- Contenido del Modal -->
+            <div class="p-8">
+                <!-- Paso 1: Configuración -->
+                <div id="corte-step-1" class="corte-step">
+                    <div class="text-center mb-8">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mb-4">
+                            <i class="fas fa-cog text-indigo-600 text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-gray-800">Configuración del Corte</h4>
+                        <p class="text-gray-600 mt-2">Define los parámetros para el cierre del período</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Período a Cerrar</label>
+                                <input type="month" id="corte-periodo" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Corte</label>
+                                <input type="date" id="corte-fecha" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Notas del Corte</label>
+                            <textarea id="corte-notas" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Observaciones sobre el cierre del período..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 flex justify-end">
+                        <button id="corte-next-step1" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
+                            Continuar <i class="fas fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Paso 2: Vista Previa -->
+                <div id="corte-step-2" class="corte-step hidden">
+                    <div class="text-center mb-8">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-4">
+                            <i class="fas fa-eye text-yellow-600 text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-gray-800">Vista Previa del Corte</h4>
+                        <p class="text-gray-600 mt-2">Revisa lo que se procesará antes de confirmar</p>
+                    </div>
+
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                        <div class="flex items-start">
+                            <i class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-3"></i>
+                            <div>
+                                <h5 class="font-semibold text-yellow-800">¡Atención!</h5>
+                                <p class="text-yellow-700 text-sm mt-1">Esta acción es irreversible. El período se cerrará permanentemente y no podrá modificarse.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="corte-preview-content" class="space-y-6">
+                        <!-- El contenido se generará dinámicamente -->
+                    </div>
+
+                    <div class="mt-8 flex justify-between">
+                        <button id="corte-back-step2" class="bg-gray-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-600 transition-colors">
+                            <i class="fas fa-arrow-left mr-2"></i> Volver
+                        </button>
+                        <button id="corte-confirm" class="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors">
+                            <i class="fas fa-check mr-2"></i> Confirmar Corte
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Paso 3: Procesando -->
+                <div id="corte-step-3" class="corte-step hidden">
+                    <div class="text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                            <i class="fas fa-cogs text-green-600 text-2xl animate-spin"></i>
+                        </div>
+                        <h4 class="text-xl font-semibold text-gray-800 mb-4">Procesando Corte de Mesa</h4>
+                        
+                        <div class="max-w-md mx-auto">
+                            <div class="bg-gray-200 rounded-full h-3 mb-4">
+                                <div id="corte-progress-bar" class="bg-gradient-to-r from-green-400 to-blue-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                            <p id="corte-progress-text" class="text-gray-600">Iniciando proceso...</p>
+                        </div>
+
+                        <div id="corte-steps-list" class="mt-8 text-left max-w-md mx-auto space-y-2">
+                            <!-- Los pasos se agregarán dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paso 4: Completado -->
+                <div id="corte-step-4" class="corte-step hidden">
+                    <div class="text-center">
+                        <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
+                            <i class="fas fa-check-circle text-green-600 text-3xl"></i>
+                        </div>
+                        <h4 class="text-2xl font-bold text-gray-800 mb-4">¡Corte Completado!</h4>
+                        <p class="text-gray-600 mb-6">El período ha sido cerrado exitosamente</p>
+
+                        <div id="corte-summary" class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+                            <!-- Resumen del corte -->
+                        </div>
+
+                        <div class="flex justify-center space-x-4">
+                            <button id="corte-download-report" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-download mr-2"></i> Descargar Reporte
+                            </button>
+                            <button id="corte-close-modal" class="bg-gray-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-600 transition-colors">
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <div id="abono-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center p-4"><div class="relative mx-auto p-8 border w-full max-w-md shadow-lg rounded-md bg-white"><h3 class="text-2xl font-semibold mb-6" id="abono-modal-title">Registrar Abono</h3><form id="form-abono"><input type="hidden" id="abono-deuda-id"><input type="hidden" id="abono-type"><div><label class="block text-sm font-medium">Monto a Abonar</label><input type="text" data-moneda inputmode="numeric" id="abono-monto" class="mt-1 block w-full" required></div><div><label class="block text-sm font-medium">Recibido en</label><select id="abono-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div></form><div class="flex justify-end items-center mt-6 space-x-4"><button id="cancel-abono-btn" class="px-4 py-2 bg-gray-200 rounded-md">Cancelar</button><button id="save-abono-btn" class="px-4 py-2 bg-green-600 text-white rounded-md">Registrar Abono</button></div></div></div>
     <div id="notification-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center"><div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white"><div class="mt-3 text-center"><div id="notification-icon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full"></div><h3 id="notification-title" class="text-lg leading-6 font-medium text-gray-900"></h3><div class="mt-2 px-7 py-3"><p id="notification-message" class="text-sm text-gray-500"></p></div><div class="items-center px-4 py-3"><button id="notification-close" class="px-4 py-2 bg-indigo-500 text-white text-base font-medium rounded-md w-full">Cerrar</button></div></div></div></div>
     <div id="confirm-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 items-center justify-center"><div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white"><div class="mt-3 text-center"><div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100"><i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i></div><h3 id="confirm-title" class="text-lg leading-6 font-medium text-gray-900 mt-4"></h3><div id="confirm-message-container" class="mt-2 px-7 py-3"><p id="confirm-message" class="text-sm text-gray-500"></p></div><div class="flex justify-center items-center px-4 py-3 space-x-4"><button id="cancel-confirm-btn" class="px-4 py-2 bg-gray-200 rounded-md w-full">Cancelar</button><button id="confirm-btn" class="px-4 py-2 bg-red-600 text-white rounded-md w-full">Confirmar</button></div></div></div></div>
@@ -363,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentUserProfile = null;
     let selectedBusinessId = null;
     let periods = [];
-    let corteData = null; // Para almacenar datos del corte
+    let currentPeriod = null;
 
     const dataTypes = ['ingresos', 'compras', 'gastos', 'retiros', 'cuentasPorCobrar', 'cuentasPorPagar', 'vales'];
 
@@ -467,7 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // =========================================================================
-    // MANEJO DE DATOS, UI Y FORMULARIOS
+    // MANEJO DE DATOS Y PERÍODOS
     // =========================================================================
     const detachAllListeners = () => {
         dataListeners.forEach(({ ref, listener }) => ref.off('value', listener));
@@ -477,13 +497,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const startDataListeners = () => {
         detachAllListeners();
         allData = {};
+        
+        // Listener para períodos
         const periodsRef = database.ref(`businesses/${selectedBusinessId}/periods`);
         const periodsListener = periodsRef.on('value', async (snapshot) => {
             if (!snapshot.exists()) {
-                const initialPeriod = { startDate: new Date(2000, 0, 1).toISOString(), endDate: null, monthKey: new Date().toISOString().slice(0, 7) };
+                const initialPeriod = { 
+                    startDate: new Date(2000, 0, 1).toISOString(), 
+                    endDate: null, 
+                    monthKey: new Date().toISOString().slice(0, 7),
+                    isClosed: false
+                };
                 await periodsRef.push(initialPeriod);
             } else {
                 periods = firebaseObjectToArray(snapshot);
+                updateCurrentPeriod();
             }
         });
         dataListeners.push({ ref: periodsRef, listener: periodsListener });
@@ -496,6 +524,44 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             dataListeners.push({ ref, listener });
         });
+    };
+
+    const updateCurrentPeriod = () => {
+        const filterValue = document.getElementById('month-filter').value;
+        if (!filterValue) return;
+
+        currentPeriod = periods.find(p => p.monthKey === filterValue);
+        updatePeriodStatus();
+    };
+
+    const updatePeriodStatus = () => {
+        const statusEl = document.getElementById('period-status');
+        const closePeriodBtn = document.getElementById('close-period-btn');
+        
+        if (currentPeriod && currentPeriod.isClosed) {
+            statusEl.classList.remove('hidden');
+            statusEl.className = 'mt-2 px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 locked-indicator';
+            closePeriodBtn.disabled = true;
+            closePeriodBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            closePeriodBtn.innerHTML = '<i class="fas fa-lock mr-2"></i>Período Cerrado';
+        } else {
+            statusEl.classList.add('hidden');
+            closePeriodBtn.disabled = false;
+            closePeriodBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            closePeriodBtn.innerHTML = '<i class="fas fa-calendar-check mr-2"></i>Realizar Corte de Mesa';
+        }
+    };
+
+    const isPeriodClosed = () => {
+        return currentPeriod && currentPeriod.isClosed;
+    };
+
+    const validatePeriodAccess = () => {
+        if (isPeriodClosed()) {
+            showNotification('Período Cerrado', 'No se pueden realizar modificaciones en un período cerrado.', 'error');
+            return false;
+        }
+        return true;
     };
     
     const firebaseObjectToArray = (snapshot) => {
@@ -536,6 +602,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const endDate = new Date(year, month, 1);
         endDate.setHours(0, 0, 0, 0);
         document.getElementById('period-display').textContent = `Mostrando datos para: ${startDate.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}`;
+        
+        updateCurrentPeriod();
+        
         const periodData = {};
         ['ingresos', 'compras', 'gastos', 'retiros'].forEach(key => {
             periodData[key] = (allData[key] || []).filter(d => d.fecha && d.fecha >= startDate && d.fecha < endDate);
@@ -596,6 +665,335 @@ document.addEventListener('DOMContentLoaded', () => {
         gastosChart = new Chart(ctx, { type: 'pie', data: { labels: Object.keys(dataPorCategoria), datasets: [{ data: Object.values(dataPorCategoria), backgroundColor: ['#ef4444', '#3b82f6', '#10b981', '#f97316', '#8b5cf6', '#f59e0b', '#ec4899', '#6366f1', '#84cc16'], hoverOffset: 4 }] }, options: { responsive: true, plugins: { legend: { position: 'top' }}} });
     };
 
+    // =========================================================================
+    // FUNCIONES DE CORTE DE MESA
+    // =========================================================================
+    const initializeCorteModal = () => {
+        const today = new Date();
+        const currentMonth = today.toISOString().slice(0, 7);
+        
+        document.getElementById('corte-periodo').value = currentMonth;
+        document.getElementById('corte-fecha').value = today.toISOString().slice(0, 10);
+        
+        showCorteStep(1);
+    };
+
+    const showCorteStep = (step) => {
+        document.querySelectorAll('.corte-step').forEach(el => el.classList.add('hidden'));
+        document.getElementById(`corte-step-${step}`).classList.remove('hidden');
+    };
+
+    const generateCortePreview = () => {
+        const periodo = document.getElementById('corte-periodo').value;
+        const [year, month] = periodo.split('-').map(Number);
+        const startDate = new Date(year, month - 1, 1);
+        const endDate = new Date(year, month, 1);
+
+        // Filtrar datos del período
+        const periodData = {};
+        dataTypes.forEach(type => {
+            periodData[type] = (allData[type] || []).filter(d => 
+                d.fecha && d.fecha >= startDate && d.fecha < endDate
+            );
+        });
+
+        // Calcular totales
+        const totales = {
+            ingresos: periodData.ingresos.reduce((sum, item) => sum + item.monto, 0),
+            compras: periodData.compras.reduce((sum, item) => sum + item.monto, 0),
+            gastos: periodData.gastos.reduce((sum, item) => sum + item.monto, 0),
+            retiros: periodData.retiros.reduce((sum, item) => sum + item.monto, 0)
+        };
+
+        // Cuentas pendientes a transferir
+        const cuentasPendientes = {
+            porCobrar: (allData.cuentasPorCobrar || []).filter(d => {
+                const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
+                return d.monto > totalAbonado;
+            }),
+            porPagar: (allData.cuentasPorPagar || []).filter(d => d.estado !== 'Pagada'),
+            vales: (allData.vales || []).filter(d => {
+                const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
+                return d.monto > totalAbonado;
+            })
+        };
+
+        const previewContent = document.getElementById('corte-preview-content');
+        previewContent.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <h5 class="font-semibold text-gray-800 border-b pb-2">Resumen del Período</h5>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span>Total Ingresos:</span>
+                            <span class="font-medium text-green-600">${formatCurrency(totales.ingresos)}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Total Compras:</span>
+                            <span class="font-medium text-purple-600">${formatCurrency(totales.compras)}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Total Gastos:</span>
+                            <span class="font-medium text-red-600">${formatCurrency(totales.gastos)}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Total Retiros:</span>
+                            <span class="font-medium text-orange-600">${formatCurrency(totales.retiros)}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <h5 class="font-semibold text-gray-800 border-b pb-2">Cuentas a Transferir</h5>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span>Cuentas por Cobrar:</span>
+                            <span class="font-medium">${cuentasPendientes.porCobrar.length} registros</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Cuentas por Pagar:</span>
+                            <span class="font-medium">${cuentasPendientes.porPagar.length} registros</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Vales Pendientes:</span>
+                            <span class="font-medium">${cuentasPendientes.vales.length} registros</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h5 class="font-semibold text-blue-800 mb-2">¿Qué sucederá después del corte?</h5>
+                <ul class="text-sm text-blue-700 space-y-1">
+                    <li>• El período ${periodo} se cerrará permanentemente</li>
+                    <li>• Se creará un nuevo período para el siguiente mes</li>
+                    <li>• Las cuentas pendientes se transferirán al nuevo período</li>
+                    <li>• El efectivo y banco se mantendrán como reporte histórico</li>
+                    <li>• El nuevo período empezará con $0 en efectivo y banco</li>
+                </ul>
+            </div>
+        `;
+    };
+
+    const executeCorte = async () => {
+        const periodo = document.getElementById('corte-periodo').value;
+        const fechaCorte = document.getElementById('corte-fecha').value;
+        const notas = document.getElementById('corte-notas').value;
+
+        showCorteStep(3);
+
+        const steps = [
+            'Validando período...',
+            'Cerrando período actual...',
+            'Transfiriendo cuentas por cobrar...',
+            'Transfiriendo cuentas por pagar...',
+            'Transfiriendo vales pendientes...',
+            'Creando nuevo período...',
+            'Generando reporte...',
+            'Finalizando proceso...'
+        ];
+
+        const stepsList = document.getElementById('corte-steps-list');
+        const progressBar = document.getElementById('corte-progress-bar');
+        const progressText = document.getElementById('corte-progress-text');
+
+        try {
+            for (let i = 0; i < steps.length; i++) {
+                const progress = ((i + 1) / steps.length) * 100;
+                progressBar.style.width = `${progress}%`;
+                progressText.textContent = steps[i];
+
+                const stepEl = document.createElement('div');
+                stepEl.className = 'flex items-center text-sm slide-in';
+                stepEl.innerHTML = `
+                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                    <span>${steps[i]}</span>
+                `;
+                stepsList.appendChild(stepEl);
+
+                // Simular procesamiento
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                // Ejecutar la lógica real según el paso
+                switch(i) {
+                    case 1: // Cerrar período actual
+                        await closePeriod(periodo, fechaCorte, notas);
+                        break;
+                    case 2: // Transferir cuentas por cobrar
+                        await transferPendingAccounts('cuentasPorCobrar');
+                        break;
+                    case 3: // Transferir cuentas por pagar
+                        await transferPendingAccounts('cuentasPorPagar');
+                        break;
+                    case 4: // Transferir vales
+                        await transferPendingAccounts('vales');
+                        break;
+                    case 5: // Crear nuevo período
+                        await createNewPeriod(periodo);
+                        break;
+                }
+            }
+
+            showCorteStep(4);
+            generateCorteSummary();
+
+        } catch (error) {
+            console.error('Error en el corte:', error);
+            showNotification('Error', 'Ocurrió un error durante el corte de mesa.', 'error');
+        }
+    };
+
+    const closePeriod = async (periodo, fechaCorte, notas) => {
+        const periodToClose = periods.find(p => p.monthKey === periodo);
+        if (periodToClose) {
+            await database.ref(`businesses/${selectedBusinessId}/periods/${periodToClose.id}`).update({
+                isClosed: true,
+                closedDate: fechaCorte,
+                closedNotes: notas
+            });
+        }
+    };
+
+    const transferPendingAccounts = async (type) => {
+        const accounts = allData[type] || [];
+        const nextMonth = getNextMonth(document.getElementById('corte-periodo').value);
+
+        for (const account of accounts) {
+            let shouldTransfer = false;
+            
+            if (type === 'cuentasPorPagar') {
+                shouldTransfer = account.estado !== 'Pagada';
+            } else {
+                const totalAbonado = (account.abonos || []).reduce((sum, a) => sum + a.monto, 0);
+                shouldTransfer = account.monto > totalAbonado;
+            }
+
+            if (shouldTransfer) {
+                const newAccount = {
+                    ...account,
+                    fecha: new Date().toISOString(),
+                    transferredFrom: account.fecha,
+                    originalPeriod: document.getElementById('corte-periodo').value
+                };
+                delete newAccount.id;
+
+                await database.ref(`businesses/${selectedBusinessId}/${type}`).push(newAccount);
+            }
+        }
+    };
+
+    const createNewPeriod = async (currentPeriod) => {
+        const nextMonth = getNextMonth(currentPeriod);
+        const [year, month] = nextMonth.split('-').map(Number);
+        
+        const newPeriod = {
+            startDate: new Date(year, month - 1, 1).toISOString(),
+            endDate: null,
+            monthKey: nextMonth,
+            isClosed: false,
+            createdFrom: currentPeriod
+        };
+
+        await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
+        
+        // Cambiar automáticamente al nuevo período
+        document.getElementById('month-filter').value = nextMonth;
+        updateCurrentPeriod();
+        refreshUI();
+    };
+
+    const getNextMonth = (currentMonth) => {
+        const [year, month] = currentMonth.split('-').map(Number);
+        const nextDate = new Date(year, month, 1);
+        return nextDate.toISOString().slice(0, 7);
+    };
+
+    const generateCorteSummary = () => {
+        const periodo = document.getElementById('corte-periodo').value;
+        const summaryEl = document.getElementById('corte-summary');
+        
+        summaryEl.innerHTML = `
+            <div class="text-center">
+                <h5 class="font-semibold text-green-800 mb-4">Corte de Mesa Completado</h5>
+                <div class="space-y-2 text-sm">
+                    <p><strong>Período cerrado:</strong> ${periodo}</p>
+                    <p><strong>Fecha de corte:</strong> ${document.getElementById('corte-fecha').value}</p>
+                    <p><strong>Nuevo período activo:</strong> ${getNextMonth(periodo)}</p>
+                </div>
+            </div>
+        `;
+    };
+
+    const generateCorteReport = () => {
+        const doc = new jsPDF();
+        const businessName = document.getElementById('app-title').textContent.replace('📊 Gestión: ', '');
+        const periodo = document.getElementById('corte-periodo').value;
+        
+        // Header
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('REPORTE DE CORTE DE MESA', 14, 22);
+        
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Negocio: ${businessName}`, 14, 32);
+        doc.text(`Período cerrado: ${periodo}`, 14, 38);
+        doc.text(`Fecha de corte: ${document.getElementById('corte-fecha').value}`, 14, 44);
+        doc.text(`Generado: ${new Date().toLocaleString('es-CO')}`, 14, 50);
+
+        // Contenido del reporte
+        let yPos = 60;
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('RESUMEN DEL PERÍODO CERRADO', 14, yPos);
+        
+        // Aquí puedes agregar más detalles del reporte
+        
+        doc.save(`Corte_Mesa_${periodo}.pdf`);
+    };
+
+    // =========================================================================
+    // EVENT LISTENERS PARA CORTE DE MESA
+    // =========================================================================
+    document.getElementById('close-period-btn').addEventListener('click', () => {
+        if (isPeriodClosed()) {
+            showNotification('Período Cerrado', 'Este período ya ha sido cerrado.', 'error');
+            return;
+        }
+        
+        initializeCorteModal();
+        document.getElementById('corte-mesa-modal').style.display = 'flex';
+    });
+
+    document.getElementById('close-corte-modal').addEventListener('click', () => {
+        document.getElementById('corte-mesa-modal').style.display = 'none';
+    });
+
+    document.getElementById('corte-next-step1').addEventListener('click', () => {
+        generateCortePreview();
+        showCorteStep(2);
+    });
+
+    document.getElementById('corte-back-step2').addEventListener('click', () => {
+        showCorteStep(1);
+    });
+
+    document.getElementById('corte-confirm').addEventListener('click', () => {
+        executeCorte();
+    });
+
+    document.getElementById('corte-download-report').addEventListener('click', () => {
+        generateCorteReport();
+    });
+
+    document.getElementById('corte-close-modal').addEventListener('click', () => {
+        document.getElementById('corte-mesa-modal').style.display = 'none';
+        location.reload(); // Recargar para mostrar los cambios
+    });
+
+    // =========================================================================
+    // RESTO DE FUNCIONES (UI, FORMULARIOS, ETC.)
+    // =========================================================================
     const getNumericValue = (formattedValue) => {
         if (!formattedValue || typeof formattedValue !== 'string') return 0;
         return parseFloat(formattedValue.replace(/\./g, '').replace(/,/g, '.')) || 0;
@@ -627,378 +1025,145 @@ document.addEventListener('DOMContentLoaded', () => {
     const initializeDates = () => { setFormDatesToToday(); const now = new Date(); document.getElementById('month-filter').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`; };
     const getRefFor = (type) => database.ref(`businesses/${selectedBusinessId}/${type}`);
 
-    // =========================================================================
-    // FUNCIONES DE CORTE DE MESA
-    // =========================================================================
-    
-    const initializeCorteModal = () => {
-        const now = new Date();
-        document.getElementById('corte-periodo').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-        document.getElementById('corte-fecha').value = formatDateForInput(now);
-        document.getElementById('corte-notas').value = '';
-    };
-
-    const showCorteModal = () => {
-        initializeCorteModal();
-        showCorteStep(1);
-        document.getElementById('corte-mesa-modal').classList.remove('hidden');
-        document.getElementById('corte-mesa-modal').classList.add('flex');
-    };
-
-    const hideCorteModal = () => {
-        document.getElementById('corte-mesa-modal').classList.add('hidden');
-        document.getElementById('corte-mesa-modal').classList.remove('flex');
-        corteData = null;
-    };
-
-    const showCorteStep = (step) => {
-        document.querySelectorAll('.corte-step').forEach(el => el.classList.add('hidden'));
-        document.getElementById(`corte-step-${step}`).classList.remove('hidden');
-    };
-
-    const generateCortePreview = () => {
-        const periodo = document.getElementById('corte-periodo').value;
-        const [year, month] = periodo.split('-').map(Number);
-        const startDate = new Date(year, month - 1, 1);
-        const endDate = new Date(year, month, 1);
-        
-        // Filtrar datos del período
-        const periodData = {};
-        ['ingresos', 'compras', 'gastos', 'retiros'].forEach(key => {
-            periodData[key] = (allData[key] || []).filter(d => 
-                d.fecha && d.fecha >= startDate && d.fecha < endDate
-            );
-        });
-
-        // Obtener cuentas pendientes
-        const cuentasPorCobrarPendientes = (allData.cuentasPorCobrar || []).filter(d => {
-            const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
-            return (d.monto - totalAbonado) > 0;
-        });
-
-        const cuentasPorPagarPendientes = (allData.cuentasPorPagar || []).filter(d => 
-            d.estado !== 'Pagada'
-        );
-
-        const valesPendientes = (allData.vales || []).filter(d => {
-            const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
-            return (d.monto - totalAbonado) > 0;
-        });
-
-        // Calcular totales
-        const totales = {
-            ingresos: periodData.ingresos.reduce((sum, item) => sum + item.monto, 0),
-            compras: periodData.compras.reduce((sum, item) => sum + item.monto, 0),
-            gastos: periodData.gastos.reduce((sum, item) => sum + item.monto, 0),
-            retiros: periodData.retiros.reduce((sum, item) => sum + item.monto, 0),
-            cuentasPorCobrar: cuentasPorCobrarPendientes.reduce((sum, d) => {
-                const totalAbonado = (d.abonos || []).reduce((s, a) => s + a.monto, 0);
-                return sum + (d.monto - totalAbonado);
-            }, 0),
-            cuentasPorPagar: cuentasPorPagarPendientes.reduce((sum, d) => sum + d.monto, 0),
-            vales: valesPendientes.reduce((sum, d) => {
-                const totalAbonado = (d.abonos || []).reduce((s, a) => s + a.monto, 0);
-                return sum + (d.monto - totalAbonado);
-            }, 0)
-        };
-
-        // Guardar datos para el corte
-        corteData = {
-            periodo,
-            fecha: document.getElementById('corte-fecha').value,
-            notas: document.getElementById('corte-notas').value,
-            periodData,
-            cuentasPendientes: {
-                cuentasPorCobrar: cuentasPorCobrarPendientes,
-                cuentasPorPagar: cuentasPorPagarPendientes,
-                vales: valesPendientes
-            },
-            totales
-        };
-
-        // Generar HTML de vista previa
-        const previewHTML = `
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <h5 class="font-semibold text-blue-800 mb-2">Período: ${new Date(year, month - 1).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}</h5>
-                <p class="text-sm text-blue-700">Fecha de corte: ${new Date(corteData.fecha).toLocaleDateString('es-CO')}</p>
-                ${corteData.notas ? `<p class="text-sm text-blue-700 mt-1">Notas: ${corteData.notas}</p>` : ''}
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <h6 class="font-semibold text-green-800 mb-2">Movimientos del Período</h6>
-                    <div class="space-y-1 text-sm">
-                        <div class="flex justify-between">
-                            <span>Ingresos:</span>
-                            <span class="font-medium">${formatCurrency(totales.ingresos)}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Compras:</span>
-                            <span class="font-medium">${formatCurrency(totales.compras)}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Gastos Op.:</span>
-                            <span class="font-medium">${formatCurrency(totales.gastos)}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Retiros:</span>
-                            <span class="font-medium">${formatCurrency(totales.retiros)}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <h6 class="font-semibold text-yellow-800 mb-2">Cuentas a Transferir</h6>
-                    <div class="space-y-1 text-sm">
-                        <div class="flex justify-between">
-                            <span>Por Cobrar:</span>
-                            <span class="font-medium">${formatCurrency(totales.cuentasPorCobrar)} (${cuentasPorCobrarPendientes.length})</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Por Pagar:</span>
-                            <span class="font-medium">${formatCurrency(totales.cuentasPorPagar)} (${cuentasPorPagarPendientes.length})</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Vales:</span>
-                            <span class="font-medium">${formatCurrency(totales.vales)} (${valesPendientes.length})</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                <h6 class="font-semibold text-red-800 mb-2">⚠️ Importante</h6>
-                <ul class="text-sm text-red-700 space-y-1">
-                    <li>• Este proceso cerrará definitivamente el período ${new Date(year, month - 1).toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}</li>
-                    <li>• Las cuentas pendientes se transferirán al nuevo período</li>
-                    <li>• Se generará un reporte automático del cierre</li>
-                    <li>• Esta acción no se puede deshacer</li>
-                </ul>
-            </div>
-        `;
-
-        document.getElementById('corte-preview').innerHTML = previewHTML;
-    };
-
-    const executeCorte = async () => {
-        if (!corteData) return;
-
-        showCorteStep(3);
-        
-        const steps = [
-            'Iniciando proceso de corte...',
-            'Generando reporte del período...',
-            'Archivando datos del período...',
-            'Transfiriendo cuentas por cobrar...',
-            'Transfiriendo cuentas por pagar...',
-            'Transfiriendo vales pendientes...',
-            'Creando nuevo período...',
-            'Finalizando proceso...'
-        ];
-
-        const progressBar = document.getElementById('progress-bar');
-        const stepsContainer = document.getElementById('processing-steps');
-        
-        try {
-            for (let i = 0; i < steps.length; i++) {
-                // Actualizar progreso
-                const progress = ((i + 1) / steps.length) * 100;
-                progressBar.style.width = `${progress}%`;
-                
-                // Mostrar paso actual
-                const stepEl = document.createElement('div');
-                stepEl.className = 'flex items-center space-x-2';
-                stepEl.innerHTML = `
-                    <i class="fas fa-check-circle text-green-500"></i>
-                    <span>${steps[i]}</span>
-                `;
-                stepsContainer.appendChild(stepEl);
-                
-                // Simular tiempo de procesamiento
-                await new Promise(resolve => setTimeout(resolve, 800));
-                
-                // Ejecutar acciones específicas
-                switch(i) {
-                    case 1: // Generar reporte
-                        await generateCorteReport();
-                        break;
-                    case 2: // Archivar período
-                        await archivePeriod();
-                        break;
-                    case 3: // Transferir cuentas por cobrar
-                        await transferPendingAccounts('cuentasPorCobrar');
-                        break;
-                    case 4: // Transferir cuentas por pagar
-                        await transferPendingAccounts('cuentasPorPagar');
-                        break;
-                    case 5: // Transferir vales
-                        await transferPendingAccounts('vales');
-                        break;
-                    case 6: // Crear nuevo período
-                        await createNewPeriod();
-                        break;
-                }
-            }
-            
-            // Proceso completado
-            document.getElementById('processing-icon').classList.add('hidden');
-            document.getElementById('success-icon').classList.remove('hidden');
-            document.getElementById('processing-title').textContent = '¡Corte de Mesa Completado!';
-            document.getElementById('processing-subtitle').textContent = 'El proceso se ha ejecutado exitosamente';
-            document.getElementById('corte-complete').classList.remove('hidden');
-            
-            showNotification('Éxito', 'El corte de mesa se ha completado correctamente.');
-            
-        } catch (error) {
-            console.error('Error en el corte de mesa:', error);
-            showNotification('Error', 'Ocurrió un error durante el corte de mesa: ' + error.message, 'error');
-        }
-    };
-
-    const generateCorteReport = async () => {
-        // Esta función generará el PDF del reporte de corte
-        return new Promise(resolve => {
-            setTimeout(() => {
-                // Aquí se generaría el PDF con los datos del corte
-                resolve();
-            }, 500);
-        });
-    };
-
-    const archivePeriod = async () => {
-        // Archivar los datos del período en Firebase
-        const archiveRef = database.ref(`businesses/${selectedBusinessId}/archived_periods`);
-        const archiveData = {
-            ...corteData,
-            archivedAt: new Date().toISOString(),
-            archivedBy: currentUserProfile.email || 'Sistema'
-        };
-        
-        await archiveRef.push(archiveData);
-    };
-
-    const transferPendingAccounts = async (type) => {
-        // Esta función transferiría las cuentas pendientes al nuevo período
-        // En una implementación real, aquí se actualizarían los registros en Firebase
-        return new Promise(resolve => {
-            setTimeout(() => {
-                resolve();
-            }, 300);
-        });
-    };
-
-    const createNewPeriod = async () => {
-        // Crear un nuevo período en Firebase
-        const periodsRef = database.ref(`businesses/${selectedBusinessId}/periods`);
-        const newPeriod = {
-            startDate: new Date().toISOString(),
-            endDate: null,
-            monthKey: new Date().toISOString().slice(0, 7),
-            createdBy: currentUserProfile.email || 'Sistema'
-        };
-        
-        await periodsRef.push(newPeriod);
-    };
-
-    const downloadCorteReport = () => {
-        if (!corteData) return;
-        
-        const doc = new jsPDF();
-        const businessName = document.getElementById('app-title').textContent.replace('📊 Gestión: ', '');
-        
-        // Encabezado
-        doc.setFontSize(18);
-        doc.setFont('helvetica', 'bold');
-        doc.text('REPORTE DE CORTE DE MESA', 14, 22);
-        
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Negocio: ${businessName}`, 14, 32);
-        doc.text(`Período: ${new Date(corteData.periodo + '-01').toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}`, 14, 40);
-        doc.text(`Fecha de Corte: ${new Date(corteData.fecha).toLocaleDateString('es-CO')}`, 14, 48);
-        doc.text(`Generado: ${new Date().toLocaleString('es-CO')}`, 14, 56);
-        
-        if (corteData.notas) {
-            doc.text(`Notas: ${corteData.notas}`, 14, 64);
-        }
-        
-        let startY = 80;
-        
-        // Resumen de movimientos
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('RESUMEN DE MOVIMIENTOS DEL PERÍODO', 14, startY);
-        startY += 10;
-        
-        const movimientosData = [
-            ['Concepto', 'Cantidad', 'Monto Total'],
-            ['Ingresos', corteData.periodData.ingresos.length.toString(), formatCurrency(corteData.totales.ingresos)],
-            ['Compras', corteData.periodData.compras.length.toString(), formatCurrency(corteData.totales.compras)],
-            ['Gastos Operacionales', corteData.periodData.gastos.length.toString(), formatCurrency(corteData.totales.gastos)],
-            ['Retiros del Jefe', corteData.periodData.retiros.length.toString(), formatCurrency(corteData.totales.retiros)]
-        ];
-        
-        doc.autoTable({
-            head: [movimientosData[0]],
-            body: movimientosData.slice(1),
-            startY: startY,
-            theme: 'grid'
-        });
-        
-        startY = doc.lastAutoTable.finalY + 15;
-        
-        // Cuentas transferidas
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('CUENTAS TRANSFERIDAS AL NUEVO PERÍODO', 14, startY);
-        startY += 10;
-        
-        const cuentasData = [
-            ['Tipo de Cuenta', 'Cantidad', 'Monto Total'],
-            ['Cuentas por Cobrar', corteData.cuentasPendientes.cuentasPorCobrar.length.toString(), formatCurrency(corteData.totales.cuentasPorCobrar)],
-            ['Cuentas por Pagar', corteData.cuentasPendientes.cuentasPorPagar.length.toString(), formatCurrency(corteData.totales.cuentasPorPagar)],
-            ['Vales de Personal', corteData.cuentasPendientes.vales.length.toString(), formatCurrency(corteData.totales.vales)]
-        ];
-        
-        doc.autoTable({
-            head: [cuentasData[0]],
-            body: cuentasData.slice(1),
-            startY: startY,
-            theme: 'grid'
-        });
-        
-        doc.save(`Corte_Mesa_${corteData.periodo}.pdf`);
-    };
-
-    // Event Listeners para el modal de corte
-    document.getElementById('close-period-btn').addEventListener('click', showCorteModal);
-    document.getElementById('close-corte-modal').addEventListener('click', hideCorteModal);
-    document.getElementById('cancel-corte').addEventListener('click', hideCorteModal);
-    document.getElementById('preview-corte').addEventListener('click', () => {
-        generateCortePreview();
-        showCorteStep(2);
+    // Event listeners para formularios con validación de período cerrado
+    document.getElementById('form-ingresos').addEventListener('submit', (e) => { 
+        e.preventDefault(); 
+        if (!validatePeriodAccess()) return;
+        const ef = getNumericValue(document.getElementById('ingreso-efectivo').value); 
+        const ta = getNumericValue(document.getElementById('ingreso-tarjeta').value); 
+        const newData = { fecha: getTimestampFromDateInput('ingreso-fecha'), monto: ef + ta, monto_efectivo: ef, monto_tarjeta: ta, notas: document.getElementById('ingreso-notas').value }; 
+        getRefFor('ingresos').push(newData); 
+        showNotification('Éxito', 'Ingreso registrado.'); 
+        e.target.reset(); 
+        addCurrencyFormatting(e.target); 
+        changeTab('resumen'); 
     });
-    document.getElementById('back-to-step1').addEventListener('click', () => showCorteStep(1));
-    document.getElementById('confirm-corte').addEventListener('click', executeCorte);
-    document.getElementById('download-corte-report').addEventListener('click', downloadCorteReport);
-    document.getElementById('close-corte-success').addEventListener('click', hideCorteModal);
 
-    // =========================================================================
-    // FORMULARIOS Y EVENTOS EXISTENTES
-    // =========================================================================
-    
-    document.getElementById('form-ingresos').addEventListener('submit', (e) => { e.preventDefault(); const ef = getNumericValue(document.getElementById('ingreso-efectivo').value); const ta = getNumericValue(document.getElementById('ingreso-tarjeta').value); const newData = { fecha: getTimestampFromDateInput('ingreso-fecha'), monto: ef + ta, monto_efectivo: ef, monto_tarjeta: ta, notas: document.getElementById('ingreso-notas').value }; getRefFor('ingresos').push(newData); showNotification('Éxito', 'Ingreso registrado.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); });
-    document.getElementById('form-compras').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: getTimestampFromDateInput('compra-fecha'), proveedor: document.getElementById('compra-proveedor').value, descripcion: document.getElementById('compra-descripcion').value, monto: getNumericValue(document.getElementById('compra-monto').value), metodo: document.getElementById('compra-metodo').value }; getRefFor('compras').push(newData); showNotification('Éxito', 'Compra registrada.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); });
-    document.getElementById('form-gastos').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: getTimestampFromDateInput('gasto-fecha'), descripcion: document.getElementById('gasto-descripcion').value, categoria: document.getElementById('gasto-categoria').value, monto: getNumericValue(document.getElementById('gasto-monto').value) }; getRefFor('gastos').push(newData); showNotification('Éxito', 'Gasto registrado.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); });
-    document.getElementById('form-retiros').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: getTimestampFromDateInput('retiro-fecha'), metodo: document.getElementById('retiro-metodo').value, descripcion: document.getElementById('retiro-descripcion').value, monto: getNumericValue(document.getElementById('retiro-monto').value) }; getRefFor('retiros').push(newData); showNotification('Éxito', 'Retiro registrado.'); e.target.reset(); addCurrencyFormatting(e.target); changeTab('resumen'); });
-    document.getElementById('form-cuentas-cobrar').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: new Date().toISOString(), cliente: document.getElementById('cpc-cliente').value, descripcion: document.getElementById('cpc-descripcion').value, monto: getNumericValue(document.getElementById('cpc-monto').value), abonos: {} }; getRefFor('cuentasPorCobrar').push(newData); showNotification('Éxito', 'Deuda por cobrar registrada.'); e.target.reset(); addCurrencyFormatting(e.target); });
-    document.getElementById('form-cuentas-pagar').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: new Date().toISOString(), acreedor: document.getElementById('cpp-acreedor').value, descripcion: document.getElementById('cpp-descripcion').value, monto: getNumericValue(document.getElementById('cpp-monto').value), estado: 'Pendiente' }; getRefFor('cuentasPorPagar').push(newData); showNotification('Éxito', 'Cuenta por pagar registrada.'); e.target.reset(); addCurrencyFormatting(e.target); });
-    document.getElementById('form-vales').addEventListener('submit', (e) => { e.preventDefault(); const newData = { fecha: new Date().toISOString(), persona: document.getElementById('vale-persona').value, descripcion: document.getElementById('vale-descripcion').value, monto: getNumericValue(document.getElementById('vale-monto').value), abonos: {} }; getRefFor('vales').push(newData); showNotification('Éxito', 'Vale registrado correctamente.'); e.target.reset(); addCurrencyFormatting(e.target); });
-    const handleDelete = (type, id) => { const item = (allData[type] || []).find(i => i.id === id); if (!item) return; if ((type === 'cuentasPorCobrar' || type === 'vales') && item.abonos && Object.values(item.abonos).length > 0) { showNotification('Acción no permitida', 'No puede eliminar un registro que ya tiene abonos. Esto protege la integridad de sus registros de ingresos.', 'error'); return; } showConfirm('Confirmar Eliminación', '¿Estás seguro? Esta acción no se puede deshacer.', () => { getRefFor(type).child(id).remove().then(() => showNotification('Éxito', 'Registro eliminado.')).catch((error) => showNotification('Error', 'No se pudo eliminar: ' + error, 'error')); }); };
-    const handleAbonar = (deudaId, type) => { document.getElementById('abono-deuda-id').value = deudaId; document.getElementById('abono-type').value = type; document.getElementById('abono-modal-title').textContent = type === 'vales' ? 'Registrar Abono a Vale' : 'Registrar Abono'; document.getElementById('abono-modal').style.display = 'flex'; addCurrencyFormatting(document.getElementById('abono-modal')); };
+    document.getElementById('form-compras').addEventListener('submit', (e) => { 
+        e.preventDefault(); 
+        if (!validatePeriodAccess()) return;
+        const newData = { fecha: getTimestampFromDateInput('compra-fecha'), proveedor: document.getElementById('compra-proveedor').value, descripcion: document.getElementById('compra-descripcion').value, monto: getNumericValue(document.getElementById('compra-monto').value), metodo: document.getElementById('compra-metodo').value }; 
+        getRefFor('compras').push(newData); 
+        showNotification('Éxito', 'Compra registrada.'); 
+        e.target.reset(); 
+        addCurrencyFormatting(e.target); 
+        changeTab('resumen'); 
+    });
+
+    document.getElementById('form-gastos').addEventListener('submit', (e) => { 
+        e.preventDefault(); 
+        if (!validatePeriodAccess()) return;
+        const newData = { fecha: getTimestampFromDateInput('gasto-fecha'), descripcion: document.getElementById('gasto-descripcion').value, categoria: document.getElementById('gasto-categoria').value, monto: getNumericValue(document.getElementById('gasto-monto').value) }; 
+        getRefFor('gastos').push(newData); 
+        showNotification('Éxito', 'Gasto registrado.'); 
+        e.target.reset(); 
+        addCurrencyFormatting(e.target); 
+        changeTab('resumen'); 
+    });
+
+    document.getElementById('form-retiros').addEventListener('submit', (e) => { 
+        e.preventDefault(); 
+        if (!validatePeriodAccess()) return;
+        const newData = { fecha: getTimestampFromDateInput('retiro-fecha'), metodo: document.getElementById('retiro-metodo').value, descripcion: document.getElementById('retiro-descripcion').value, monto: getNumericValue(document.getElementById('retiro-monto').value) }; 
+        getRefFor('retiros').push(newData); 
+        showNotification('Éxito', 'Retiro registrado.'); 
+        e.target.reset(); 
+        addCurrencyFormatting(e.target); 
+        changeTab('resumen'); 
+    });
+
+    document.getElementById('form-cuentas-cobrar').addEventListener('submit', (e) => { 
+        e.preventDefault(); 
+        if (!validatePeriodAccess()) return;
+        const newData = { fecha: new Date().toISOString(), cliente: document.getElementById('cpc-cliente').value, descripcion: document.getElementById('cpc-descripcion').value, monto: getNumericValue(document.getElementById('cpc-monto').value), abonos: {} }; 
+        getRefFor('cuentasPorCobrar').push(newData); 
+        showNotification('Éxito', 'Deuda por cobrar registrada.'); 
+        e.target.reset(); 
+        addCurrencyFormatting(e.target); 
+    });
+
+    document.getElementById('form-cuentas-pagar').addEventListener('submit', (e) => { 
+        e.preventDefault(); 
+        if (!validatePeriodAccess()) return;
+        const newData = { fecha: new Date().toISOString(), acreedor: document.getElementById('cpp-acreedor').value, descripcion: document.getElementById('cpp-descripcion').value, monto: getNumericValue(document.getElementById('cpp-monto').value), estado: 'Pendiente' }; 
+        getRefFor('cuentasPorPagar').push(newData); 
+        showNotification('Éxito', 'Cuenta por pagar registrada.'); 
+        e.target.reset(); 
+        addCurrencyFormatting(e.target); 
+    });
+
+    document.getElementById('form-vales').addEventListener('submit', (e) => { 
+        e.preventDefault(); 
+        if (!validatePeriodAccess()) return;
+        const newData = { fecha: new Date().toISOString(), persona: document.getElementById('vale-persona').value, descripcion: document.getElementById('vale-descripcion').value, monto: getNumericValue(document.getElementById('vale-monto').value), abonos: {} }; 
+        getRefFor('vales').push(newData); 
+        showNotification('Éxito', 'Vale registrado correctamente.'); 
+        e.target.reset(); 
+        addCurrencyFormatting(e.target); 
+    });
+
+    const handleDelete = (type, id) => { 
+        if (!validatePeriodAccess()) return;
+        const item = (allData[type] || []).find(i => i.id === id); 
+        if (!item) return; 
+        if ((type === 'cuentasPorCobrar' || type === 'vales') && item.abonos && Object.values(item.abonos).length > 0) { 
+            showNotification('Acción no permitida', 'No puede eliminar un registro que ya tiene abonos. Esto protege la integridad de sus registros de ingresos.', 'error'); 
+            return; 
+        } 
+        showConfirm('Confirmar Eliminación', '¿Estás seguro? Esta acción no se puede deshacer.', () => { 
+            getRefFor(type).child(id).remove().then(() => showNotification('Éxito', 'Registro eliminado.')).catch((error) => showNotification('Error', 'No se pudo eliminar: ' + error, 'error')); 
+        }); 
+    };
+
+    const handleAbonar = (deudaId, type) => { 
+        if (!validatePeriodAccess()) return;
+        document.getElementById('abono-deuda-id').value = deudaId; 
+        document.getElementById('abono-type').value = type; 
+        document.getElementById('abono-modal-title').textContent = type === 'vales' ? 'Registrar Abono a Vale' : 'Registrar Abono'; 
+        document.getElementById('abono-modal').style.display = 'flex'; 
+        addCurrencyFormatting(document.getElementById('abono-modal')); 
+    };
+
     const handleHistorial = (deudaId, type) => { const deuda = (allData[type] || []).find(d => d.id === deudaId); if (!deuda) return; const modal = document.getElementById('historial-modal'); const personKey = type === 'vales' ? 'persona' : 'cliente'; document.getElementById('historial-modal-subtitle').textContent = `Detalle para: ${deuda[personKey]} | Total: ${formatCurrency(deuda.monto)}`; const tbody = document.getElementById('historial-abonos-body'); const abonos = (deuda.abonos || []).filter(a => a.fecha instanceof Date).sort((a,b) => b.fecha - a.fecha); if (abonos.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">No se han registrado abonos.</td></tr>`; } else { tbody.innerHTML = abonos.map(abono => `<tr class="border-b"><td class="px-4 py-3">${abono.fecha.toLocaleDateString('es-CO')}</td><td class="px-4 py-3">${abono.fecha.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</td><td class="px-4 py-3 font-medium">${formatCurrency(abono.monto)}</td><td class="px-4 py-3">${abono.metodo}</td></tr>`).join(''); } modal.style.display = 'flex'; };
-    document.getElementById('save-abono-btn').addEventListener('click', async () => { const deudaId = document.getElementById('abono-deuda-id').value; const type = document.getElementById('abono-type').value; const monto = getNumericValue(document.getElementById('abono-monto').value); const metodo = document.getElementById('abono-metodo').value; if (!deudaId || !type || monto <= 0) { showNotification('Error', 'Monto inválido o datos incompletos.', 'error'); return; } try { const nowISO = new Date().toISOString(); const abonoData = { fecha: nowISO, monto, metodo }; await getRefFor(type).child(deudaId).child('abonos').push(abonoData); showNotification('Éxito', 'Abono registrado correctamente.'); document.getElementById('abono-modal').style.display = 'none'; document.getElementById('form-abono').reset(); document.getElementById('abono-monto').value = ''; } catch (err) { showNotification('Error', 'No se pudo completar la operación.', 'error'); console.error(err); } });
-    const handlePagar = (deudaId) => { const deuda = (allData.cuentasPorPagar || []).find(d => d.id === deudaId); if (!deuda) return; showConfirm('Confirmar Pago', `¿Cómo se pagó esta cuenta de ${formatCurrency(deuda.monto)} a ${deuda.acreedor}?`, (metodo) => { if (metodo) { const compraData = { fecha: new Date().toISOString(), proveedor: deuda.acreedor, descripcion: `Pago Cta. Pendiente: ${deuda.descripcion}`, monto: deuda.monto, metodo: metodo }; getRefFor('compras').push(compraData); getRefFor('cuentasPorPagar').child(deudaId).update({ estado: 'Pagada' }); showNotification('Éxito', `Cuenta pagada y registrada como compra.`); } }, true); };
+    
+    document.getElementById('save-abono-btn').addEventListener('click', async () => { 
+        if (!validatePeriodAccess()) return;
+        const deudaId = document.getElementById('abono-deuda-id').value; 
+        const type = document.getElementById('abono-type').value; 
+        const monto = getNumericValue(document.getElementById('abono-monto').value); 
+        const metodo = document.getElementById('abono-metodo').value; 
+        if (!deudaId || !type || monto <= 0) { 
+            showNotification('Error', 'Monto inválido o datos incompletos.', 'error'); 
+            return; 
+        } 
+        try { 
+            const nowISO = new Date().toISOString(); 
+            const abonoData = { fecha: nowISO, monto, metodo }; 
+            await getRefFor(type).child(deudaId).child('abonos').push(abonoData); 
+            showNotification('Éxito', 'Abono registrado correctamente.'); 
+            document.getElementById('abono-modal').style.display = 'none'; 
+            document.getElementById('form-abono').reset(); 
+            document.getElementById('abono-monto').value = ''; 
+        } catch (err) { 
+            showNotification('Error', 'No se pudo completar la operación.', 'error'); 
+            console.error(err); 
+        } 
+    });
+
+    const handlePagar = (deudaId) => { 
+        if (!validatePeriodAccess()) return;
+        const deuda = (allData.cuentasPorPagar || []).find(d => d.id === deudaId); 
+        if (!deuda) return; 
+        showConfirm('Confirmar Pago', `¿Cómo se pagó esta cuenta de ${formatCurrency(deuda.monto)} a ${deuda.acreedor}?`, (metodo) => { 
+            if (metodo) { 
+                const compraData = { fecha: new Date().toISOString(), proveedor: deuda.acreedor, descripcion: `Pago Cta. Pendiente: ${deuda.descripcion}`, monto: deuda.monto, metodo: metodo }; 
+                getRefFor('compras').push(compraData); 
+                getRefFor('cuentasPorPagar').child(deudaId).update({ estado: 'Pagada' }); 
+                showNotification('Éxito', `Cuenta pagada y registrada como compra.`); 
+            } 
+        }, true); 
+    };
+
     const showNotification = (title, message, type = 'success') => { const modal = document.getElementById('notification-modal'); document.getElementById('notification-title').textContent = title; document.getElementById('notification-message').textContent = message; document.getElementById('notification-icon').innerHTML = type === 'success' ? `<i class="fas fa-check-circle text-4xl text-green-500"></i>` : `<i class="fas fa-times-circle text-4xl text-red-500"></i>`; modal.style.display = 'flex'; };
     const showConfirm = (title, message, callback, showOptions = false) => { const modal = document.getElementById('confirm-modal'); document.getElementById('confirm-title').textContent = title; const msgContainer = document.getElementById('confirm-message-container'); msgContainer.innerHTML = `<p id="confirm-message" class="text-sm text-gray-500">${message}</p>`; if (showOptions) { msgContainer.insertAdjacentHTML('beforeend', `<div class="mt-4"><select id="confirm-options" class="block w-full rounded-md border-gray-300 shadow-sm"><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div>`); } confirmCallback = () => { const optionsEl = document.getElementById('confirm-options'); callback(showOptions ? optionsEl.value : true); }; modal.style.display = 'flex'; };
     const cleanupConfirmModal = () => { const modal = document.getElementById('confirm-modal'); const customContent = document.querySelector('#confirm-message-container > div'); if (customContent) customContent.remove(); modal.style.display = 'none'; confirmCallback = null; };
@@ -1015,7 +1180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.addEventListener('click', (e) => { const target = e.target; const deleteBtn = target.closest('.delete-btn'); const pdfBtn = target.closest('.btn-pdf'); const tabBtn = target.closest('.tab-button'); const abonoBtn = target.closest('.abono-btn'); const pagarBtn = target.closest('.pagar-btn'); const historialBtn = target.closest('.historial-btn'); if (tabBtn) changeTab(tabBtn.dataset.tab); else if (deleteBtn) handleDelete(deleteBtn.dataset.type, deleteBtn.dataset.id); else if (pdfBtn) { const type = pdfBtn.dataset.type; if (type === 'deudas-cobrar') exportDeudasPDF('cuentasPorCobrar'); else if (type === 'deudas-pagar') exportDeudasPDF('cuentasPorPagar'); else if (type === 'vales') exportDeudasPDF('vales'); else exportToPDF(type); } else if (abonoBtn) handleAbonar(abonoBtn.dataset.id, abonoBtn.dataset.type); else if (pagarBtn) handlePagar(pagarBtn.dataset.id); else if (historialBtn) handleHistorial(historialBtn.dataset.id, historialBtn.dataset.type); });
 
     // =========================================================================
-    // FUNCIONES DE PDF PROFESIONALES
+    // FUNCIONES DE PDF (mantenidas del código original)
     // =========================================================================
     const reportTitles = {
         ingresos: 'Ingresos', compras: 'Compras', gastos: 'Gastos Operacionales', retiros: 'Retiros del Jefe',
