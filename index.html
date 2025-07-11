@@ -52,7 +52,91 @@
         // Mostrar una notificación de éxito
         showNotification('Éxito', 'Corte de mes realizado exitosamente.');
     });
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        // Asegurarse de que los datos de Firebase se hayan cargado antes de ejecutar el corte de mes
+        let allData = {};
+
+        // Función para cargar los datos de Firebase
+        const loadAllData = async () => {
+            // Aquí debes cargar todos los datos necesarios de Firebase
+            const ingresosSnapshot = await database.ref(`businesses/${selectedBusinessId}/ingresos`).once('value');
+            allData.ingresos = ingresosSnapshot.val() || [];
+
+            const comprasSnapshot = await database.ref(`businesses/${selectedBusinessId}/compras`).once('value');
+            allData.compras = comprasSnapshot.val() || [];
+
+            const gastosSnapshot = await database.ref(`businesses/${selectedBusinessId}/gastos`).once('value');
+            allData.gastos = gastosSnapshot.val() || [];
+
+            const retirosSnapshot = await database.ref(`businesses/${selectedBusinessId}/retiros`).once('value');
+            allData.retiros = retirosSnapshot.val() || [];
+
+            const cuentasPorCobrarSnapshot = await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).once('value');
+            allData.cuentasPorCobrar = cuentasPorCobrarSnapshot.val() || [];
+
+            const cuentasPorPagarSnapshot = await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).once('value');
+            allData.cuentasPorPagar = cuentasPorPagarSnapshot.val() || [];
+
+            const valesSnapshot = await database.ref(`businesses/${selectedBusinessId}/vales`).once('value');
+            allData.vales = valesSnapshot.val() || [];
+        };
+
+        // Asegurarse de que los datos estén cargados antes de permitir el corte de mes
+        document.getElementById('close-period-btn').addEventListener('click', async () => {
+            if (Object.keys(allData).length === 0) {
+                showNotification('Error', 'No se han cargado los datos necesarios para realizar el corte de mes.');
+                return;
+            }
+
+            try {
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonth = now.getMonth();
+
+                const startDate = new Date(currentYear, currentMonth, 1).toISOString();
+                const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString();
+
+                const historicalData = {
+                    period: { startDate, endDate },
+                    ingresos: allData.ingresos,
+                    compras: allData.compras,
+                    gastos: allData.gastos,
+                    retiros: allData.retiros,
+                    cuentasPorCobrar: allData.cuentasPorCobrar,
+                    cuentasPorPagar: allData.cuentasPorPagar,
+                    vales: allData.vales
+                };
+
+                await database.ref(`businesses/${selectedBusinessId}/historicalPeriods`).push(historicalData);
+
+                const newPeriod = {
+                    startDate: new Date(currentYear, currentMonth + 1, 1).toISOString(),
+                    endDate: null,
+                    monthKey: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+                };
+
+                await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
+
+                await database.ref(`businesses/${selectedBusinessId}/ingresos`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/compras`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/gastos`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/retiros`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/vales`).remove();
+
+                showNotification('Éxito', 'Corte de mes realizado exitosamente.');
+            } catch (error) {
+                console.error("Error al realizar el corte de mes:", error);
+                showNotification('Error', 'Ocurrió un error al realizar el corte de mes.');
+            }
+        });
+
+        loadAllData();
+    });
     </script>
+    
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js">
     // Lógica para el botón de cierre de mes
@@ -102,7 +186,91 @@
         // Mostrar una notificación de éxito
         showNotification('Éxito', 'Corte de mes realizado exitosamente.');
     });
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        // Asegurarse de que los datos de Firebase se hayan cargado antes de ejecutar el corte de mes
+        let allData = {};
+
+        // Función para cargar los datos de Firebase
+        const loadAllData = async () => {
+            // Aquí debes cargar todos los datos necesarios de Firebase
+            const ingresosSnapshot = await database.ref(`businesses/${selectedBusinessId}/ingresos`).once('value');
+            allData.ingresos = ingresosSnapshot.val() || [];
+
+            const comprasSnapshot = await database.ref(`businesses/${selectedBusinessId}/compras`).once('value');
+            allData.compras = comprasSnapshot.val() || [];
+
+            const gastosSnapshot = await database.ref(`businesses/${selectedBusinessId}/gastos`).once('value');
+            allData.gastos = gastosSnapshot.val() || [];
+
+            const retirosSnapshot = await database.ref(`businesses/${selectedBusinessId}/retiros`).once('value');
+            allData.retiros = retirosSnapshot.val() || [];
+
+            const cuentasPorCobrarSnapshot = await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).once('value');
+            allData.cuentasPorCobrar = cuentasPorCobrarSnapshot.val() || [];
+
+            const cuentasPorPagarSnapshot = await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).once('value');
+            allData.cuentasPorPagar = cuentasPorPagarSnapshot.val() || [];
+
+            const valesSnapshot = await database.ref(`businesses/${selectedBusinessId}/vales`).once('value');
+            allData.vales = valesSnapshot.val() || [];
+        };
+
+        // Asegurarse de que los datos estén cargados antes de permitir el corte de mes
+        document.getElementById('close-period-btn').addEventListener('click', async () => {
+            if (Object.keys(allData).length === 0) {
+                showNotification('Error', 'No se han cargado los datos necesarios para realizar el corte de mes.');
+                return;
+            }
+
+            try {
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonth = now.getMonth();
+
+                const startDate = new Date(currentYear, currentMonth, 1).toISOString();
+                const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString();
+
+                const historicalData = {
+                    period: { startDate, endDate },
+                    ingresos: allData.ingresos,
+                    compras: allData.compras,
+                    gastos: allData.gastos,
+                    retiros: allData.retiros,
+                    cuentasPorCobrar: allData.cuentasPorCobrar,
+                    cuentasPorPagar: allData.cuentasPorPagar,
+                    vales: allData.vales
+                };
+
+                await database.ref(`businesses/${selectedBusinessId}/historicalPeriods`).push(historicalData);
+
+                const newPeriod = {
+                    startDate: new Date(currentYear, currentMonth + 1, 1).toISOString(),
+                    endDate: null,
+                    monthKey: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+                };
+
+                await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
+
+                await database.ref(`businesses/${selectedBusinessId}/ingresos`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/compras`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/gastos`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/retiros`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/vales`).remove();
+
+                showNotification('Éxito', 'Corte de mes realizado exitosamente.');
+            } catch (error) {
+                console.error("Error al realizar el corte de mes:", error);
+                showNotification('Error', 'Ocurrió un error al realizar el corte de mes.');
+            }
+        });
+
+        loadAllData();
+    });
     </script>
+    
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
     // Lógica para el botón de cierre de mes
@@ -152,7 +320,91 @@
         // Mostrar una notificación de éxito
         showNotification('Éxito', 'Corte de mes realizado exitosamente.');
     });
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        // Asegurarse de que los datos de Firebase se hayan cargado antes de ejecutar el corte de mes
+        let allData = {};
+
+        // Función para cargar los datos de Firebase
+        const loadAllData = async () => {
+            // Aquí debes cargar todos los datos necesarios de Firebase
+            const ingresosSnapshot = await database.ref(`businesses/${selectedBusinessId}/ingresos`).once('value');
+            allData.ingresos = ingresosSnapshot.val() || [];
+
+            const comprasSnapshot = await database.ref(`businesses/${selectedBusinessId}/compras`).once('value');
+            allData.compras = comprasSnapshot.val() || [];
+
+            const gastosSnapshot = await database.ref(`businesses/${selectedBusinessId}/gastos`).once('value');
+            allData.gastos = gastosSnapshot.val() || [];
+
+            const retirosSnapshot = await database.ref(`businesses/${selectedBusinessId}/retiros`).once('value');
+            allData.retiros = retirosSnapshot.val() || [];
+
+            const cuentasPorCobrarSnapshot = await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).once('value');
+            allData.cuentasPorCobrar = cuentasPorCobrarSnapshot.val() || [];
+
+            const cuentasPorPagarSnapshot = await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).once('value');
+            allData.cuentasPorPagar = cuentasPorPagarSnapshot.val() || [];
+
+            const valesSnapshot = await database.ref(`businesses/${selectedBusinessId}/vales`).once('value');
+            allData.vales = valesSnapshot.val() || [];
+        };
+
+        // Asegurarse de que los datos estén cargados antes de permitir el corte de mes
+        document.getElementById('close-period-btn').addEventListener('click', async () => {
+            if (Object.keys(allData).length === 0) {
+                showNotification('Error', 'No se han cargado los datos necesarios para realizar el corte de mes.');
+                return;
+            }
+
+            try {
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonth = now.getMonth();
+
+                const startDate = new Date(currentYear, currentMonth, 1).toISOString();
+                const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString();
+
+                const historicalData = {
+                    period: { startDate, endDate },
+                    ingresos: allData.ingresos,
+                    compras: allData.compras,
+                    gastos: allData.gastos,
+                    retiros: allData.retiros,
+                    cuentasPorCobrar: allData.cuentasPorCobrar,
+                    cuentasPorPagar: allData.cuentasPorPagar,
+                    vales: allData.vales
+                };
+
+                await database.ref(`businesses/${selectedBusinessId}/historicalPeriods`).push(historicalData);
+
+                const newPeriod = {
+                    startDate: new Date(currentYear, currentMonth + 1, 1).toISOString(),
+                    endDate: null,
+                    monthKey: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+                };
+
+                await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
+
+                await database.ref(`businesses/${selectedBusinessId}/ingresos`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/compras`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/gastos`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/retiros`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/vales`).remove();
+
+                showNotification('Éxito', 'Corte de mes realizado exitosamente.');
+            } catch (error) {
+                console.error("Error al realizar el corte de mes:", error);
+                showNotification('Error', 'Ocurrió un error al realizar el corte de mes.');
+            }
+        });
+
+        loadAllData();
+    });
     </script>
+    
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js">
     // Lógica para el botón de cierre de mes
@@ -202,7 +454,91 @@
         // Mostrar una notificación de éxito
         showNotification('Éxito', 'Corte de mes realizado exitosamente.');
     });
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        // Asegurarse de que los datos de Firebase se hayan cargado antes de ejecutar el corte de mes
+        let allData = {};
+
+        // Función para cargar los datos de Firebase
+        const loadAllData = async () => {
+            // Aquí debes cargar todos los datos necesarios de Firebase
+            const ingresosSnapshot = await database.ref(`businesses/${selectedBusinessId}/ingresos`).once('value');
+            allData.ingresos = ingresosSnapshot.val() || [];
+
+            const comprasSnapshot = await database.ref(`businesses/${selectedBusinessId}/compras`).once('value');
+            allData.compras = comprasSnapshot.val() || [];
+
+            const gastosSnapshot = await database.ref(`businesses/${selectedBusinessId}/gastos`).once('value');
+            allData.gastos = gastosSnapshot.val() || [];
+
+            const retirosSnapshot = await database.ref(`businesses/${selectedBusinessId}/retiros`).once('value');
+            allData.retiros = retirosSnapshot.val() || [];
+
+            const cuentasPorCobrarSnapshot = await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).once('value');
+            allData.cuentasPorCobrar = cuentasPorCobrarSnapshot.val() || [];
+
+            const cuentasPorPagarSnapshot = await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).once('value');
+            allData.cuentasPorPagar = cuentasPorPagarSnapshot.val() || [];
+
+            const valesSnapshot = await database.ref(`businesses/${selectedBusinessId}/vales`).once('value');
+            allData.vales = valesSnapshot.val() || [];
+        };
+
+        // Asegurarse de que los datos estén cargados antes de permitir el corte de mes
+        document.getElementById('close-period-btn').addEventListener('click', async () => {
+            if (Object.keys(allData).length === 0) {
+                showNotification('Error', 'No se han cargado los datos necesarios para realizar el corte de mes.');
+                return;
+            }
+
+            try {
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonth = now.getMonth();
+
+                const startDate = new Date(currentYear, currentMonth, 1).toISOString();
+                const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString();
+
+                const historicalData = {
+                    period: { startDate, endDate },
+                    ingresos: allData.ingresos,
+                    compras: allData.compras,
+                    gastos: allData.gastos,
+                    retiros: allData.retiros,
+                    cuentasPorCobrar: allData.cuentasPorCobrar,
+                    cuentasPorPagar: allData.cuentasPorPagar,
+                    vales: allData.vales
+                };
+
+                await database.ref(`businesses/${selectedBusinessId}/historicalPeriods`).push(historicalData);
+
+                const newPeriod = {
+                    startDate: new Date(currentYear, currentMonth + 1, 1).toISOString(),
+                    endDate: null,
+                    monthKey: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+                };
+
+                await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
+
+                await database.ref(`businesses/${selectedBusinessId}/ingresos`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/compras`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/gastos`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/retiros`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/vales`).remove();
+
+                showNotification('Éxito', 'Corte de mes realizado exitosamente.');
+            } catch (error) {
+                console.error("Error al realizar el corte de mes:", error);
+                showNotification('Error', 'Ocurrió un error al realizar el corte de mes.');
+            }
+        });
+
+        loadAllData();
+    });
     </script>
+    
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -255,7 +591,91 @@
         // Mostrar una notificación de éxito
         showNotification('Éxito', 'Corte de mes realizado exitosamente.');
     });
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        // Asegurarse de que los datos de Firebase se hayan cargado antes de ejecutar el corte de mes
+        let allData = {};
+
+        // Función para cargar los datos de Firebase
+        const loadAllData = async () => {
+            // Aquí debes cargar todos los datos necesarios de Firebase
+            const ingresosSnapshot = await database.ref(`businesses/${selectedBusinessId}/ingresos`).once('value');
+            allData.ingresos = ingresosSnapshot.val() || [];
+
+            const comprasSnapshot = await database.ref(`businesses/${selectedBusinessId}/compras`).once('value');
+            allData.compras = comprasSnapshot.val() || [];
+
+            const gastosSnapshot = await database.ref(`businesses/${selectedBusinessId}/gastos`).once('value');
+            allData.gastos = gastosSnapshot.val() || [];
+
+            const retirosSnapshot = await database.ref(`businesses/${selectedBusinessId}/retiros`).once('value');
+            allData.retiros = retirosSnapshot.val() || [];
+
+            const cuentasPorCobrarSnapshot = await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).once('value');
+            allData.cuentasPorCobrar = cuentasPorCobrarSnapshot.val() || [];
+
+            const cuentasPorPagarSnapshot = await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).once('value');
+            allData.cuentasPorPagar = cuentasPorPagarSnapshot.val() || [];
+
+            const valesSnapshot = await database.ref(`businesses/${selectedBusinessId}/vales`).once('value');
+            allData.vales = valesSnapshot.val() || [];
+        };
+
+        // Asegurarse de que los datos estén cargados antes de permitir el corte de mes
+        document.getElementById('close-period-btn').addEventListener('click', async () => {
+            if (Object.keys(allData).length === 0) {
+                showNotification('Error', 'No se han cargado los datos necesarios para realizar el corte de mes.');
+                return;
+            }
+
+            try {
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonth = now.getMonth();
+
+                const startDate = new Date(currentYear, currentMonth, 1).toISOString();
+                const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString();
+
+                const historicalData = {
+                    period: { startDate, endDate },
+                    ingresos: allData.ingresos,
+                    compras: allData.compras,
+                    gastos: allData.gastos,
+                    retiros: allData.retiros,
+                    cuentasPorCobrar: allData.cuentasPorCobrar,
+                    cuentasPorPagar: allData.cuentasPorPagar,
+                    vales: allData.vales
+                };
+
+                await database.ref(`businesses/${selectedBusinessId}/historicalPeriods`).push(historicalData);
+
+                const newPeriod = {
+                    startDate: new Date(currentYear, currentMonth + 1, 1).toISOString(),
+                    endDate: null,
+                    monthKey: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+                };
+
+                await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
+
+                await database.ref(`businesses/${selectedBusinessId}/ingresos`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/compras`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/gastos`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/retiros`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/vales`).remove();
+
+                showNotification('Éxito', 'Corte de mes realizado exitosamente.');
+            } catch (error) {
+                console.error("Error al realizar el corte de mes:", error);
+                showNotification('Error', 'Ocurrió un error al realizar el corte de mes.');
+            }
+        });
+
+        loadAllData();
+    });
     </script>
+    
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js">
     // Lógica para el botón de cierre de mes
@@ -305,7 +725,91 @@
         // Mostrar una notificación de éxito
         showNotification('Éxito', 'Corte de mes realizado exitosamente.');
     });
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        // Asegurarse de que los datos de Firebase se hayan cargado antes de ejecutar el corte de mes
+        let allData = {};
+
+        // Función para cargar los datos de Firebase
+        const loadAllData = async () => {
+            // Aquí debes cargar todos los datos necesarios de Firebase
+            const ingresosSnapshot = await database.ref(`businesses/${selectedBusinessId}/ingresos`).once('value');
+            allData.ingresos = ingresosSnapshot.val() || [];
+
+            const comprasSnapshot = await database.ref(`businesses/${selectedBusinessId}/compras`).once('value');
+            allData.compras = comprasSnapshot.val() || [];
+
+            const gastosSnapshot = await database.ref(`businesses/${selectedBusinessId}/gastos`).once('value');
+            allData.gastos = gastosSnapshot.val() || [];
+
+            const retirosSnapshot = await database.ref(`businesses/${selectedBusinessId}/retiros`).once('value');
+            allData.retiros = retirosSnapshot.val() || [];
+
+            const cuentasPorCobrarSnapshot = await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).once('value');
+            allData.cuentasPorCobrar = cuentasPorCobrarSnapshot.val() || [];
+
+            const cuentasPorPagarSnapshot = await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).once('value');
+            allData.cuentasPorPagar = cuentasPorPagarSnapshot.val() || [];
+
+            const valesSnapshot = await database.ref(`businesses/${selectedBusinessId}/vales`).once('value');
+            allData.vales = valesSnapshot.val() || [];
+        };
+
+        // Asegurarse de que los datos estén cargados antes de permitir el corte de mes
+        document.getElementById('close-period-btn').addEventListener('click', async () => {
+            if (Object.keys(allData).length === 0) {
+                showNotification('Error', 'No se han cargado los datos necesarios para realizar el corte de mes.');
+                return;
+            }
+
+            try {
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonth = now.getMonth();
+
+                const startDate = new Date(currentYear, currentMonth, 1).toISOString();
+                const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString();
+
+                const historicalData = {
+                    period: { startDate, endDate },
+                    ingresos: allData.ingresos,
+                    compras: allData.compras,
+                    gastos: allData.gastos,
+                    retiros: allData.retiros,
+                    cuentasPorCobrar: allData.cuentasPorCobrar,
+                    cuentasPorPagar: allData.cuentasPorPagar,
+                    vales: allData.vales
+                };
+
+                await database.ref(`businesses/${selectedBusinessId}/historicalPeriods`).push(historicalData);
+
+                const newPeriod = {
+                    startDate: new Date(currentYear, currentMonth + 1, 1).toISOString(),
+                    endDate: null,
+                    monthKey: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+                };
+
+                await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
+
+                await database.ref(`businesses/${selectedBusinessId}/ingresos`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/compras`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/gastos`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/retiros`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/vales`).remove();
+
+                showNotification('Éxito', 'Corte de mes realizado exitosamente.');
+            } catch (error) {
+                console.error("Error al realizar el corte de mes:", error);
+                showNotification('Error', 'Ocurrió un error al realizar el corte de mes.');
+            }
+        });
+
+        loadAllData();
+    });
     </script>
+    
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js">
     // Lógica para el botón de cierre de mes
@@ -355,7 +859,91 @@
         // Mostrar una notificación de éxito
         showNotification('Éxito', 'Corte de mes realizado exitosamente.');
     });
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        // Asegurarse de que los datos de Firebase se hayan cargado antes de ejecutar el corte de mes
+        let allData = {};
+
+        // Función para cargar los datos de Firebase
+        const loadAllData = async () => {
+            // Aquí debes cargar todos los datos necesarios de Firebase
+            const ingresosSnapshot = await database.ref(`businesses/${selectedBusinessId}/ingresos`).once('value');
+            allData.ingresos = ingresosSnapshot.val() || [];
+
+            const comprasSnapshot = await database.ref(`businesses/${selectedBusinessId}/compras`).once('value');
+            allData.compras = comprasSnapshot.val() || [];
+
+            const gastosSnapshot = await database.ref(`businesses/${selectedBusinessId}/gastos`).once('value');
+            allData.gastos = gastosSnapshot.val() || [];
+
+            const retirosSnapshot = await database.ref(`businesses/${selectedBusinessId}/retiros`).once('value');
+            allData.retiros = retirosSnapshot.val() || [];
+
+            const cuentasPorCobrarSnapshot = await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).once('value');
+            allData.cuentasPorCobrar = cuentasPorCobrarSnapshot.val() || [];
+
+            const cuentasPorPagarSnapshot = await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).once('value');
+            allData.cuentasPorPagar = cuentasPorPagarSnapshot.val() || [];
+
+            const valesSnapshot = await database.ref(`businesses/${selectedBusinessId}/vales`).once('value');
+            allData.vales = valesSnapshot.val() || [];
+        };
+
+        // Asegurarse de que los datos estén cargados antes de permitir el corte de mes
+        document.getElementById('close-period-btn').addEventListener('click', async () => {
+            if (Object.keys(allData).length === 0) {
+                showNotification('Error', 'No se han cargado los datos necesarios para realizar el corte de mes.');
+                return;
+            }
+
+            try {
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonth = now.getMonth();
+
+                const startDate = new Date(currentYear, currentMonth, 1).toISOString();
+                const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString();
+
+                const historicalData = {
+                    period: { startDate, endDate },
+                    ingresos: allData.ingresos,
+                    compras: allData.compras,
+                    gastos: allData.gastos,
+                    retiros: allData.retiros,
+                    cuentasPorCobrar: allData.cuentasPorCobrar,
+                    cuentasPorPagar: allData.cuentasPorPagar,
+                    vales: allData.vales
+                };
+
+                await database.ref(`businesses/${selectedBusinessId}/historicalPeriods`).push(historicalData);
+
+                const newPeriod = {
+                    startDate: new Date(currentYear, currentMonth + 1, 1).toISOString(),
+                    endDate: null,
+                    monthKey: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+                };
+
+                await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
+
+                await database.ref(`businesses/${selectedBusinessId}/ingresos`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/compras`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/gastos`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/retiros`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/vales`).remove();
+
+                showNotification('Éxito', 'Corte de mes realizado exitosamente.');
+            } catch (error) {
+                console.error("Error al realizar el corte de mes:", error);
+                showNotification('Error', 'Ocurrió un error al realizar el corte de mes.');
+            }
+        });
+
+        loadAllData();
+    });
     </script>
+    
     
 
     <style>
@@ -1151,7 +1739,91 @@ document.addEventListener('DOMContentLoaded', () => {
         // Mostrar una notificación de éxito
         showNotification('Éxito', 'Corte de mes realizado exitosamente.');
     });
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        // Asegurarse de que los datos de Firebase se hayan cargado antes de ejecutar el corte de mes
+        let allData = {};
+
+        // Función para cargar los datos de Firebase
+        const loadAllData = async () => {
+            // Aquí debes cargar todos los datos necesarios de Firebase
+            const ingresosSnapshot = await database.ref(`businesses/${selectedBusinessId}/ingresos`).once('value');
+            allData.ingresos = ingresosSnapshot.val() || [];
+
+            const comprasSnapshot = await database.ref(`businesses/${selectedBusinessId}/compras`).once('value');
+            allData.compras = comprasSnapshot.val() || [];
+
+            const gastosSnapshot = await database.ref(`businesses/${selectedBusinessId}/gastos`).once('value');
+            allData.gastos = gastosSnapshot.val() || [];
+
+            const retirosSnapshot = await database.ref(`businesses/${selectedBusinessId}/retiros`).once('value');
+            allData.retiros = retirosSnapshot.val() || [];
+
+            const cuentasPorCobrarSnapshot = await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).once('value');
+            allData.cuentasPorCobrar = cuentasPorCobrarSnapshot.val() || [];
+
+            const cuentasPorPagarSnapshot = await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).once('value');
+            allData.cuentasPorPagar = cuentasPorPagarSnapshot.val() || [];
+
+            const valesSnapshot = await database.ref(`businesses/${selectedBusinessId}/vales`).once('value');
+            allData.vales = valesSnapshot.val() || [];
+        };
+
+        // Asegurarse de que los datos estén cargados antes de permitir el corte de mes
+        document.getElementById('close-period-btn').addEventListener('click', async () => {
+            if (Object.keys(allData).length === 0) {
+                showNotification('Error', 'No se han cargado los datos necesarios para realizar el corte de mes.');
+                return;
+            }
+
+            try {
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonth = now.getMonth();
+
+                const startDate = new Date(currentYear, currentMonth, 1).toISOString();
+                const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString();
+
+                const historicalData = {
+                    period: { startDate, endDate },
+                    ingresos: allData.ingresos,
+                    compras: allData.compras,
+                    gastos: allData.gastos,
+                    retiros: allData.retiros,
+                    cuentasPorCobrar: allData.cuentasPorCobrar,
+                    cuentasPorPagar: allData.cuentasPorPagar,
+                    vales: allData.vales
+                };
+
+                await database.ref(`businesses/${selectedBusinessId}/historicalPeriods`).push(historicalData);
+
+                const newPeriod = {
+                    startDate: new Date(currentYear, currentMonth + 1, 1).toISOString(),
+                    endDate: null,
+                    monthKey: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`
+                };
+
+                await database.ref(`businesses/${selectedBusinessId}/periods`).push(newPeriod);
+
+                await database.ref(`businesses/${selectedBusinessId}/ingresos`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/compras`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/gastos`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/retiros`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/cuentasPorCobrar`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/cuentasPorPagar`).remove();
+                await database.ref(`businesses/${selectedBusinessId}/vales`).remove();
+
+                showNotification('Éxito', 'Corte de mes realizado exitosamente.');
+            } catch (error) {
+                console.error("Error al realizar el corte de mes:", error);
+                showNotification('Error', 'Ocurrió un error al realizar el corte de mes.');
+            }
+        });
+
+        loadAllData();
+    });
     </script>
+    
     
 </body>
 </html>
