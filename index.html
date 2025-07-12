@@ -465,6 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let confirmCallback = null;
     let currentUserProfile = null;
     let selectedBusinessId = null;
+    let historialListener = null;
     let periods = [];
     let currentPeriod = null;
     
@@ -581,6 +582,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // NUEVA FUNCIÓN: CARGAR HISTORIAL DE PERÍODOS
     // =========================================================================
     const loadHistorialPeriods = () => {
+        // Detach previous listener if exists
+        if (historialListener) {
+            const prevRef = database.ref(`businesses/${selectedBusinessId}/historial_periodos`);
+            prevRef.off('value', historialListener);
+        }
+        
         if (!selectedBusinessId) return;
         
         // Detach listener anterior si existe
@@ -981,6 +988,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const detachAllListeners = () => {
         dataListeners.forEach(({ ref, listener }) => ref.off('value', listener));
         dataListeners = [];
+        
+        // Detach historial listener separately
+        if (historialListener) {
+            const historialRef = database.ref(`businesses/${selectedBusinessId}/historial_periodos`);
+            historialRef.off('value', historialListener);
+            historialListener = null;
+        }
         
         // Detach historial listener
         if (historialListener) {
