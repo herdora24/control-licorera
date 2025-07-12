@@ -468,6 +468,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let historialListener = null;
     let periods = [];
     let currentPeriod = null;
+    let historialPeriods = [];
+    let selectedHistorialPeriod = null;
+    let historialListener = null;
     
     // NUEVAS VARIABLES PARA EL HISTORIAL
     let historialPeriods = [];
@@ -587,8 +590,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const prevRef = database.ref(`businesses/${selectedBusinessId}/historial_periodos`);
             prevRef.off('value', historialListener);
         }
-        
-        if (!selectedBusinessId) return;
         
         // Detach listener anterior si existe
         if (historialListener) {
