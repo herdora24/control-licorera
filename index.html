@@ -545,17 +545,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const periodsRef = database.ref(`businesses/${selectedBusinessId}/periods`);
         const periodsListener = periodsRef.on('value', async (snapshot) => {
             if (!snapshot.exists()) {
+                // Crear período inicial para el mes actual
+                const now = new Date();
+                const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
                 const initialPeriod = { 
-                    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString(), 
+                    startDate: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(), 
                     endDate: null, 
-                    monthKey: new Date().toISOString().slice(0, 7),
+                    monthKey: currentMonth,
                     isClosed: false
                 };
                 await periodsRef.push(initialPeriod);
             } else {
                 periods = firebaseObjectToArray(snapshot);
+                // Asegurar que el selector tenga el mes actual
+                const now = new Date();
+                const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                if (!document.getElementById('period-selector').value) {
+                    document.getElementById('period-selector').value = currentMonth;
+                }
                 updatePeriodSelector();
                 updateCurrentPeriod();
+                // Forzar actualización del dashboard
+                setTimeout(() => filterAndRenderDashboard(), 100);
             }
         });
         dataListeners.push({ ref: periodsRef, listener: periodsListener });
@@ -565,6 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const ref = database.ref(`businesses/${selectedBusinessId}/${type}`);
             const listener = ref.on('value', snapshot => {
                 allData[type] = firebaseObjectToArray(snapshot);
+                console.log(`Datos actualizados para ${type}:`, allData[type]); // Debug
                 refreshUI();
             });
             dataListeners.push({ ref, listener });
@@ -614,11 +626,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const updateCurrentPeriod = () => {
         const selectedPeriod = document.getElementById('period-selector').value;
-        if (!selectedPeriod) return;
+        if (!selectedPeriod) {
+            // Si no hay valor, usar el mes actual
+            const now = new Date();
+            const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            document.getElementById('period-selector').value = currentMonth;
+            return;
+        }
 
         currentPeriod = periods.find(p => p.monthKey === selectedPeriod);
+        if (!currentPeriod) {
+            // Si no existe el período, crear uno nuevo
+            createPeriodIfNotExists(selectedPeriod);
+        }
         updatePeriodStatus();
         refreshUI();
+    };
+
+    const createPeriodIfNotExists = async (monthKey) => {
+        const [year, month] = monthKey.split('-').map(Number);
+        const newPeriod = {
+            startDate: new Date(year, month - 1, 1).toISOString(),
+            endDate: null,
+            monthKey: monthKey,
+            isClosed: false
+        };
+        
+        const periodsRef = database.ref(`businesses/${selectedBusinessId}/periods`);
+        await periodsRef.push(newPeriod);
     };
 
     const updatePeriodStatus = () => {
@@ -683,25 +718,40 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const filterAndRenderDashboard = () => {
         const selectedPeriod = document.getElementById('period-selector').value;
-        if (!selectedPeriod || Object.keys(allData).length === 0) { 
+        if (!selectedPeriod) {
+            // Establecer el mes actual si no hay filtro
+            const now = new Date();
+            const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            document.getElementById('period-selector').value = currentMonth;
+            return filterAndRenderDashboard();
+        }
+        
+        if (Object.keys(allData).length === 0) { 
             updateDashboard({}, {}); 
             return; 
         }
-
+        
         const [year, month] = selectedPeriod.split('-').map(Number);
         const startDate = new Date(year, month - 1, 1);
         startDate.setHours(0, 0, 0, 0);
         const endDate = new Date(year, month, 1);
         endDate.setHours(0, 0, 0, 0);
         
-        document.getElementById('period-display').textContent = `Mostrando datos para: ${startDate.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}`;
+        const periodDisplayText = `Mostrando datos para: ${startDate.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })}`;
+        document.getElementById('period-display').textContent = periodDisplayText;
         
         updateCurrentPeriod();
         
         const periodData = {};
         ['ingresos', 'compras', 'gastos', 'retiros'].forEach(key => {
-            periodData[key] = (allData[key] || []).filter(d => d.fecha && d.fecha >= startDate && d.fecha < endDate);
+            periodData[key] = (allData[key] || []).filter(d => {
+                if (!d.fecha) return false;
+                const itemDate = d.fecha instanceof Date ? d.fecha : new Date(d.fecha);
+                return itemDate >= startDate && itemDate < endDate;
+            });
         });
+        
+        console.log('Datos del período:', periodData); // Debug
         updateDashboard(periodData, allData);
     };
 
@@ -1358,7 +1408,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderVales = () => { const table = document.getElementById('tabla-vales'); const headers = ['Persona', 'Total Vale', 'Abonado', 'Restante', 'Acciones']; table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`; const tbody = table.querySelector('tbody'); const data = (allData.vales || []).filter(d => d.fecha instanceof Date).sort((a,b) => b.fecha - a.fecha); if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay vales registrados.</td></tr>`; return; } const rowsHTML = data.map(d => { const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0); const restante = d.monto - totalAbonado; const isPaid = restante <= 0; const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white'; const textStyle = isPaid ? 'line-through' : ''; const actionButtons = isPaid ? `<button class="historial-btn action-button text-blue-600" data-type="vales" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button> <span class="px-2 py-1 text-xs font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Saldado</span>` : (isPeriodClosed() ? `<button class="historial-btn action-button text-blue-600" data-type="vales" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button>` : `<button class="historial-btn action-button text-blue-600" data-type="vales" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button><button class="abono-btn action-button text-green-600" data-type="vales" data-id="${d.id}" title="Registrar Abono"><i class="fas fa-plus-circle"></i></button><button class="delete-btn action-button text-red-600" data-type="vales" data-id="${d.id}" title="Eliminar Vale"><i class="fas fa-trash"></i></button>`); return `<tr class="${rowClass} border-b hover:bg-gray-50"><td class="px-3 sm:px-4 py-3 font-medium ${textStyle}">${d.persona}<p class="text-xs font-normal">${d.descripcion}</p></td><td class="px-3 sm:px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td><td class="px-3 sm:px-4 py-3 text-green-600 ${textStyle}">${formatCurrency(totalAbonado)}</td><td class="px-3 sm:px-4 py-3 font-bold ${textStyle}">${formatCurrency(restante)}</td><td class="px-3 sm:px-4 py-3 flex items-center gap-1">${actionButtons}</td></tr>`; }).join(''); tbody.innerHTML = rowsHTML; };
     const getTimestampFromDateInput = (dateInputId) => { const dateValue = document.getElementById(dateInputId).value; const now = new Date(); const [year, month, day] = dateValue.split('-').map(Number); return new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds()).toISOString(); };
     const setFormDatesToToday = () => { const today = formatDateForInput(new Date()); ['ingreso-fecha', 'gasto-fecha', 'compra-fecha', 'retiro-fecha'].forEach(id => { const el = document.getElementById(id); if (el) el.value = today; }); };
-    const initializeDates = () => { setFormDatesToToday(); };
+    const initializeDates = () => { 
+        setFormDatesToToday(); 
+        const now = new Date(); 
+        const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        document.getElementById('period-selector').value = currentMonth;
+        // Forzar actualización después de establecer la fecha
+        setTimeout(() => {
+            updateCurrentPeriod();
+            filterAndRenderDashboard();
+        }, 500);
+    };
     const getRefFor = (type) => database.ref(`businesses/${selectedBusinessId}/${type}`);
 
     document.getElementById('form-ingresos').addEventListener('submit', (e) => { 
