@@ -100,7 +100,7 @@
             <h2 class="text-xl sm:text-2xl font-bold text-gray-800 text-center">Seleccionar Negocio</h2>
             <p class="text-gray-500 text-sm text-center mb-6">Elige el local que deseas gestionar.</p>
             <div id="business-list" class="space-y-3">
-                </div>
+            </div>
             <div class="mt-6 text-center">
                  <button id="logout-btn-selector" class="text-sm text-gray-600 hover:text-indigo-600">Cerrar Sesión</button>
             </div>
@@ -312,7 +312,7 @@
                         <i class="fas fa-calendar-check text-xl sm:text-2xl"></i>
                         <h3 class="text-lg sm:text-2xl font-bold">Corte de Mes</h3>
                     </div>
-                    <button id="close-corte-modal" class="text-white hover:text-gray-200 text-xl sm:text-2xl">
+                    <button id="close-corte-modal-btn" class="text-white hover:text-gray-200 text-xl sm:text-2xl">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
@@ -419,7 +419,7 @@
                         <button id="corte-download-report" class="bg-blue-600 text-white px-4 sm:px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm sm:text-base">
                             <i class="fas fa-download mr-2"></i>Descargar Reporte
                         </button>
-                        <button id="corte-close-modal" class="bg-gray-600 text-white px-4 sm:px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors text-sm sm:text-base">
+                        <button id="corte-close-modal-final" class="bg-gray-600 text-white px-4 sm:px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors text-sm sm:text-base">
                             <i class="fas fa-times mr-2"></i>Cerrar
                         </button>
                     </div>
@@ -466,9 +466,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentUserProfile = null;
     let selectedBusinessId = null;
     let periods = [];
-    let selectedHistorialPeriod = null;
+    let currentPeriod = null;
     
-    // NUEVAS VARIABLES PARA EL HISTORIAL
+    // CORRECCIÓN: Se eliminaron las declaraciones duplicadas.
+    // Ahora solo hay una declaración para cada variable del historial.
     let historialPeriods = [];
     let selectedHistorialPeriod = null;
     let historialListener = null;
@@ -581,18 +582,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // NUEVA FUNCIÓN: CARGAR HISTORIAL DE PERÍODOS
     // =========================================================================
     const loadHistorialPeriods = () => {
-        // Detach previous listener if exists
+        // Detach previous listener if it exists
         if (historialListener) {
             const prevRef = database.ref(`businesses/${selectedBusinessId}/historial_periodos`);
             prevRef.off('value', historialListener);
         }
         
-        // Detach listener anterior si existe
-        if (historialListener) {
-            historialListener.off();
-        }
-        
         const historialRef = database.ref(`businesses/${selectedBusinessId}/historial_periodos`);
+        // CORRECCIÓN: Se guarda la referencia a la función listener para poder quitarla después.
         historialListener = historialRef.on('value', (snapshot) => {
             const data = snapshot.val();
             historialPeriods = [];
@@ -636,6 +633,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderHistorialPeriods = () => {
         const listContainer = document.getElementById('historial-periodos-list');
         
+        if (!listContainer) return;
+
         if (historialPeriods.length === 0) {
             listContainer.innerHTML = `
                 <div class="col-span-full text-center py-12 text-gray-500">
@@ -651,10 +650,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const periodsHTML = historialPeriods.map(period => {
-            const monthDate = new Date(period.monthKey + '-01');
+            const monthDate = new Date(period.monthKey + '-02T00:00:00'); // Use day 2 to avoid timezone issues
             const monthName = monthDate.toLocaleDateString('es-CO', { 
                 month: 'long', 
-                year: 'numeric' 
+                year: 'numeric',
+                timeZone: 'UTC'
             });
             const closedDate = new Date(period.closedDate).toLocaleDateString('es-CO');
             
@@ -708,10 +708,11 @@ document.addEventListener('DOMContentLoaded', () => {
             retiros: (period.data.retiros || []).reduce((sum, item) => sum + item.monto, 0)
         };
 
-        const monthDate = new Date(period.monthKey + '-01');
+        const monthDate = new Date(period.monthKey + '-02T00:00:00');
         const monthName = monthDate.toLocaleDateString('es-CO', { 
             month: 'long', 
-            year: 'numeric' 
+            year: 'numeric',
+            timeZone: 'UTC'
         });
 
         const dataView = document.getElementById('historial-data-view');
@@ -986,16 +987,11 @@ document.addEventListener('DOMContentLoaded', () => {
         dataListeners.forEach(({ ref, listener }) => ref.off('value', listener));
         dataListeners = [];
         
-        // Detach historial listener separately
-        if (historialListener) {
+        // CORRECCIÓN: Se eliminó el bloque duplicado y se usa la forma correcta
+        // de quitar el listener del historial.
+        if (historialListener && selectedBusinessId) {
             const historialRef = database.ref(`businesses/${selectedBusinessId}/historial_periodos`);
             historialRef.off('value', historialListener);
-            historialListener = null;
-        }
-        
-        // Detach historial listener
-        if (historialListener) {
-            historialListener.off();
             historialListener = null;
         }
     };
@@ -1209,22 +1205,22 @@ document.addEventListener('DOMContentLoaded', () => {
         previewContent.innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                  <div class="space-y-4">
-                    <h5 class="font-semibold text-gray-800 border-b pb-2">Resumen del Período</h5>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex justify-between"><span>Total Ingresos:</span><span class="font-medium text-green-600">${formatCurrency(totales.ingresos)}</span></div>
-                        <div class="flex justify-between"><span>Total Compras:</span><span class="font-medium text-purple-600">${formatCurrency(totales.compras)}</span></div>
-                        <div class="flex justify-between"><span>Total Gastos:</span><span class="font-medium text-red-600">${formatCurrency(totales.gastos)}</span></div>
-                        <div class="flex justify-between"><span>Total Retiros:</span><span class="font-medium text-orange-600">${formatCurrency(totales.retiros)}</span></div>
-                    </div>
+                     <h5 class="font-semibold text-gray-800 border-b pb-2">Resumen del Período</h5>
+                     <div class="space-y-2 text-sm">
+                         <div class="flex justify-between"><span>Total Ingresos:</span><span class="font-medium text-green-600">${formatCurrency(totales.ingresos)}</span></div>
+                         <div class="flex justify-between"><span>Total Compras:</span><span class="font-medium text-purple-600">${formatCurrency(totales.compras)}</span></div>
+                         <div class="flex justify-between"><span>Total Gastos:</span><span class="font-medium text-red-600">${formatCurrency(totales.gastos)}</span></div>
+                         <div class="flex justify-between"><span>Total Retiros:</span><span class="font-medium text-orange-600">${formatCurrency(totales.retiros)}</span></div>
+                     </div>
                 </div>
                 <div class="space-y-4">
                     <h5 class="font-semibold text-gray-800 border-b pb-2">Saldos a la Fecha de Corte</h5>
                      <div class="space-y-2 text-sm">
-                        <div class="flex justify-between"><span>Efectivo en Caja:</span><span class="font-medium text-blue-600">${formatCurrency(saldos.efectivo)}</span></div>
-                        <div class="flex justify-between"><span>Saldo en Banco:</span><span class="font-medium text-green-600">${formatCurrency(saldos.banco)}</span></div>
-                        <div class="flex justify-between"><span>Cuentas por Cobrar Pendientes:</span><span class="font-medium">${cuentasPendientes.porCobrar.length}</span></div>
-                        <div class="flex justify-between"><span>Cuentas por Pagar Pendientes:</span><span class="font-medium">${cuentasPendientes.porPagar.length}</span></div>
-                        <div class="flex justify-between"><span>Vales Pendientes:</span><span class="font-medium">${cuentasPendientes.vales.length}</span></div>
+                         <div class="flex justify-between"><span>Efectivo en Caja:</span><span class="font-medium text-blue-600">${formatCurrency(saldos.efectivo)}</span></div>
+                         <div class="flex justify-between"><span>Saldo en Banco:</span><span class="font-medium text-green-600">${formatCurrency(saldos.banco)}</span></div>
+                         <div class="flex justify-between"><span>Cuentas por Cobrar Pendientes:</span><span class="font-medium">${cuentasPendientes.porCobrar.length}</span></div>
+                         <div class="flex justify-between"><span>Cuentas por Pagar Pendientes:</span><span class="font-medium">${cuentasPendientes.porPagar.length}</span></div>
+                         <div class="flex justify-between"><span>Vales Pendientes:</span><span class="font-medium">${cuentasPendientes.vales.length}</span></div>
                     </div>
                 </div>
             </div>
@@ -1331,7 +1327,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             isClosed: false,
                             createdFrom: periodo
                         };
-                        updates[`/periods/${database.ref().push().key}`] = newPeriod;
+                        const newPeriodKey = database.ref().child('periods').push().key;
+                        updates[`/periods/${newPeriodKey}`] = newPeriod;
                         
                         await database.ref(`businesses/${selectedBusinessId}`).update(updates);
                         break;
@@ -1373,7 +1370,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     };
 
-    const generateCorteReport = () => { /* ... (sin cambios) ... */ };
+    const generateCorteReport = () => { showNotification('Función en desarrollo', 'La descarga del reporte de corte estará disponible pronto.', 'success'); };
 
     // =========================================================================
     // EVENT LISTENERS (UI)
@@ -1387,7 +1384,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('corte-mes-modal').style.display = 'flex';
     });
 
-    document.getElementById('close-corte-modal').addEventListener('click', () => {
+    document.getElementById('close-corte-modal-btn').addEventListener('click', () => {
         document.getElementById('corte-mes-modal').style.display = 'none';
         location.reload();
     });
@@ -1407,7 +1404,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('corte-download-report').addEventListener('click', generateCorteReport);
 
-    document.getElementById('corte-close-modal').addEventListener('click', () => {
+    document.getElementById('corte-close-modal-final').addEventListener('click', () => {
         document.getElementById('corte-mes-modal').style.display = 'none';
         location.reload(); 
     });
