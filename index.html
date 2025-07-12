@@ -47,6 +47,28 @@
             .tab-button i { display: none; }
             .tab-button::after { content: attr(data-emoji); font-size: 1.2rem; }
         }
+
+        /* Estilos para el historial */
+        .historial-period-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .historial-period-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .historial-period-card.selected {
+            border-color: #4f46e5;
+            background-color: #f0f4ff;
+            box-shadow: 0 4px 12px -2px rgba(79, 70, 229, 0.2);
+        }
+        .historial-data-section {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body class="p-2 sm:p-4 md:p-8">
@@ -242,15 +264,37 @@
                         </div>
                     </div>
                 </div>
-                <!-- NUEVO CONTENEDOR PARA LA PESTAÑA DE HISTORIAL -->
+
+                <!-- PESTAÑA DE HISTORIAL CORREGIDA -->
                 <div id="historial" class="tab-content hidden">
                     <div class="max-w-6xl mx-auto card p-6 sm:p-8">
-                        <h2 class="text-xl sm:text-2xl font-semibold mb-4">Historial de Períodos Cerrados</h2>
-                        <div id="historial-periodos-list" class="mb-6">
-                            <!-- La lista de botones de períodos se cargará aquí -->
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 class="text-xl sm:text-2xl font-semibold text-gray-800 flex items-center">
+                                    <i class="fas fa-archive mr-3 text-indigo-600"></i>
+                                    Historial de Períodos Cerrados
+                                </h2>
+                                <p class="text-sm text-gray-600 mt-2">Consulta los datos archivados de períodos anteriores</p>
+                            </div>
+                            <button id="refresh-historial-btn" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm">
+                                <i class="fas fa-sync-alt mr-2"></i>Actualizar
+                            </button>
                         </div>
-                        <div id="historial-data-view">
-                            <!-- Los datos del período seleccionado se mostrarán aquí -->
+
+                        <!-- Lista de períodos disponibles -->
+                        <div class="mb-8">
+                            <h3 class="text-lg font-medium mb-4 text-gray-700 flex items-center">
+                                <i class="fas fa-calendar-alt mr-2 text-gray-500"></i>
+                                Períodos Archivados Disponibles:
+                            </h3>
+                            <div id="historial-periodos-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <!-- Los períodos se cargarán aquí dinámicamente -->
+                            </div>
+                        </div>
+
+                        <!-- Vista de datos del período seleccionado -->
+                        <div id="historial-data-view" class="hidden">
+                            <!-- Los datos del período se mostrarán aquí -->
                         </div>
                     </div>
                 </div>
@@ -423,6 +467,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedBusinessId = null;
     let periods = [];
     let currentPeriod = null;
+    
+    // NUEVAS VARIABLES PARA EL HISTORIAL
+    let historialPeriods = [];
+    let selectedHistorialPeriod = null;
+    let historialListener = null;
 
     const dataTypes = ['ingresos', 'compras', 'gastos', 'retiros', 'cuentasPorCobrar', 'cuentasPorPagar', 'vales'];
 
@@ -518,6 +567,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         startDataListeners();
         
+        // CARGAR HISTORIAL AL SELECCIONAR NEGOCIO
+        loadHistorialPeriods();
+        
         document.getElementById('business-selector-overlay').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
         initializeDates();
@@ -526,11 +578,415 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // =========================================================================
-    // MANEJO DE DATOS Y PERÍODOS
+    // NUEVA FUNCIÓN: CARGAR HISTORIAL DE PERÍODOS
+    // =========================================================================
+    const loadHistorialPeriods = () => {
+        if (!selectedBusinessId) return;
+        
+        // Detach listener anterior si existe
+        if (historialListener) {
+            historialListener.off();
+        }
+        
+        const historialRef = database.ref(`businesses/${selectedBusinessId}/historial_periodos`);
+        historialListener = historialRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            historialPeriods = [];
+            
+            if (data) {
+                // Procesar cada período archivado
+                Object.entries(data).forEach(([monthKey, periodData]) => {
+                    const processedData = {};
+                    
+                    // Procesar cada tipo de dato (ingresos, compras, gastos, etc.)
+                    Object.entries(periodData).forEach(([dataType, items]) => {
+                        if (items && typeof items === 'object' && dataType !== 'closedDate' && dataType !== 'notes') {
+                            processedData[dataType] = Object.entries(items).map(([id, item]) => ({
+                                id,
+                                ...item,
+                                fecha: item.fecha ? new Date(item.fecha) : new Date()
+                            }));
+                        }
+                    });
+
+                    historialPeriods.push({
+                        monthKey,
+                        closedDate: periodData.closedDate || '',
+                        notes: periodData.notes || '',
+                        data: processedData
+                    });
+                });
+                
+                // Ordenar por fecha descendente (más recientes primero)
+                historialPeriods.sort((a, b) => b.monthKey.localeCompare(a.monthKey));
+            }
+            
+            // Actualizar la interfaz del historial
+            renderHistorialPeriods();
+        });
+    };
+
+    // =========================================================================
+    // NUEVA FUNCIÓN: RENDERIZAR PERÍODOS DEL HISTORIAL
+    // =========================================================================
+    const renderHistorialPeriods = () => {
+        const listContainer = document.getElementById('historial-periodos-list');
+        
+        if (historialPeriods.length === 0) {
+            listContainer.innerHTML = `
+                <div class="col-span-full text-center py-12 text-gray-500">
+                    <i class="fas fa-archive text-6xl text-gray-300 mb-4"></i>
+                    <h4 class="text-lg font-medium mb-2">No hay períodos archivados</h4>
+                    <p class="text-sm">Los períodos aparecerán aquí después de realizar un corte de mes.</p>
+                    <p class="text-xs mt-2 text-gray-400">
+                        Utiliza el botón "Corte de Mes" en la pestaña Resumen para archivar un período.
+                    </p>
+                </div>
+            `;
+            return;
+        }
+
+        const periodsHTML = historialPeriods.map(period => {
+            const monthDate = new Date(period.monthKey + '-01');
+            const monthName = monthDate.toLocaleDateString('es-CO', { 
+                month: 'long', 
+                year: 'numeric' 
+            });
+            const closedDate = new Date(period.closedDate).toLocaleDateString('es-CO');
+            
+            return `
+                <div class="historial-period-card card p-4 border-2 border-gray-200 hover:border-indigo-300 transition-all cursor-pointer ${
+                    selectedHistorialPeriod?.monthKey === period.monthKey ? 'selected' : ''
+                }" data-month-key="${period.monthKey}">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-semibold text-gray-800 capitalize">${monthName}</h4>
+                        <i class="fas fa-archive text-gray-400"></i>
+                    </div>
+                    <div class="space-y-2 text-sm text-gray-600">
+                        <div class="flex items-center">
+                            <i class="fas fa-calendar-check w-4 h-4 mr-2 text-green-500"></i>
+                            <span>Cerrado: ${closedDate}</span>
+                        </div>
+                        ${period.notes ? `
+                            <div class="flex items-start">
+                                <i class="fas fa-sticky-note w-4 h-4 mr-2 mt-0.5 text-yellow-500"></i>
+                                <span class="text-xs">${period.notes}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        listContainer.innerHTML = periodsHTML;
+    };
+
+    // =========================================================================
+    // NUEVA FUNCIÓN: MOSTRAR DATOS DEL PERÍODO SELECCIONADO
+    // =========================================================================
+    const showHistorialPeriodData = (monthKey) => {
+        const period = historialPeriods.find(p => p.monthKey === monthKey);
+        if (!period) return;
+
+        selectedHistorialPeriod = period;
+        
+        // Actualizar selección visual
+        document.querySelectorAll('.historial-period-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        document.querySelector(`[data-month-key="${monthKey}"]`).classList.add('selected');
+
+        // Calcular totales del período
+        const totales = {
+            ingresos: (period.data.ingresos || []).reduce((sum, item) => sum + item.monto, 0),
+            compras: (period.data.compras || []).reduce((sum, item) => sum + item.monto, 0),
+            gastos: (period.data.gastos || []).reduce((sum, item) => sum + item.monto, 0),
+            retiros: (period.data.retiros || []).reduce((sum, item) => sum + item.monto, 0)
+        };
+
+        const monthDate = new Date(period.monthKey + '-01');
+        const monthName = monthDate.toLocaleDateString('es-CO', { 
+            month: 'long', 
+            year: 'numeric' 
+        });
+
+        const dataView = document.getElementById('historial-data-view');
+        dataView.innerHTML = `
+            <div class="historial-data-section border-t pt-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 flex items-center capitalize">
+                        <i class="fas fa-eye mr-2 text-indigo-600"></i>
+                        Datos de ${monthName}
+                    </h3>
+                    <button id="close-historial-view" class="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Información del período -->
+                <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="font-medium text-gray-700">Período:</span>
+                            <span class="ml-2">${period.monthKey}</span>
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-700">Fecha de cierre:</span>
+                            <span class="ml-2">${new Date(period.closedDate).toLocaleDateString('es-CO')}</span>
+                        </div>
+                        ${period.notes ? `
+                            <div class="md:col-span-2">
+                                <span class="font-medium text-gray-700">Notas:</span>
+                                <span class="ml-2">${period.notes}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+
+                <!-- Resumen del período archivado -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <div class="flex items-center">
+                            <i class="fas fa-dollar-sign text-2xl text-green-600 mr-3"></i>
+                            <div>
+                                <h4 class="text-sm font-medium text-green-800">Ingresos Totales</h4>
+                                <p class="text-xl font-semibold text-green-600">${formatCurrency(totales.ingresos)}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                        <div class="flex items-center">
+                            <i class="fas fa-shopping-cart text-2xl text-purple-600 mr-3"></i>
+                            <div>
+                                <h4 class="text-sm font-medium text-purple-800">Compras Totales</h4>
+                                <p class="text-xl font-semibold text-purple-600">${formatCurrency(totales.compras)}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                        <div class="flex items-center">
+                            <i class="fas fa-receipt text-2xl text-red-600 mr-3"></i>
+                            <div>
+                                <h4 class="text-sm font-medium text-red-800">Gastos Totales</h4>
+                                <p class="text-xl font-semibold text-red-600">${formatCurrency(totales.gastos)}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                        <div class="flex items-center">
+                            <i class="fas fa-hand-holding-dollar text-2xl text-orange-600 mr-3"></i>
+                            <div>
+                                <h4 class="text-sm font-medium text-orange-800">Retiros Totales</h4>
+                                <p class="text-xl font-semibold text-orange-600">${formatCurrency(totales.retiros)}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tablas de datos archivados -->
+                <div class="space-y-6">
+                    ${renderHistorialDataTables(period.data)}
+                </div>
+
+                <!-- Botón para descargar reporte del período -->
+                <div class="mt-6 text-center">
+                    <button id="download-historial-report" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors flex items-center mx-auto" data-month-key="${period.monthKey}">
+                        <i class="fas fa-download mr-2"></i>
+                        Descargar Reporte del Período
+                    </button>
+                </div>
+            </div>
+        `;
+
+        dataView.classList.remove('hidden');
+    };
+
+    // =========================================================================
+    // NUEVA FUNCIÓN: RENDERIZAR TABLAS DE DATOS ARCHIVADOS
+    // =========================================================================
+    const renderHistorialDataTables = (data) => {
+        const dataTypeInfo = {
+            ingresos: { title: 'Ingresos', icon: 'fas fa-dollar-sign', color: 'green' },
+            compras: { title: 'Compras', icon: 'fas fa-shopping-cart', color: 'purple' },
+            gastos: { title: 'Gastos Operacionales', icon: 'fas fa-receipt', color: 'red' },
+            retiros: { title: 'Retiros del Jefe', icon: 'fas fa-hand-holding-dollar', color: 'orange' },
+            cuentasPorCobrar: { title: 'Cuentas por Cobrar', icon: 'fas fa-users', color: 'yellow' },
+            cuentasPorPagar: { title: 'Cuentas por Pagar', icon: 'fas fa-credit-card', color: 'red' },
+            vales: { title: 'Vales de Personal', icon: 'fas fa-user-tag', color: 'cyan' }
+        };
+
+        return Object.entries(data).map(([dataType, items]) => {
+            if (!items || items.length === 0) return '';
+            
+            const typeInfo = dataTypeInfo[dataType];
+            if (!typeInfo) return '';
+
+            const limitedItems = items.slice(0, 10); // Mostrar solo los primeros 10
+            
+            return `
+                <div class="bg-gray-50 p-4 rounded-lg border">
+                    <h4 class="text-lg font-medium mb-4 text-gray-800 flex items-center">
+                        <i class="${typeInfo.icon} mr-2"></i>
+                        ${typeInfo.title}
+                        <span class="ml-2 text-sm font-normal text-gray-500">
+                            (${items.length} registros)
+                        </span>
+                    </h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">Fecha</th>
+                                    <th class="px-4 py-2 text-left">Descripción</th>
+                                    <th class="px-4 py-2 text-left">Monto</th>
+                                    ${dataType === 'ingresos' ? `
+                                        <th class="px-4 py-2 text-left">Efectivo</th>
+                                        <th class="px-4 py-2 text-left">Tarjeta/Banco</th>
+                                    ` : ''}
+                                    ${(dataType === 'compras' || dataType === 'retiros') ? `
+                                        <th class="px-4 py-2 text-left">Método</th>
+                                    ` : ''}
+                                    ${dataType === 'gastos' ? `
+                                        <th class="px-4 py-2 text-left">Categoría</th>
+                                    ` : ''}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${limitedItems.map(item => {
+                                    const descripcion = item.descripcion || item.notas || item.proveedor || item.cliente || item.persona || 'N/A';
+                                    
+                                    return `
+                                        <tr class="border-b border-gray-200">
+                                            <td class="px-4 py-2">${item.fecha.toLocaleDateString('es-CO')}</td>
+                                            <td class="px-4 py-2">${descripcion}</td>
+                                            <td class="px-4 py-2 font-medium">${formatCurrency(item.monto)}</td>
+                                            ${dataType === 'ingresos' ? `
+                                                <td class="px-4 py-2 text-green-600">${formatCurrency(item.monto_efectivo || 0)}</td>
+                                                <td class="px-4 py-2 text-blue-600">${formatCurrency(item.monto_tarjeta || 0)}</td>
+                                            ` : ''}
+                                            ${(dataType === 'compras' || dataType === 'retiros') ? `
+                                                <td class="px-4 py-2">
+                                                    <span class="px-2 py-1 rounded-full text-xs ${
+                                                        item.metodo === 'Efectivo' 
+                                                            ? 'bg-green-100 text-green-800' 
+                                                            : 'bg-blue-100 text-blue-800'
+                                                    }">
+                                                        <i class="fas fa-${item.metodo === 'Efectivo' ? 'money-bill' : 'credit-card'} mr-1"></i>
+                                                        ${item.metodo}
+                                                    </span>
+                                                </td>
+                                            ` : ''}
+                                            ${dataType === 'gastos' ? `
+                                                <td class="px-4 py-2">
+                                                    <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
+                                                        ${item.categoria}
+                                                    </span>
+                                                </td>
+                                            ` : ''}
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                        ${items.length > 10 ? `
+                            <div class="text-center text-gray-500 mt-3 p-2 bg-gray-100 rounded">
+                                <i class="fas fa-file-text mr-1"></i>
+                                ... y ${items.length - 10} registros más
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }).filter(html => html !== '').join('');
+    };
+
+    // =========================================================================
+    // EVENT LISTENERS PARA EL HISTORIAL
+    // =========================================================================
+    document.body.addEventListener('click', (e) => {
+        // Manejar clic en tarjetas de período
+        const periodCard = e.target.closest('.historial-period-card');
+        if (periodCard) {
+            const monthKey = periodCard.dataset.monthKey;
+            showHistorialPeriodData(monthKey);
+            return;
+        }
+
+        // Manejar botón de cerrar vista de historial
+        if (e.target.closest('#close-historial-view')) {
+            document.getElementById('historial-data-view').classList.add('hidden');
+            selectedHistorialPeriod = null;
+            document.querySelectorAll('.historial-period-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            return;
+        }
+
+        // Manejar botón de actualizar historial
+        if (e.target.closest('#refresh-historial-btn')) {
+            loadHistorialPeriods();
+            showNotification('Éxito', 'Historial actualizado correctamente.');
+            return;
+        }
+
+        // Manejar descarga de reporte de historial
+        if (e.target.closest('#download-historial-report')) {
+            const monthKey = e.target.closest('#download-historial-report').dataset.monthKey;
+            generateHistorialReport(monthKey);
+            return;
+        }
+
+        // ... resto de event listeners existentes ...
+        const target = e.target;
+        const deleteBtn = target.closest('.delete-btn');
+        const pdfBtn = target.closest('.btn-pdf');
+        const tabBtn = target.closest('.tab-button');
+        const abonoBtn = target.closest('.abono-btn');
+        const pagarBtn = target.closest('.pagar-btn');
+        const historialBtn = target.closest('.historial-btn');
+
+        if (tabBtn) changeTab(tabBtn.dataset.tab);
+        else if (deleteBtn) handleDelete(deleteBtn.dataset.type, deleteBtn.dataset.id);
+        else if (pdfBtn) {
+            const type = pdfBtn.dataset.type;
+            if (type === 'deudas-cobrar') exportDeudasPDF('cuentasPorCobrar');
+            else if (type === 'deudas-pagar') exportDeudasPDF('cuentasPorPagar');
+            else if (type === 'vales') exportDeudasPDF('vales');
+            else exportToPDF(type);
+        }
+        else if (abonoBtn) handleAbonar(abonoBtn.dataset.id, abonoBtn.dataset.type);
+        else if (pagarBtn) handlePagar(pagarBtn.dataset.id);
+        else if (historialBtn) handleHistorial(historialBtn.dataset.id, historialBtn.dataset.type);
+    });
+
+    // =========================================================================
+    // NUEVA FUNCIÓN: GENERAR REPORTE DE HISTORIAL
+    // =========================================================================
+    const generateHistorialReport = (monthKey) => {
+        const period = historialPeriods.find(p => p.monthKey === monthKey);
+        if (!period) {
+            showNotification('Error', 'No se encontró el período seleccionado.', 'error');
+            return;
+        }
+
+        showNotification('Función en desarrollo', 'La descarga de reportes históricos estará disponible pronto.', 'success');
+    };
+
+    // =========================================================================
+    // MANEJO DE DATOS Y PERÍODOS (código existente)
     // =========================================================================
     const detachAllListeners = () => {
         dataListeners.forEach(({ ref, listener }) => ref.off('value', listener));
         dataListeners = [];
+        
+        // Detach historial listener
+        if (historialListener) {
+            historialListener.off();
+            historialListener = null;
+        }
     };
 
     const startDataListeners = () => {
@@ -824,6 +1280,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         break;
                     
                     case 1: // Archivar todo
+                        // Agregar información de cierre al historial
+                        updates[`/historial_periodos/${periodo}/closedDate`] = fechaCorte;
+                        updates[`/historial_periodos/${periodo}/notes`] = notas;
+                        
                         for (const type of dataTypes) {
                             if (allData[type] && allData[type].length > 0) {
                                 const dataObject = allData[type].reduce((obj, item) => {
@@ -957,6 +1417,12 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (tabName === 'registros') renderAllTables();
         else if (tabName === 'deudas') { renderCuentasPorCobrar(); renderCuentasPorPagar(); }
         else if (tabName === 'vales') renderVales();
+        else if (tabName === 'historial') {
+            // Asegurar que el historial esté cargado cuando se accede a la pestaña
+            if (historialPeriods.length === 0) {
+                loadHistorialPeriods();
+            }
+        }
     };
 
     const formatDateForInput = (date) => new Date(date).toISOString().split('T')[0];
@@ -1135,7 +1601,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('logout-btn-selector').addEventListener('click', handleLogout);
     document.getElementById('switch-business-btn').addEventListener('click', showBusinessSelector);
     document.getElementById('month-filter').addEventListener('change', refreshUI);
-    document.body.addEventListener('click', (e) => { const target = e.target; const deleteBtn = target.closest('.delete-btn'); const pdfBtn = target.closest('.btn-pdf'); const tabBtn = target.closest('.tab-button'); const abonoBtn = target.closest('.abono-btn'); const pagarBtn = target.closest('.pagar-btn'); const historialBtn = target.closest('.historial-btn'); if (tabBtn) changeTab(tabBtn.dataset.tab); else if (deleteBtn) handleDelete(deleteBtn.dataset.type, deleteBtn.dataset.id); else if (pdfBtn) { const type = pdfBtn.dataset.type; if (type === 'deudas-cobrar') exportDeudasPDF('cuentasPorCobrar'); else if (type === 'deudas-pagar') exportDeudasPDF('cuentasPorPagar'); else if (type === 'vales') exportToPDF(type); else exportToPDF(type); } else if (abonoBtn) handleAbonar(abonoBtn.dataset.id, abonoBtn.dataset.type); else if (pagarBtn) handlePagar(pagarBtn.dataset.id); else if (historialBtn) handleHistorial(historialBtn.dataset.id, historialBtn.dataset.type); });
 
     // =========================================================================
     // FUNCIONES DE PDF (mantenidas del código original)
