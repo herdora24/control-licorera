@@ -188,7 +188,35 @@
                              </div>
                          </div>
                 </div>
-                <div id="ingresos" class="tab-content hidden"><div class="max-w-xl mx-auto card p-6 sm:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Venta</h2><form id="form-ingresos" class="space-y-4 sm:space-y-6"><div><label for="ingreso-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="ingreso-fecha" class="mt-1 block w-full rounded-md" required></div><div><label for="ingreso-efectivo" class="block text-sm font-medium">Ventas en Efectivo</label><input type="text" data-moneda inputmode="numeric" id="ingreso-efectivo" value="0" class="mt-1 block w-full" required></div><div><label for="ingreso-tarjeta" class="block text-sm font-medium">Ventas Tarjeta/Transf.</label><input type="text" data-moneda inputmode="numeric" id="ingreso-tarjeta" value="0" class="mt-1 block w-full" required></div><div><label for="ingreso-notas" class="block text-sm font-medium">Notas</label><textarea id="ingreso-notas" rows="3" class="mt-1 block w-full"></textarea></div><button type="submit" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Ingreso</button></form></div></div>
+                <div id="ingresos" class="tab-content hidden">
+                    <div class="max-w-xl mx-auto card p-6 sm:p-8">
+                        <h2 class="text-xl sm:text-2xl font-semibold">Registrar Venta</h2>
+                        <form id="form-ingresos" class="space-y-4 sm:space-y-6">
+                            <div>
+                                <label for="ingreso-fecha" class="block text-sm font-medium">Fecha</label>
+                                <input type="date" id="ingreso-fecha" class="mt-1 block w-full rounded-md" required>
+                            </div>
+                            <div>
+                                <label for="ingreso-efectivo" class="block text-sm font-medium">Ventas en Efectivo</label>
+                                <input type="text" data-moneda inputmode="numeric" id="ingreso-efectivo" value="0" class="mt-1 block w-full" required>
+                            </div>
+                            <div>
+                                <label for="ingreso-tarjeta" class="block text-sm font-medium">Ventas Tarjeta/Transf.</label>
+                                <input type="text" data-moneda inputmode="numeric" id="ingreso-tarjeta" value="0" class="mt-1 block w-full" required>
+                            </div>
+                            <!-- CAMPO NUEVO: SOBRANTES -->
+                            <div>
+                                <label for="ingreso-sobrante" class="block text-sm font-medium text-blue-600">Sobrantes del Día (en Efectivo)</label>
+                                <input type="text" data-moneda inputmode="numeric" id="ingreso-sobrante" value="0" class="mt-1 block w-full rounded-md border-blue-300 focus:ring-blue-500 focus:border-blue-500" required>
+                            </div>
+                            <div>
+                                <label for="ingreso-notas" class="block text-sm font-medium">Notas</label>
+                                <textarea id="ingreso-notas" rows="3" class="mt-1 block w-full"></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Ingreso</button>
+                        </form>
+                    </div>
+                </div>
                 <div id="compras" class="tab-content hidden"><div class="max-w-xl mx-auto card p-6 sm:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Compra</h2><form id="form-compras" class="space-y-4 sm:space-y-6"><div><label for="compra-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="compra-fecha" class="mt-1 block w-full" required></div><div><label for="compra-proveedor" class="block text-sm font-medium">Proveedor</label><input type="text" id="compra-proveedor" class="mt-1 block w-full" required></div><div><label for="compra-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="compra-descripcion" class="mt-1 block w-full" required></div><div><label for="compra-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="compra-monto" class="mt-1 block w-full" required></div><div><label for="compra-metodo" class="block text-sm font-medium">Pagado con</label><select id="compra-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div><button type="submit" class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Compra</button></form></div></div>
                 <div id="gastos" class="tab-content hidden"><div class="max-w-xl mx-auto card p-6 sm:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Gasto Op. (del Efectivo)</h2><form id="form-gastos" class="space-y-4 sm:space-y-6"><div><label for="gasto-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="gasto-fecha" class="mt-1 block w-full" required></div><div><label for="gasto-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="gasto-descripcion" class="mt-1 block w-full" required></div><div><label for="gasto-categoria" class="block text-sm font-medium">Categoría</label><select id="gasto-categoria" class="mt-1 block w-full" required><option>Arriendo</option><option>Servicios</option><option>Nómina</option><option>Marketing</option><option>Mantenimiento</option><option>Impuestos</option><option>Insumos</option><option>Otro</option></select></div><div><label for="gasto-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="gasto-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Gasto</button></form></div></div>
                 <div id="retiros" class="tab-content hidden"><div class="max-w-xl mx-auto card p-6 sm:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Retiro Jefe</h2><form id="form-retiros" class="space-y-4 sm:space-y-6"><div><label for="retiro-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="retiro-fecha" class="mt-1 block w-full" required></div><div><label for="retiro-metodo" class="block text-sm font-medium">Retirar de</label><select id="retiro-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo (Caja)</option><option value="Banco">Banco (Transferencia)</option></select></div><div><label for="retiro-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="retiro-descripcion" class="mt-1 block w-full" required></div><div><label for="retiro-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="retiro-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold">Añadir Retiro</button></form></div></div>
@@ -231,6 +259,8 @@
                 
                 <div id="registros" class="tab-content hidden space-y-6 sm:space-y-8">
                     <div><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2"><h2 class="text-xl sm:text-2xl font-semibold">Todos los Ingresos</h2><button data-type="ingresos" class="btn-pdf bg-gray-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm"><i class="fas fa-file-pdf mr-1 sm:mr-2"></i>PDF</button></div><div class="card p-3 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-ingresos"></table></div></div>
+                    <!-- SECCIÓN NUEVA: SOBRANTES -->
+                    <div><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2"><h2 class="text-xl sm:text-2xl font-semibold">Todos los Sobrantes</h2><button data-type="sobrantes" class="btn-pdf bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm"><i class="fas fa-file-pdf mr-1 sm:mr-2"></i>PDF</button></div><div class="card p-3 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-sobrantes"></table></div></div>
                     <div><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2"><h2 class="text-xl sm:text-2xl font-semibold">Todas las Compras</h2><button data-type="compras" class="btn-pdf bg-gray-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm"><i class="fas fa-file-pdf mr-1 sm:mr-2"></i>PDF</button></div><div class="card p-3 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-compras"></table></div></div>
                     <div><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2"><h2 class="text-xl sm:text-2xl font-semibold">Todos los Gastos Op.</h2><button data-type="gastos" class="btn-pdf bg-gray-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm"><i class="fas fa-file-pdf mr-1 sm:mr-2"></i>PDF</button></div><div class="card p-3 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-gastos"></table></div></div>
                     <div><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2"><h2 class="text-xl sm:text-2xl font-semibold">Todos los Retiros</h2><button data-type="retiros" class="btn-pdf bg-gray-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm"><i class="fas fa-file-pdf mr-1 sm:mr-2"></i>PDF</button></div><div class="card p-3 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-retiros"></table></div></div>
@@ -468,8 +498,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let periods = [];
     let currentPeriod = null;
     
-    // CORRECCIÓN: Se eliminaron las declaraciones duplicadas.
-    // Ahora solo hay una declaración para cada variable del historial.
     let historialPeriods = [];
     let selectedHistorialPeriod = null;
     let historialListener = null;
@@ -579,27 +607,23 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // =========================================================================
-    // NUEVA FUNCIÓN: CARGAR HISTORIAL DE PERÍODOS
+    // LÓGICA DE HISTORIAL
     // =========================================================================
     const loadHistorialPeriods = () => {
-        // Detach previous listener if it exists
         if (historialListener) {
             const prevRef = database.ref(`businesses/${selectedBusinessId}/historial_periodos`);
             prevRef.off('value', historialListener);
         }
         
         const historialRef = database.ref(`businesses/${selectedBusinessId}/historial_periodos`);
-        // CORRECCIÓN: Se guarda la referencia a la función listener para poder quitarla después.
         historialListener = historialRef.on('value', (snapshot) => {
             const data = snapshot.val();
             historialPeriods = [];
             
             if (data) {
-                // Procesar cada período archivado
                 Object.entries(data).forEach(([monthKey, periodData]) => {
                     const processedData = {};
                     
-                    // Procesar cada tipo de dato (ingresos, compras, gastos, etc.)
                     Object.entries(periodData).forEach(([dataType, items]) => {
                         if (items && typeof items === 'object' && dataType !== 'closedDate' && dataType !== 'notes') {
                             processedData[dataType] = Object.entries(items).map(([id, item]) => ({
@@ -618,18 +642,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 });
                 
-                // Ordenar por fecha descendente (más recientes primero)
                 historialPeriods.sort((a, b) => b.monthKey.localeCompare(a.monthKey));
             }
             
-            // Actualizar la interfaz del historial
             renderHistorialPeriods();
         });
     };
 
-    // =========================================================================
-    // NUEVA FUNCIÓN: RENDERIZAR PERÍODOS DEL HISTORIAL
-    // =========================================================================
     const renderHistorialPeriods = () => {
         const listContainer = document.getElementById('historial-periodos-list');
         
@@ -650,7 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const periodsHTML = historialPeriods.map(period => {
-            const monthDate = new Date(period.monthKey + '-02T00:00:00'); // Use day 2 to avoid timezone issues
+            const monthDate = new Date(period.monthKey + '-02T00:00:00');
             const monthName = monthDate.toLocaleDateString('es-CO', { 
                 month: 'long', 
                 year: 'numeric',
@@ -684,23 +703,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         listContainer.innerHTML = periodsHTML;
     };
-
-    // =========================================================================
-    // NUEVA FUNCIÓN: MOSTRAR DATOS DEL PERÍODO SELECCIONADO
-    // =========================================================================
+    
     const showHistorialPeriodData = (monthKey) => {
         const period = historialPeriods.find(p => p.monthKey === monthKey);
         if (!period) return;
 
         selectedHistorialPeriod = period;
         
-        // Actualizar selección visual
         document.querySelectorAll('.historial-period-card').forEach(card => {
             card.classList.remove('selected');
         });
         document.querySelector(`[data-month-key="${monthKey}"]`).classList.add('selected');
 
-        // Calcular totales del período
         const totales = {
             ingresos: (period.data.ingresos || []).reduce((sum, item) => sum + item.monto, 0),
             compras: (period.data.compras || []).reduce((sum, item) => sum + item.monto, 0),
@@ -728,7 +742,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                 </div>
 
-                <!-- Información del período -->
                 <div class="bg-gray-50 p-4 rounded-lg mb-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div>
@@ -748,7 +761,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
 
-                <!-- Resumen del período archivado -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     <div class="bg-green-50 p-4 rounded-lg border border-green-200">
                         <div class="flex items-center">
@@ -759,7 +771,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
                     </div>
-                    
                     <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
                         <div class="flex items-center">
                             <i class="fas fa-shopping-cart text-2xl text-purple-600 mr-3"></i>
@@ -769,7 +780,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
                     </div>
-                    
                     <div class="bg-red-50 p-4 rounded-lg border border-red-200">
                         <div class="flex items-center">
                             <i class="fas fa-receipt text-2xl text-red-600 mr-3"></i>
@@ -779,7 +789,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
                     </div>
-                    
                     <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
                         <div class="flex items-center">
                             <i class="fas fa-hand-holding-dollar text-2xl text-orange-600 mr-3"></i>
@@ -791,12 +800,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
 
-                <!-- Tablas de datos archivados -->
                 <div class="space-y-6">
                     ${renderHistorialDataTables(period.data)}
                 </div>
 
-                <!-- Botón para descargar reporte del período -->
                 <div class="mt-6 text-center">
                     <button id="download-historial-report" class="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors flex items-center mx-auto" data-month-key="${period.monthKey}">
                         <i class="fas fa-download mr-2"></i>
@@ -809,186 +816,109 @@ document.addEventListener('DOMContentLoaded', () => {
         dataView.classList.remove('hidden');
     };
 
-    // =========================================================================
-    // NUEVA FUNCIÓN: RENDERIZAR TABLAS DE DATOS ARCHIVADOS
-    // =========================================================================
     const renderHistorialDataTables = (data) => {
         const dataTypeInfo = {
-            ingresos: { title: 'Ingresos', icon: 'fas fa-dollar-sign', color: 'green' },
-            compras: { title: 'Compras', icon: 'fas fa-shopping-cart', color: 'purple' },
-            gastos: { title: 'Gastos Operacionales', icon: 'fas fa-receipt', color: 'red' },
-            retiros: { title: 'Retiros del Jefe', icon: 'fas fa-hand-holding-dollar', color: 'orange' },
-            cuentasPorCobrar: { title: 'Cuentas por Cobrar', icon: 'fas fa-users', color: 'yellow' },
-            cuentasPorPagar: { title: 'Cuentas por Pagar', icon: 'fas fa-credit-card', color: 'red' },
-            vales: { title: 'Vales de Personal', icon: 'fas fa-user-tag', color: 'cyan' }
+            ingresos: { title: 'Ingresos', icon: 'fas fa-dollar-sign' },
+            compras: { title: 'Compras', icon: 'fas fa-shopping-cart' },
+            gastos: { title: 'Gastos Operacionales', icon: 'fas fa-receipt' },
+            retiros: { title: 'Retiros del Jefe', icon: 'fas fa-hand-holding-dollar' },
+            cuentasPorCobrar: { title: 'Cuentas por Cobrar', icon: 'fas fa-users' },
+            cuentasPorPagar: { title: 'Cuentas por Pagar', icon: 'fas fa-credit-card' },
+            vales: { title: 'Vales de Personal', icon: 'fas fa-user-tag' }
         };
 
-        return Object.entries(data).map(([dataType, items]) => {
-            if (!items || items.length === 0) return '';
+        let tablesHTML = Object.entries(data).map(([dataType, items]) => {
+            if (!items || items.length === 0 || !dataTypeInfo[dataType]) return '';
             
             const typeInfo = dataTypeInfo[dataType];
-            if (!typeInfo) return '';
-
-            const limitedItems = items.slice(0, 10); // Mostrar solo los primeros 10
+            const limitedItems = items.slice(0, 10);
             
+            let headers = `
+                <th class="px-4 py-2 text-left">Fecha</th>
+                <th class="px-4 py-2 text-left">Descripción</th>
+                <th class="px-4 py-2 text-left">Monto</th>
+            `;
+            if (dataType === 'ingresos') headers += `<th class="px-4 py-2 text-left">Efectivo</th><th class="px-4 py-2 text-left">Tarjeta/Banco</th>`;
+            if (dataType === 'compras' || dataType === 'retiros') headers += `<th class="px-4 py-2 text-left">Método</th>`;
+            if (dataType === 'gastos') headers += `<th class="px-4 py-2 text-left">Categoría</th>`;
+
+            const bodyRows = limitedItems.map(item => {
+                const descripcion = item.descripcion || item.notas || item.proveedor || item.cliente || item.persona || 'N/A';
+                let row = `
+                    <td class="px-4 py-2">${item.fecha.toLocaleDateString('es-CO')}</td>
+                    <td class="px-4 py-2">${descripcion}</td>
+                    <td class="px-4 py-2 font-medium">${formatCurrency(item.monto)}</td>
+                `;
+                if (dataType === 'ingresos') row += `<td class="px-4 py-2 text-green-600">${formatCurrency(item.monto_efectivo || 0)}</td><td class="px-4 py-2 text-blue-600">${formatCurrency(item.monto_tarjeta || 0)}</td>`;
+                if (dataType === 'compras' || dataType === 'retiros') row += `<td class="px-4 py-2"><span class="px-2 py-1 rounded-full text-xs ${item.metodo === 'Efectivo' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}"><i class="fas fa-${item.metodo === 'Efectivo' ? 'money-bill' : 'credit-card'} mr-1"></i>${item.metodo}</span></td>`;
+                if (dataType === 'gastos') row += `<td class="px-4 py-2"><span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">${item.categoria}</span></td>`;
+                return `<tr class="border-b border-gray-200">${row}</tr>`;
+            }).join('');
+
             return `
                 <div class="bg-gray-50 p-4 rounded-lg border">
                     <h4 class="text-lg font-medium mb-4 text-gray-800 flex items-center">
-                        <i class="${typeInfo.icon} mr-2"></i>
-                        ${typeInfo.title}
-                        <span class="ml-2 text-sm font-normal text-gray-500">
-                            (${items.length} registros)
-                        </span>
+                        <i class="${typeInfo.icon} mr-2"></i> ${typeInfo.title}
+                        <span class="ml-2 text-sm font-normal text-gray-500">(${items.length} registros)</span>
                     </h4>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
-                            <thead class="bg-gray-100">
-                                <tr>
-                                    <th class="px-4 py-2 text-left">Fecha</th>
-                                    <th class="px-4 py-2 text-left">Descripción</th>
-                                    <th class="px-4 py-2 text-left">Monto</th>
-                                    ${dataType === 'ingresos' ? `
-                                        <th class="px-4 py-2 text-left">Efectivo</th>
-                                        <th class="px-4 py-2 text-left">Tarjeta/Banco</th>
-                                    ` : ''}
-                                    ${(dataType === 'compras' || dataType === 'retiros') ? `
-                                        <th class="px-4 py-2 text-left">Método</th>
-                                    ` : ''}
-                                    ${dataType === 'gastos' ? `
-                                        <th class="px-4 py-2 text-left">Categoría</th>
-                                    ` : ''}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${limitedItems.map(item => {
-                                    const descripcion = item.descripcion || item.notas || item.proveedor || item.cliente || item.persona || 'N/A';
-                                    
-                                    return `
-                                        <tr class="border-b border-gray-200">
-                                            <td class="px-4 py-2">${item.fecha.toLocaleDateString('es-CO')}</td>
-                                            <td class="px-4 py-2">${descripcion}</td>
-                                            <td class="px-4 py-2 font-medium">${formatCurrency(item.monto)}</td>
-                                            ${dataType === 'ingresos' ? `
-                                                <td class="px-4 py-2 text-green-600">${formatCurrency(item.monto_efectivo || 0)}</td>
-                                                <td class="px-4 py-2 text-blue-600">${formatCurrency(item.monto_tarjeta || 0)}</td>
-                                            ` : ''}
-                                            ${(dataType === 'compras' || dataType === 'retiros') ? `
-                                                <td class="px-4 py-2">
-                                                    <span class="px-2 py-1 rounded-full text-xs ${
-                                                        item.metodo === 'Efectivo' 
-                                                            ? 'bg-green-100 text-green-800' 
-                                                            : 'bg-blue-100 text-blue-800'
-                                                    }">
-                                                        <i class="fas fa-${item.metodo === 'Efectivo' ? 'money-bill' : 'credit-card'} mr-1"></i>
-                                                        ${item.metodo}
-                                                    </span>
-                                                </td>
-                                            ` : ''}
-                                            ${dataType === 'gastos' ? `
-                                                <td class="px-4 py-2">
-                                                    <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
-                                                        ${item.categoria}
-                                                    </span>
-                                                </td>
-                                            ` : ''}
-                                        </tr>
-                                    `;
-                                }).join('')}
-                            </tbody>
+                            <thead class="bg-gray-100"><tr>${headers}</tr></thead>
+                            <tbody>${bodyRows}</tbody>
                         </table>
-                        ${items.length > 10 ? `
-                            <div class="text-center text-gray-500 mt-3 p-2 bg-gray-100 rounded">
-                                <i class="fas fa-file-text mr-1"></i>
-                                ... y ${items.length - 10} registros más
-                            </div>
-                        ` : ''}
+                        ${items.length > 10 ? `<div class="text-center text-gray-500 mt-3 p-2 bg-gray-100 rounded">... y ${items.length - 10} registros más</div>` : ''}
                     </div>
                 </div>
             `;
         }).filter(html => html !== '').join('');
+
+        // Add Sobrantes table separately
+        const sobrantesData = (data.ingresos || []).filter(i => i.monto_sobrante && i.monto_sobrante > 0);
+        if (sobrantesData.length > 0) {
+            tablesHTML += `
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <h4 class="text-lg font-medium mb-4 text-blue-800 flex items-center">
+                        <i class="fas fa-coins mr-2"></i> Sobrantes del Día
+                        <span class="ml-2 text-sm font-normal text-gray-500">(${sobrantesData.length} registros)</span>
+                    </h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-blue-100">
+                                <tr>
+                                    <th class="px-4 py-2 text-left">Fecha</th>
+                                    <th class="px-4 py-2 text-left">Monto Sobrante</th>
+                                    <th class="px-4 py-2 text-left">Notas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${sobrantesData.slice(0, 10).map(item => `
+                                    <tr class="border-b border-blue-200">
+                                        <td class="px-4 py-2">${item.fecha.toLocaleDateString('es-CO')}</td>
+                                        <td class="px-4 py-2 font-medium text-blue-600">${formatCurrency(item.monto_sobrante)}</td>
+                                        <td class="px-4 py-2">${item.notas || 'Registro de Venta'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        ${sobrantesData.length > 10 ? `<div class="text-center text-gray-500 mt-3 p-2 bg-gray-100 rounded">... y ${sobrantesData.length - 10} registros más</div>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        return tablesHTML;
     };
 
-    // =========================================================================
-    // EVENT LISTENERS PARA EL HISTORIAL
-    // =========================================================================
-    document.body.addEventListener('click', (e) => {
-        // Manejar clic en tarjetas de período
-        const periodCard = e.target.closest('.historial-period-card');
-        if (periodCard) {
-            const monthKey = periodCard.dataset.monthKey;
-            showHistorialPeriodData(monthKey);
-            return;
-        }
-
-        // Manejar botón de cerrar vista de historial
-        if (e.target.closest('#close-historial-view')) {
-            document.getElementById('historial-data-view').classList.add('hidden');
-            selectedHistorialPeriod = null;
-            document.querySelectorAll('.historial-period-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            return;
-        }
-
-        // Manejar botón de actualizar historial
-        if (e.target.closest('#refresh-historial-btn')) {
-            loadHistorialPeriods();
-            showNotification('Éxito', 'Historial actualizado correctamente.');
-            return;
-        }
-
-        // Manejar descarga de reporte de historial
-        if (e.target.closest('#download-historial-report')) {
-            const monthKey = e.target.closest('#download-historial-report').dataset.monthKey;
-            generateHistorialReport(monthKey);
-            return;
-        }
-
-        // ... resto de event listeners existentes ...
-        const target = e.target;
-        const deleteBtn = target.closest('.delete-btn');
-        const pdfBtn = target.closest('.btn-pdf');
-        const tabBtn = target.closest('.tab-button');
-        const abonoBtn = target.closest('.abono-btn');
-        const pagarBtn = target.closest('.pagar-btn');
-        const historialBtn = target.closest('.historial-btn');
-
-        if (tabBtn) changeTab(tabBtn.dataset.tab);
-        else if (deleteBtn) handleDelete(deleteBtn.dataset.type, deleteBtn.dataset.id);
-        else if (pdfBtn) {
-            const type = pdfBtn.dataset.type;
-            if (type === 'deudas-cobrar') exportDeudasPDF('cuentasPorCobrar');
-            else if (type === 'deudas-pagar') exportDeudasPDF('cuentasPorPagar');
-            else if (type === 'vales') exportDeudasPDF('vales');
-            else exportToPDF(type);
-        }
-        else if (abonoBtn) handleAbonar(abonoBtn.dataset.id, abonoBtn.dataset.type);
-        else if (pagarBtn) handlePagar(pagarBtn.dataset.id);
-        else if (historialBtn) handleHistorial(historialBtn.dataset.id, historialBtn.dataset.type);
-    });
-
-    // =========================================================================
-    // NUEVA FUNCIÓN: GENERAR REPORTE DE HISTORIAL
-    // =========================================================================
     const generateHistorialReport = (monthKey) => {
-        const period = historialPeriods.find(p => p.monthKey === monthKey);
-        if (!period) {
-            showNotification('Error', 'No se encontró el período seleccionado.', 'error');
-            return;
-        }
-
         showNotification('Función en desarrollo', 'La descarga de reportes históricos estará disponible pronto.', 'success');
     };
 
     // =========================================================================
-    // MANEJO DE DATOS Y PERÍODOS (código existente)
+    // MANEJO DE DATOS Y PERÍODOS
     // =========================================================================
     const detachAllListeners = () => {
         dataListeners.forEach(({ ref, listener }) => ref.off('value', listener));
         dataListeners = [];
         
-        // CORRECCIÓN: Se eliminó el bloque duplicado y se usa la forma correcta
-        // de quitar el listener del historial.
         if (historialListener && selectedBusinessId) {
             const historialRef = database.ref(`businesses/${selectedBusinessId}/historial_periodos`);
             historialRef.off('value', historialListener);
@@ -1212,7 +1142,7 @@ document.addEventListener('DOMContentLoaded', () => {
                          <div class="flex justify-between"><span>Total Gastos:</span><span class="font-medium text-red-600">${formatCurrency(totales.gastos)}</span></div>
                          <div class="flex justify-between"><span>Total Retiros:</span><span class="font-medium text-orange-600">${formatCurrency(totales.retiros)}</span></div>
                      </div>
-                </div>
+             </div>
                 <div class="space-y-4">
                     <h5 class="font-semibold text-gray-800 border-b pb-2">Saldos a la Fecha de Corte</h5>
                      <div class="space-y-2 text-sm">
@@ -1375,6 +1305,51 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // EVENT LISTENERS (UI)
     // =========================================================================
+    document.body.addEventListener('click', (e) => {
+        const periodCard = e.target.closest('.historial-period-card');
+        if (periodCard) {
+            showHistorialPeriodData(periodCard.dataset.monthKey);
+            return;
+        }
+        if (e.target.closest('#close-historial-view')) {
+            document.getElementById('historial-data-view').classList.add('hidden');
+            selectedHistorialPeriod = null;
+            document.querySelectorAll('.historial-period-card').forEach(card => card.classList.remove('selected'));
+            return;
+        }
+        if (e.target.closest('#refresh-historial-btn')) {
+            loadHistorialPeriods();
+            showNotification('Éxito', 'Historial actualizado correctamente.');
+            return;
+        }
+        if (e.target.closest('#download-historial-report')) {
+            generateHistorialReport(e.target.closest('#download-historial-report').dataset.monthKey);
+            return;
+        }
+
+        const target = e.target;
+        const deleteBtn = target.closest('.delete-btn');
+        const pdfBtn = target.closest('.btn-pdf');
+        const tabBtn = target.closest('.tab-button');
+        const abonoBtn = target.closest('.abono-btn');
+        const pagarBtn = target.closest('.pagar-btn');
+        const historialBtn = target.closest('.historial-btn');
+
+        if (tabBtn) changeTab(tabBtn.dataset.tab);
+        else if (deleteBtn) handleDelete(deleteBtn.dataset.type, deleteBtn.dataset.id);
+        else if (pdfBtn) {
+            const type = pdfBtn.dataset.type;
+            if (type === 'deudas-cobrar') exportDeudasPDF('cuentasPorCobrar');
+            else if (type === 'deudas-pagar') exportDeudasPDF('cuentasPorPagar');
+            else if (type === 'vales') exportDeudasPDF('vales');
+            else if (type === 'sobrantes') exportSobrantesPDF(); // New PDF handler
+            else exportToPDF(type);
+        }
+        else if (abonoBtn) handleAbonar(abonoBtn.dataset.id, abonoBtn.dataset.type);
+        else if (pagarBtn) handlePagar(pagarBtn.dataset.id);
+        else if (historialBtn) handleHistorial(historialBtn.dataset.id, historialBtn.dataset.type);
+    });
+
     document.getElementById('close-period-btn').addEventListener('click', () => {
         if (isPeriodClosed()) {
             showNotification('Período Cerrado', 'Este período ya ha sido cerrado.', 'error');
@@ -1383,31 +1358,12 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeCorteModal();
         document.getElementById('corte-mes-modal').style.display = 'flex';
     });
-
-    document.getElementById('close-corte-modal-btn').addEventListener('click', () => {
-        document.getElementById('corte-mes-modal').style.display = 'none';
-        location.reload();
-    });
-
-    document.getElementById('corte-next-step1').addEventListener('click', () => {
-        generateCortePreview();
-        showCorteStep(2);
-    });
-
-    document.getElementById('corte-back-step2').addEventListener('click', () => {
-        showCorteStep(1);
-    });
-
-    document.getElementById('corte-confirm').addEventListener('click', () => {
-        executeCorte();
-    });
-
+    document.getElementById('close-corte-modal-btn').addEventListener('click', () => { document.getElementById('corte-mes-modal').style.display = 'none'; location.reload(); });
+    document.getElementById('corte-next-step1').addEventListener('click', () => { generateCortePreview(); showCorteStep(2); });
+    document.getElementById('corte-back-step2').addEventListener('click', () => { showCorteStep(1); });
+    document.getElementById('corte-confirm').addEventListener('click', () => { executeCorte(); });
     document.getElementById('corte-download-report').addEventListener('click', generateCorteReport);
-
-    document.getElementById('corte-close-modal-final').addEventListener('click', () => {
-        document.getElementById('corte-mes-modal').style.display = 'none';
-        location.reload(); 
-    });
+    document.getElementById('corte-close-modal-final').addEventListener('click', () => { document.getElementById('corte-mes-modal').style.display = 'none'; location.reload(); });
 
     const getNumericValue = (formattedValue) => {
         if (!formattedValue || typeof formattedValue !== 'string') return 0;
@@ -1426,7 +1382,6 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (tabName === 'deudas') { renderCuentasPorCobrar(); renderCuentasPorPagar(); }
         else if (tabName === 'vales') renderVales();
         else if (tabName === 'historial') {
-            // Asegurar que el historial esté cargado cuando se accede a la pestaña
             if (historialPeriods.length === 0) {
                 loadHistorialPeriods();
             }
@@ -1436,8 +1391,70 @@ document.addEventListener('DOMContentLoaded', () => {
     const formatDateForInput = (date) => new Date(date).toISOString().split('T')[0];
     const formatInputAsCurrency = (e) => { let input = e.target; let value = input.value.replace(/\D/g, ''); if (value) { const number = parseInt(value, 10); input.value = number.toLocaleString('es-CO'); } else { input.value = ''; } };
     const addCurrencyFormatting = (container) => { container.querySelectorAll('[data-moneda]').forEach(input => { input.removeEventListener('input', formatInputAsCurrency); input.addEventListener('input', formatInputAsCurrency); formatInputAsCurrency({ target: input }); }); };
-    const renderAllTables = () => { renderTable('ingresos', document.getElementById('tabla-ingresos'), ['Fecha', 'Efectivo', 'Tarjeta', 'Total', 'Notas', 'Acciones']); renderTable('compras', document.getElementById('tabla-compras'), ['Fecha', 'Proveedor', 'Descripción', 'Monto', 'Pagado con', 'Acciones']); renderTable('gastos', document.getElementById('tabla-gastos'), ['Fecha', 'Descripción', 'Categoría', 'Monto', 'Acciones']); renderTable('retiros', document.getElementById('tabla-retiros'), ['Fecha', 'Retirado de', 'Descripción', 'Monto', 'Acciones']); };
-    const renderTable = (type, tableEl, headers) => { const data = (allData[type] || []).filter(d => d.fecha instanceof Date).sort((a, b) => b.fecha - a.fecha); tableEl.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`; const tbody = tableEl.querySelector('tbody'); if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay registros de ${type}.</td></tr>`; return; } const rowsHTML = data.map(item => { let cellsHTML = ''; if (type === 'ingresos') cellsHTML = `<td class="px-3 sm:px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td><td class="px-3 sm:px-4 py-3">${formatCurrency(item.monto_efectivo)}</td><td class="px-3 sm:px-4 py-3">${formatCurrency(item.monto_tarjeta)}</td><td class="px-3 sm:px-4 py-3 font-bold">${formatCurrency(item.monto)}</td><td class="px-3 sm:px-4 py-3">${item.notas || '-'}</td>`; else if (type === 'compras') cellsHTML = `<td class="px-3 sm:px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td><td class="px-3 sm:px-4 py-3">${item.proveedor}</td><td class="px-3 sm:px-4 py-3">${item.descripcion}</td><td class="px-3 sm:px-4 py-3">${formatCurrency(item.monto)}</td><td class="px-3 sm:px-4 py-3">${item.metodo}</td>`; else if (type === 'gastos') cellsHTML = `<td class="px-3 sm:px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td><td class="px-3 sm:px-4 py-3">${item.descripcion}</td><td class="px-3 sm:px-4 py-3">${item.categoria}</td><td class="px-3 sm:px-4 py-3">${formatCurrency(item.monto)}</td>`; else if (type === 'retiros') cellsHTML = `<td class="px-3 sm:px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td><td class="px-3 sm:px-4 py-3">${item.metodo}</td><td class="px-3 sm:px-4 py-3">${item.descripcion}</td><td class="px-3 sm:px-4 py-3">${formatCurrency(item.monto)}</td>`; cellsHTML += `<td class="px-3 sm:px-4 py-3 flex items-center space-x-2"><button class="action-button text-red-600 delete-btn" data-type="${type}" data-id="${item.id}"><i class="fas fa-trash"></i></button></td>`; return `<tr class="bg-white border-b hover:bg-gray-50">${cellsHTML}</tr>`; }).join(''); tbody.innerHTML = rowsHTML; };
+    
+    // UPDATED to call sobrantes table renderer
+    const renderAllTables = () => { 
+        renderTable('ingresos', document.getElementById('tabla-ingresos'), ['Fecha', 'Venta Efectivo', 'Tarjeta', 'Sobrante', 'Total Ingreso', 'Notas', 'Acciones']); 
+        renderSobrantesTable(); // NEW
+        renderTable('compras', document.getElementById('tabla-compras'), ['Fecha', 'Proveedor', 'Descripción', 'Monto', 'Pagado con', 'Acciones']); 
+        renderTable('gastos', document.getElementById('tabla-gastos'), ['Fecha', 'Descripción', 'Categoría', 'Monto', 'Acciones']); 
+        renderTable('retiros', document.getElementById('tabla-retiros'), ['Fecha', 'Retirado de', 'Descripción', 'Monto', 'Acciones']); 
+    };
+
+    // UPDATED to show sobrante column in main income table
+    const renderTable = (type, tableEl, headers) => { 
+        const data = (allData[type] || []).filter(d => d.fecha instanceof Date).sort((a, b) => b.fecha - a.fecha); 
+        tableEl.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`; 
+        const tbody = tableEl.querySelector('tbody'); 
+        if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay registros de ${type}.</td></tr>`; return; } 
+        const rowsHTML = data.map(item => { 
+            let cellsHTML = ''; 
+            if (type === 'ingresos') {
+                const ventaEfectivo = item.monto_efectivo - (item.monto_sobrante || 0);
+                cellsHTML = `<td class="px-3 sm:px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td><td class="px-3 sm:px-4 py-3">${formatCurrency(ventaEfectivo)}</td><td class="px-3 sm:px-4 py-3">${formatCurrency(item.monto_tarjeta)}</td><td class="px-3 sm:px-4 py-3 text-blue-600 font-medium">${formatCurrency(item.monto_sobrante)}</td><td class="px-3 sm:px-4 py-3 font-bold">${formatCurrency(item.monto)}</td><td class="px-3 sm:px-4 py-3">${item.notas || '-'}</td>`; 
+            } else if (type === 'compras') {
+                cellsHTML = `<td class="px-3 sm:px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td><td class="px-3 sm:px-4 py-3">${item.proveedor}</td><td class="px-3 sm:px-4 py-3">${item.descripcion}</td><td class="px-3 sm:px-4 py-3">${formatCurrency(item.monto)}</td><td class="px-3 sm:px-4 py-3">${item.metodo}</td>`; 
+            } else if (type === 'gastos') {
+                cellsHTML = `<td class="px-3 sm:px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td><td class="px-3 sm:px-4 py-3">${item.descripcion}</td><td class="px-3 sm:px-4 py-3">${item.categoria}</td><td class="px-3 sm:px-4 py-3">${formatCurrency(item.monto)}</td>`; 
+            } else if (type === 'retiros') {
+                cellsHTML = `<td class="px-3 sm:px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td><td class="px-3 sm:px-4 py-3">${item.metodo}</td><td class="px-3 sm:px-4 py-3">${item.descripcion}</td><td class="px-3 sm:px-4 py-3">${formatCurrency(item.monto)}</td>`; 
+            }
+            cellsHTML += `<td class="px-3 sm:px-4 py-3 flex items-center space-x-2"><button class="action-button text-red-600 delete-btn" data-type="${type}" data-id="${item.id}"><i class="fas fa-trash"></i></button></td>`; 
+            return `<tr class="bg-white border-b hover:bg-gray-50">${cellsHTML}</tr>`; 
+        }).join(''); 
+        tbody.innerHTML = rowsHTML; 
+    };
+
+    // NEW function to render sobrantes table
+    const renderSobrantesTable = () => {
+        const tableEl = document.getElementById('tabla-sobrantes');
+        const headers = ['Fecha', 'Monto Sobrante', 'Notas', 'Acciones'];
+        const data = (allData.ingresos || [])
+            .filter(d => d.monto_sobrante && d.monto_sobrante > 0 && d.fecha instanceof Date)
+            .sort((a, b) => b.fecha - a.fecha);
+
+        tableEl.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
+        const tbody = tableEl.querySelector('tbody');
+
+        if (data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay sobrantes registrados.</td></tr>`;
+            return;
+        }
+
+        const rowsHTML = data.map(item => {
+            const cellsHTML = `
+                <td class="px-3 sm:px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td>
+                <td class="px-3 sm:px-4 py-3 font-medium text-blue-600">${formatCurrency(item.monto_sobrante)}</td>
+                <td class="px-3 sm:px-4 py-3">${item.notas || 'Registro de Venta'}</td>
+                <td class="px-3 sm:px-4 py-3 flex items-center space-x-2">
+                    <button class="action-button text-red-600 delete-btn" data-type="ingresos" data-id="${item.id}" title="Eliminar el registro de ingreso completo"><i class="fas fa-trash"></i></button>
+                </td>`;
+            return `<tr class="bg-white border-b hover:bg-gray-50">${cellsHTML}</tr>`;
+        }).join('');
+
+        tbody.innerHTML = rowsHTML;
+    };
+
     const renderCuentasPorCobrar = () => { const table = document.getElementById('tabla-cuentas-cobrar'); const headers = ['Cliente', 'Total Deuda', 'Abonado', 'Restante', 'Acciones']; table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`; const tbody = table.querySelector('tbody'); const data = (allData.cuentasPorCobrar || []).filter(d => d.fecha instanceof Date).sort((a,b) => b.fecha - a.fecha); if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay cuentas por cobrar.</td></tr>`; return; } const rowsHTML = data.map(d => { const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0); const restante = d.monto - totalAbonado; const isPaid = restante <= 0; const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white'; const textStyle = isPaid ? 'line-through' : ''; const actionButtons = isPaid ? `<button class="historial-btn action-button text-blue-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button> <span class="px-2 py-1 text-xs font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Saldado</span>` : `<button class="historial-btn action-button text-blue-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button><button class="abono-btn action-button text-green-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Registrar Abono"><i class="fas fa-plus-circle"></i></button><button class="delete-btn action-button text-red-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Eliminar"><i class="fas fa-trash"></i></button>`; return `<tr class="${rowClass} border-b hover:bg-gray-50"><td class="px-3 sm:px-4 py-3 font-medium ${textStyle}">${d.cliente}<p class="text-xs font-normal">${d.descripcion}</p></td><td class="px-3 sm:px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td><td class="px-3 sm:px-4 py-3 text-green-600 ${textStyle}">${formatCurrency(totalAbonado)}</td><td class="px-3 sm:px-4 py-3 font-bold ${textStyle}">${formatCurrency(restante)}</td><td class="px-3 sm:px-4 py-3 flex items-center gap-1">${actionButtons}</td></tr>`; }).join(''); tbody.innerHTML = rowsHTML; };
     const renderCuentasPorPagar = () => { const table = document.getElementById('tabla-cuentas-pagar'); const headers = ['Proveedor', 'Concepto', 'Monto', 'Estado', 'Acciones']; table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`; const tbody = table.querySelector('tbody'); const data = (allData.cuentasPorPagar || []).filter(d => d.fecha instanceof Date).sort((a,b) => b.fecha - a.fecha); if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay cuentas por pagar.</td></tr>`; return; } const rowsHTML = data.map(d => { const isPaid = d.estado === 'Pagada'; const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white'; const textStyle = isPaid ? 'line-through' : ''; const statusBadge = isPaid ? `<span class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Pagada</span>` : `<span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full">Pendiente</span>`; const actionButtons = isPaid ? `<span class="text-xs text-gray-400">Completado</span>` : `<div class="flex items-center gap-2"><button class="pagar-btn bg-blue-500 text-white text-xs px-2 py-1 rounded-md hover:bg-blue-600" data-id="${d.id}">Pagar</button><button class="delete-btn action-button text-red-600" data-type="cuentasPorPagar" data-id="${d.id}"><i class="fas fa-trash"></i></button></div>`; return `<tr class="${rowClass} border-b"><td class="px-3 sm:px-4 py-3 font-medium ${textStyle}">${d.acreedor}</td><td class="px-3 sm:px-4 py-3 ${textStyle}">${d.descripcion}</td><td class="px-3 sm:px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td><td class="px-3 sm:px-4 py-3">${statusBadge}</td><td class="px-3 sm:px-4 py-3">${actionButtons}</td></tr>`; }).join(''); tbody.innerHTML = rowsHTML; };
     const renderVales = () => { const table = document.getElementById('tabla-vales'); const headers = ['Persona', 'Total Vale', 'Abonado', 'Restante', 'Acciones']; table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`; const tbody = table.querySelector('tbody'); const data = (allData.vales || []).filter(d => d.fecha instanceof Date).sort((a,b) => b.fecha - a.fecha); if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay vales registrados.</td></tr>`; return; } const rowsHTML = data.map(d => { const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0); const restante = d.monto - totalAbonado; const isPaid = restante <= 0; const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white'; const textStyle = isPaid ? 'line-through' : ''; const actionButtons = isPaid ? `<button class="historial-btn action-button text-blue-600" data-type="vales" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button> <span class="px-2 py-1 text-xs font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Saldado</span>` : `<button class="historial-btn action-button text-blue-600" data-type="vales" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button><button class="abono-btn action-button text-green-600" data-type="vales" data-id="${d.id}" title="Registrar Abono"><i class="fas fa-plus-circle"></i></button><button class="delete-btn action-button text-red-600" data-type="vales" data-id="${d.id}" title="Eliminar Vale"><i class="fas fa-trash"></i></button>`; return `<tr class="${rowClass} border-b hover:bg-gray-50"><td class="px-3 sm:px-4 py-3 font-medium ${textStyle}">${d.persona}<p class="text-xs font-normal">${d.descripcion}</p></td><td class="px-3 sm:px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td><td class="px-3 sm:px-4 py-3 text-green-600 ${textStyle}">${formatCurrency(totalAbonado)}</td><td class="px-3 sm:px-4 py-3 font-bold ${textStyle}">${formatCurrency(restante)}</td><td class="px-3 sm:px-4 py-3 flex items-center gap-1">${actionButtons}</td></tr>`; }).join(''); tbody.innerHTML = rowsHTML; };
@@ -1446,12 +1463,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const initializeDates = () => { setFormDatesToToday(); const now = new Date(); document.getElementById('month-filter').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`; };
     const getRefFor = (type) => database.ref(`businesses/${selectedBusinessId}/${type}`);
 
+    // UPDATED to handle sobrantes
     document.getElementById('form-ingresos').addEventListener('submit', (e) => { 
         e.preventDefault(); 
         if (!validatePeriodAccess()) return;
-        const ef = getNumericValue(document.getElementById('ingreso-efectivo').value); 
-        const ta = getNumericValue(document.getElementById('ingreso-tarjeta').value); 
-        const newData = { fecha: getTimestampFromDateInput('ingreso-fecha'), monto: ef + ta, monto_efectivo: ef, monto_tarjeta: ta, notas: document.getElementById('ingreso-notas').value }; 
+        const ventasEfectivo = getNumericValue(document.getElementById('ingreso-efectivo').value); 
+        const ventasTarjeta = getNumericValue(document.getElementById('ingreso-tarjeta').value); 
+        const sobrante = getNumericValue(document.getElementById('ingreso-sobrante').value);
+        
+        const totalEfectivo = ventasEfectivo + sobrante;
+        const totalIngreso = totalEfectivo + ventasTarjeta;
+
+        const newData = { 
+            fecha: getTimestampFromDateInput('ingreso-fecha'), 
+            monto: totalIngreso, 
+            monto_efectivo: totalEfectivo, 
+            monto_tarjeta: ventasTarjeta, 
+            monto_sobrante: sobrante,
+            notas: document.getElementById('ingreso-notas').value 
+        }; 
         getRefFor('ingresos').push(newData); 
         showNotification('Éxito', 'Ingreso registrado.'); 
         e.target.reset(); 
@@ -1611,10 +1641,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('month-filter').addEventListener('change', refreshUI);
 
     // =========================================================================
-    // FUNCIONES DE PDF (mantenidas del código original)
+    // FUNCIONES DE PDF
     // =========================================================================
     const reportTitles = {
         ingresos: 'Ingresos', compras: 'Compras', gastos: 'Gastos Operacionales', retiros: 'Retiros del Jefe',
+        sobrantes: 'Sobrantes del Día', // NEW
         cuentasPorCobrar: 'Cuentas por Cobrar', cuentasPorPagar: 'Cuentas por Pagar', vales: 'Vales de Personal'
     };
 
@@ -1629,6 +1660,29 @@ document.addEventListener('DOMContentLoaded', () => {
         doc.text(`Negocio: ${businessName}`, 14, 30);
         doc.text(`Generado el: ${new Date().toLocaleString('es-CO')}`, 14, 36);
         return 40;
+    };
+
+    // NEW function for sobrantes PDF
+    const exportSobrantesPDF = () => {
+        const title = `Reporte de ${reportTitles.sobrantes}`;
+        const sobrantesData = (allData.ingresos || [])
+            .filter(d => d.monto_sobrante && d.monto_sobrante > 0 && d.fecha instanceof Date)
+            .sort((a, b) => b.fecha - a.fecha);
+
+        if (sobrantesData.length === 0) {
+            showNotification('Sin datos', `No hay registros para generar el reporte de ${reportTitles.sobrantes}.`, 'error');
+            return;
+        }
+
+        const doc = new jsPDF();
+        let startY = drawHeader(doc, title);
+        const headers = [['Fecha', 'Notas', 'Monto Sobrante']];
+        const body = sobrantesData.map(item => [item.fecha.toLocaleDateString('es-CO'), item.notas || 'Registro de Venta', formatCurrency(item.monto_sobrante)]);
+        const total = sobrantesData.reduce((sum, item) => sum + item.monto_sobrante, 0);
+        body.push([{ content: 'Total Sobrantes:', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } }, { content: formatCurrency(total), styles: { fontStyle: 'bold' } }]);
+        doc.autoTable({ head: headers, body, startY, theme: 'grid' });
+        doc.save(`Reporte_Profesional_${reportTitles.sobrantes}.pdf`);
+        showNotification('Éxito', 'El reporte profesional se ha generado.');
     };
 
     const exportToPDF = (type) => {
