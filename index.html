@@ -172,16 +172,21 @@
                                      </button>
                                  </div>
                              </div>
-                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+                             <!-- MODIFICADO: Añadido Nequi y ajustado el grid -->
+                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
                                  <div class="card p-3 sm:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Ingresos Totales (Periodo)</h3><p id="total-ingresos" class="text-lg sm:text-2xl font-semibold text-green-600 mt-1">$0</p></div>
                                  <div class="card p-3 sm:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Compras Totales (Periodo)</h3><p id="total-compras" class="text-lg sm:text-2xl font-semibold text-purple-600 mt-1">$0</p></div>
                                  <div class="card p-3 sm:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Gastos Op. Totales (Periodo)</h3><p id="total-gastos-op" class="text-lg sm:text-2xl font-semibold text-red-600 mt-1">$0</p></div>
+                                 <div class="card p-3 sm:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Retiros del Jefe (Periodo)</h3><p id="total-retiros" class="text-lg sm:text-2xl font-semibold text-orange-500 mt-1">$0</p></div>
+                                 
                                  <div class="card p-3 sm:p-5 bg-blue-50 border-blue-200 border"><h3 class="text-blue-800 text-xs sm:text-sm font-medium">Efectivo en Caja (Actual)</h3><p id="efectivo-caja" class="text-lg sm:text-2xl font-semibold text-blue-700 mt-1">$0</p></div>
+                                 <!-- NUEVO: Tarjeta de Saldo Nequi -->
+                                 <div class="card p-3 sm:p-5" style="background-color: #fde6f3; border-color: #e83e8c;"><h3 class="text-xs sm:text-sm font-medium" style="color: #8c2552;">Saldo en Nequi (Actual)</h3><p id="saldo-nequi" class="text-lg sm:text-2xl font-semibold mt-1" style="color: #e83e8c;">$0</p></div>
                                  <div class="card p-3 sm:p-5 bg-green-50 border-green-200 border"><h3 class="text-green-800 text-xs sm:text-sm font-medium">Saldo en Banco (Actual)</h3><p id="saldo-banco" class="text-lg sm:text-2xl font-semibold text-green-700 mt-1">$0</p></div>
+                                 
                                  <div class="card p-3 sm:p-5 bg-yellow-50 border-yellow-200 border"><h3 class="text-yellow-800 text-xs sm:text-sm font-medium">Cuentas por Cobrar</h3><p id="cuentas-cobrar-total" class="text-lg sm:text-2xl font-semibold text-yellow-700 mt-1">$0</p></div>
                                  <div class="card p-3 sm:p-5 bg-red-50 border-red-200 border"><h3 class="text-red-800 text-xs sm:text-sm font-medium">Cuentas por Pagar</h3><p id="cuentas-pagar-total" class="text-lg sm:text-2xl font-semibold text-red-700 mt-1">$0</p></div>
-                                 <div class="card p-3 sm:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Retiros del Jefe (Periodo)</h3><p id="total-retiros" class="text-lg sm:text-2xl font-semibold text-orange-500 mt-1">$0</p></div>
-                                 </div>
+                             </div>
                              <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-8">
                                  <div class="lg:col-span-2 card p-4 sm:p-6"><h3 class="text-base sm:text-lg font-semibold text-gray-700 mb-4">Distribución de Gastos (Periodo)</h3><canvas id="gastos-chart"></canvas></div>
                                  <div class="lg:col-span-3 card p-4 sm:p-6"><h3 class="text-base sm:text-lg font-semibold text-gray-700 mb-4">Últimos Movimientos (Global)</h3><div class="overflow-x-auto"><table class="w-full text-xs sm:text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-3 sm:px-6 py-3">Fecha</th><th class="px-3 sm:px-6 py-3">Descripción</th><th class="px-3 sm:px-6 py-3">Monto</th></tr></thead><tbody id="ultimos-movimientos-body"></tbody></table></div></div>
@@ -200,11 +205,15 @@
                                 <label for="ingreso-efectivo" class="block text-sm font-medium">Ventas en Efectivo</label>
                                 <input type="text" data-moneda inputmode="numeric" id="ingreso-efectivo" value="0" class="mt-1 block w-full" required>
                             </div>
+                            <!-- NUEVO: Campo de Ingreso Nequi -->
                             <div>
-                                <label for="ingreso-tarjeta" class="block text-sm font-medium">Ventas Tarjeta/Transf.</label>
+                                <label for="ingreso-nequi" class="block text-sm font-medium" style="color: #8c2552;">Ventas por Nequi</label>
+                                <input type="text" data-moneda inputmode="numeric" id="ingreso-nequi" value="0" class="mt-1 block w-full rounded-md" style="border-color: #e83e8c; --tw-ring-color: #e83e8c;" required>
+                            </div>
+                            <div>
+                                <label for="ingreso-tarjeta" class="block text-sm font-medium">Ventas Tarjeta/Transf. (Banco)</label>
                                 <input type="text" data-moneda inputmode="numeric" id="ingreso-tarjeta" value="0" class="mt-1 block w-full" required>
                             </div>
-                            <!-- CAMPO NUEVO: SOBRANTES -->
                             <div>
                                 <label for="ingreso-sobrante" class="block text-sm font-medium text-blue-600">Sobrantes del Día (en Efectivo)</label>
                                 <input type="text" data-moneda inputmode="numeric" id="ingreso-sobrante" value="0" class="mt-1 block w-full rounded-md border-blue-300 focus:ring-blue-500 focus:border-blue-500" required>
@@ -217,9 +226,10 @@
                         </form>
                     </div>
                 </div>
-                <div id="compras" class="tab-content hidden"><div class="max-w-xl mx-auto card p-6 sm:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Compra</h2><form id="form-compras" class="space-y-4 sm:space-y-6"><div><label for="compra-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="compra-fecha" class="mt-1 block w-full" required></div><div><label for="compra-proveedor" class="block text-sm font-medium">Proveedor</label><input type="text" id="compra-proveedor" class="mt-1 block w-full" required></div><div><label for="compra-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="compra-descripcion" class="mt-1 block w-full" required></div><div><label for="compra-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="compra-monto" class="mt-1 block w-full" required></div><div><label for="compra-metodo" class="block text-sm font-medium">Pagado con</label><select id="compra-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div><button type="submit" class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Compra</button></form></div></div>
+                <div id="compras" class="tab-content hidden"><div class="max-w-xl mx-auto card p-6 sm:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Compra</h2><form id="form-compras" class="space-y-4 sm:space-y-6"><div><label for="compra-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="compra-fecha" class="mt-1 block w-full" required></div><div><label for="compra-proveedor" class="block text-sm font-medium">Proveedor</label><input type="text" id="compra-proveedor" class="mt-1 block w-full" required></div><div><label for="compra-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="compra-descripcion" class="mt-1 block w-full" required></div><div><label for="compra-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="compra-monto" class="mt-1 block w-full" required></div><div><label for="compra-metodo" class="block text-sm font-medium">Pagado con</label><select id="compra-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo</option><option value="Nequi">Nequi</option><option value="Banco">Banco</option></select></div><button type="submit" class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Compra</button></form></div></div>
                 <div id="gastos" class="tab-content hidden"><div class="max-w-xl mx-auto card p-6 sm:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Gasto Op. (del Efectivo)</h2><form id="form-gastos" class="space-y-4 sm:space-y-6"><div><label for="gasto-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="gasto-fecha" class="mt-1 block w-full" required></div><div><label for="gasto-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="gasto-descripcion" class="mt-1 block w-full" required></div><div><label for="gasto-categoria" class="block text-sm font-medium">Categoría</label><select id="gasto-categoria" class="mt-1 block w-full" required><option>Arriendo</option><option>Servicios</option><option>Nómina</option><option>Marketing</option><option>Mantenimiento</option><option>Impuestos</option><option>Insumos</option><option>Otro</option></select></div><div><label for="gasto-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="gasto-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Gasto</button></form></div></div>
-                <div id="retiros" class="tab-content hidden"><div class="max-w-xl mx-auto card p-6 sm:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Retiro Jefe</h2><form id="form-retiros" class="space-y-4 sm:space-y-6"><div><label for="retiro-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="retiro-fecha" class="mt-1 block w-full" required></div><div><label for="retiro-metodo" class="block text-sm font-medium">Retirar de</label><select id="retiro-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo (Caja)</option><option value="Banco">Banco (Transferencia)</option></select></div><div><label for="retiro-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="retiro-descripcion" class="mt-1 block w-full" required></div><div><label for="retiro-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="retiro-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold">Añadir Retiro</button></form></div></div>
+                <!-- MODIFICADO: Añadido Nequi a retiros -->
+                <div id="retiros" class="tab-content hidden"><div class="max-w-xl mx-auto card p-6 sm:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Retiro Jefe</h2><form id="form-retiros" class="space-y-4 sm:space-y-6"><div><label for="retiro-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="retiro-fecha" class="mt-1 block w-full" required></div><div><label for="retiro-metodo" class="block text-sm font-medium">Retirar de</label><select id="retiro-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo (Caja)</option><option value="Nequi">Nequi</option><option value="Banco">Banco (Transferencia)</option></select></div><div><label for="retiro-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="retiro-descripcion" class="mt-1 block w-full" required></div><div><label for="retiro-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="retiro-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold">Añadir Retiro</button></form></div></div>
                 <div id="deudas" class="tab-content hidden grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
                     <div class="space-y-4 sm:space-y-6"><h2 class="text-xl sm:text-2xl font-semibold">Cuentas por Cobrar (Fiado)</h2><div class="card p-4 sm:p-6"><form id="form-cuentas-cobrar" class="space-y-4"><div><label for="cpc-cliente" class="block text-sm font-medium">Nombre Cliente</label><input type="text" id="cpc-cliente" class="mt-1 block w-full" required></div><div><label for="cpc-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="cpc-descripcion" class="mt-1 block w-full" required></div><div><label for="cpc-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="cpc-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-yellow-500 text-white py-2 rounded-lg font-semibold">Añadir Deuda</button></form></div><div class="card p-3 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-cuentas-cobrar"></table></div></div>
                     <div class="space-y-4 sm:space-y-6"><h2 class="text-xl sm:text-2xl font-semibold">Cuentas por Pagar</h2><div class="card p-4 sm:p-6"><form id="form-cuentas-pagar" class="space-y-4"><div><label for="cpp-acreedor" class="block text-sm font-medium">Proveedor/Acreedor</label><input type="text" id="cpp-acreedor" class="mt-1 block w-full" required></div><div><label for="cpp-descripcion" class="block text-sm font-medium">Concepto</label><input type="text" id="cpp-descripcion" class="mt-1 block w-full" required></div><div><label for="cpp-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="cpp-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-red-500 text-white py-2 rounded-lg font-semibold">Añadir Cuenta por Pagar</button></form></div><div class="card p-3 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-cuentas-pagar"></table></div></div>
@@ -257,10 +267,12 @@
                     </div>
                 </div>
                 
+                <!-- MODIFICADO: Añadida la sección de Nequi -->
                 <div id="registros" class="tab-content hidden space-y-6 sm:space-y-8">
                     <div><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2"><h2 class="text-xl sm:text-2xl font-semibold">Todos los Ingresos</h2><button data-type="ingresos" class="btn-pdf bg-gray-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm"><i class="fas fa-file-pdf mr-1 sm:mr-2"></i>PDF</button></div><div class="card p-3 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-ingresos"></table></div></div>
-                    <!-- SECCIÓN NUEVA: SOBRANTES -->
                     <div><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2"><h2 class="text-xl sm:text-2xl font-semibold">Todos los Sobrantes</h2><button data-type="sobrantes" class="btn-pdf bg-blue-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm"><i class="fas fa-file-pdf mr-1 sm:mr-2"></i>PDF</button></div><div class="card p-3 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-sobrantes"></table></div></div>
+                    <!-- NUEVO: Tabla y botón PDF para Nequi -->
+                    <div><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2"><h2 class="text-xl sm:text-2xl font-semibold" style="color: #8c2552;">Movimientos de Nequi</h2><button data-type="nequi" class="btn-pdf text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm" style="background-color: #e83e8c;"><i class="fas fa-file-pdf mr-1 sm:mr-2"></i>PDF</button></div><div class="card p-3 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-nequi"></table></div></div>
                     <div><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2"><h2 class="text-xl sm:text-2xl font-semibold">Todas las Compras</h2><button data-type="compras" class="btn-pdf bg-gray-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm"><i class="fas fa-file-pdf mr-1 sm:mr-2"></i>PDF</button></div><div class="card p-3 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-compras"></table></div></div>
                     <div><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2"><h2 class="text-xl sm:text-2xl font-semibold">Todos los Gastos Op.</h2><button data-type="gastos" class="btn-pdf bg-gray-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm"><i class="fas fa-file-pdf mr-1 sm:mr-2"></i>PDF</button></div><div class="card p-3 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-gastos"></table></div></div>
                     <div><div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2"><h2 class="text-xl sm:text-2xl font-semibold">Todos los Retiros</h2><button data-type="retiros" class="btn-pdf bg-gray-700 text-white px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm"><i class="fas fa-file-pdf mr-1 sm:mr-2"></i>PDF</button></div><div class="card p-3 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-retiros"></table></div></div>
@@ -295,7 +307,6 @@
                     </div>
                 </div>
 
-                <!-- PESTAÑA DE HISTORIAL CORREGIDA -->
                 <div id="historial" class="tab-content hidden">
                     <div class="max-w-6xl mx-auto card p-6 sm:p-8">
                         <div class="flex items-center justify-between mb-6">
@@ -310,21 +321,15 @@
                                 <i class="fas fa-sync-alt mr-2"></i>Actualizar
                             </button>
                         </div>
-
-                        <!-- Lista de períodos disponibles -->
                         <div class="mb-8">
                             <h3 class="text-lg font-medium mb-4 text-gray-700 flex items-center">
                                 <i class="fas fa-calendar-alt mr-2 text-gray-500"></i>
                                 Períodos Archivados Disponibles:
                             </h3>
                             <div id="historial-periodos-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                <!-- Los períodos se cargarán aquí dinámicamente -->
                             </div>
                         </div>
-
-                        <!-- Vista de datos del período seleccionado -->
                         <div id="historial-data-view" class="hidden">
-                            <!-- Los datos del período se mostrarán aquí -->
                         </div>
                     </div>
                 </div>
@@ -332,10 +337,8 @@
         </div>
     </div>
     
-    <!-- Modal de Corte de Mes -->
     <div id="corte-mes-modal" class="modal fixed inset-0 bg-gray-900 bg-opacity-75 h-full w-full hidden z-50 flex items-center justify-center p-2 sm:p-4">
         <div class="relative mx-auto border w-full max-w-4xl shadow-2xl rounded-lg bg-white overflow-hidden max-h-screen overflow-y-auto">
-            <!-- Header del Modal -->
             <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-4 sm:px-8 py-4 sm:py-6 text-white">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-2 sm:space-x-3">
@@ -348,10 +351,7 @@
                 </div>
                 <p class="mt-2 text-indigo-100 text-sm">Cierre contable del período actual</p>
             </div>
-
-            <!-- Contenido del Modal -->
             <div class="p-4 sm:p-8">
-                <!-- Paso 1: Configuración -->
                 <div id="corte-step-1" class="corte-step">
                     <div class="text-center mb-6 sm:mb-8">
                         <div class="inline-flex items-center justify-center w-12 sm:w-16 h-12 sm:h-16 bg-indigo-100 rounded-full mb-4">
@@ -360,7 +360,6 @@
                         <h4 class="text-lg sm:text-xl font-semibold text-gray-800">Configuración del Corte</h4>
                         <p class="text-gray-600 mt-2 text-sm">Define los parámetros para el cierre del período</p>
                     </div>
-
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                         <div class="space-y-4">
                             <div>
@@ -377,15 +376,12 @@
                             <textarea id="corte-notas" rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Observaciones sobre el cierre del período..."></textarea>
                         </div>
                     </div>
-
                     <div class="mt-6 sm:mt-8 flex justify-end">
                         <button id="corte-next-step1" class="bg-indigo-600 text-white px-4 sm:px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors text-sm sm:text-base">
                             Continuar <i class="fas fa-arrow-right ml-2"></i>
                         </button>
                     </div>
                 </div>
-
-                <!-- Paso 2: Vista Previa -->
                 <div id="corte-step-2" class="corte-step hidden">
                     <div class="text-center mb-6 sm:mb-8">
                         <div class="inline-flex items-center justify-center w-12 sm:w-16 h-12 sm:h-16 bg-yellow-100 rounded-full mb-4">
@@ -394,11 +390,8 @@
                         <h4 class="text-lg sm:text-xl font-semibold text-gray-800">Vista Previa del Corte</h4>
                         <p class="text-gray-600 mt-2 text-sm">Revisa los datos antes de proceder</p>
                     </div>
-
                     <div id="corte-preview-content" class="mb-6 sm:mb-8">
-                        <!-- Contenido generado dinámicamente -->
                     </div>
-
                     <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                         <button id="corte-back-step2" class="bg-gray-500 text-white px-4 sm:px-6 py-3 rounded-lg font-semibold hover:bg-gray-600 transition-colors text-sm sm:text-base">
                             <i class="fas fa-arrow-left mr-2"></i>Volver
@@ -408,8 +401,6 @@
                         </button>
                     </div>
                 </div>
-
-                <!-- Paso 3: Procesando -->
                 <div id="corte-step-3" class="corte-step hidden">
                     <div class="text-center mb-6 sm:mb-8">
                         <div class="inline-flex items-center justify-center w-12 sm:w-16 h-12 sm:h-16 bg-blue-100 rounded-full mb-4">
@@ -418,20 +409,15 @@
                         <h4 class="text-lg sm:text-xl font-semibold text-gray-800">Procesando Corte</h4>
                         <p class="text-gray-600 mt-2 text-sm">Por favor espera mientras se completa el proceso de archivado.</p>
                     </div>
-
                     <div class="mb-6">
                         <div class="bg-gray-200 rounded-full h-3 mb-4">
                             <div id="corte-progress-bar" class="bg-blue-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
                         </div>
                         <p id="corte-progress-text" class="text-center text-sm text-gray-600">Iniciando proceso...</p>
                     </div>
-
                     <div id="corte-steps-list" class="space-y-2 max-h-64 overflow-y-auto">
-                        <!-- Pasos se agregan dinámicamente -->
                     </div>
                 </div>
-
-                <!-- Paso 4: Completado -->
                 <div id="corte-step-4" class="corte-step hidden">
                     <div class="text-center mb-6 sm:mb-8">
                         <div class="inline-flex items-center justify-center w-12 sm:w-16 h-12 sm:h-16 bg-green-100 rounded-full mb-4">
@@ -440,11 +426,8 @@
                         <h4 class="text-lg sm:text-xl font-semibold text-gray-800">Corte Completado y Archivado</h4>
                         <p class="text-gray-600 mt-2 text-sm">El proceso se ha ejecutado exitosamente.</p>
                     </div>
-
                     <div id="corte-summary" class="mb-6 sm:mb-8 p-4 bg-green-50 border border-green-200 rounded-lg">
-                        <!-- Resumen generado dinámicamente -->
                     </div>
-
                     <div class="flex flex-col sm:flex-row justify-center items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                         <button id="corte-download-report" class="bg-blue-600 text-white px-4 sm:px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm sm:text-base">
                             <i class="fas fa-download mr-2"></i>Descargar Reporte
@@ -458,7 +441,8 @@
         </div>
     </div>
     
-    <div id="abono-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 flex items-center justify-center p-4"><div class="relative mx-auto p-6 sm:p-8 border w-full max-w-md shadow-lg rounded-md bg-white"><h3 class="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6" id="abono-modal-title">Registrar Abono</h3><form id="form-abono"><input type="hidden" id="abono-deuda-id"><input type="hidden" id="abono-type"><div class="mb-4"><label class="block text-sm font-medium">Monto a Abonar</label><input type="text" data-moneda inputmode="numeric" id="abono-monto" class="mt-1 block w-full" required></div><div class="mb-4"><label class="block text-sm font-medium">Recibido en</label><select id="abono-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div></form><div class="flex flex-col sm:flex-row justify-end items-stretch sm:items-center mt-4 sm:mt-6 space-y-2 sm:space-y-0 sm:space-x-4"><button id="cancel-abono-btn" class="px-4 py-2 bg-gray-200 rounded-md text-sm sm:text-base">Cancelar</button><button id="save-abono-btn" class="px-4 py-2 bg-green-600 text-white rounded-md text-sm sm:text-base">Registrar Abono</button></div></div></div>
+    <!-- MODIFICADO: Añadido Nequi al modal de abonos -->
+    <div id="abono-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 flex items-center justify-center p-4"><div class="relative mx-auto p-6 sm:p-8 border w-full max-w-md shadow-lg rounded-md bg-white"><h3 class="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6" id="abono-modal-title">Registrar Abono</h3><form id="form-abono"><input type="hidden" id="abono-deuda-id"><input type="hidden" id="abono-type"><div class="mb-4"><label class="block text-sm font-medium">Monto a Abonar</label><input type="text" data-moneda inputmode="numeric" id="abono-monto" class="mt-1 block w-full" required></div><div class="mb-4"><label class="block text-sm font-medium">Recibido en</label><select id="abono-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo</option><option value="Nequi">Nequi</option><option value="Banco">Banco</option></select></div></form><div class="flex flex-col sm:flex-row justify-end items-stretch sm:items-center mt-4 sm:mt-6 space-y-2 sm:space-y-0 sm:space-x-4"><button id="cancel-abono-btn" class="px-4 py-2 bg-gray-200 rounded-md text-sm sm:text-base">Cancelar</button><button id="save-abono-btn" class="px-4 py-2 bg-green-600 text-white rounded-md text-sm sm:text-base">Registrar Abono</button></div></div></div>
     <div id="notification-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 flex items-center justify-center p-4"><div class="relative mx-auto p-4 sm:p-5 border w-full max-w-sm sm:max-w-md shadow-lg rounded-md bg-white"><div class="mt-3 text-center"><div id="notification-icon" class="mx-auto flex items-center justify-center h-10 sm:h-12 w-10 sm:w-12 rounded-full"></div><h3 id="notification-title" class="text-base sm:text-lg leading-6 font-medium text-gray-900 mt-2"></h3><div class="mt-2 px-4 sm:px-7 py-3"><p id="notification-message" class="text-xs sm:text-sm text-gray-500"></p></div><div class="items-center px-4 py-3"><button id="notification-close" class="px-4 py-2 bg-indigo-500 text-white text-sm sm:text-base font-medium rounded-md w-full">Cerrar</button></div></div></div></div>
     <div id="confirm-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 flex items-center justify-center p-4"><div class="relative mx-auto p-4 sm:p-5 border w-full max-w-sm sm:max-w-md shadow-lg rounded-md bg-white"><div class="mt-3 text-center"><div class="mx-auto flex items-center justify-center h-10 sm:h-12 w-10 sm:w-12 rounded-full bg-red-100"><i class="fas fa-exclamation-triangle text-red-600 text-lg sm:text-2xl"></i></div><h3 id="confirm-title" class="text-base sm:text-lg leading-6 font-medium text-gray-900 mt-4"></h3><div id="confirm-message-container" class="mt-2 px-4 sm:px-7 py-3"><p id="confirm-message" class="text-xs sm:text-sm text-gray-500"></p></div><div class="flex flex-col sm:flex-row justify-center items-stretch sm:items-center px-4 py-3 space-y-2 sm:space-y-0 sm:space-x-4"><button id="cancel-confirm-btn" class="px-4 py-2 bg-gray-200 rounded-md text-sm sm:text-base">Cancelar</button><button id="confirm-btn" class="px-4 py-2 bg-red-600 text-white rounded-md text-sm sm:text-base">Confirmar</button></div></div></div></div>
     <div id="edit-modal" class="modal fixed inset-0 bg-gray-600 bg-opacity-50 h-full w-full hidden z-50 flex items-center justify-center overflow-y-auto p-4"><div class="relative mx-auto p-6 sm:p-8 border w-full max-w-xl shadow-lg rounded-md bg-white"><h3 id="edit-modal-title" class="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6"></h3><form id="edit-form" class="space-y-4"></form><div class="flex flex-col sm:flex-row justify-end items-stretch sm:items-center mt-4 sm:mt-6 space-y-2 sm:space-y-0 sm:space-x-4"><button id="cancel-edit-btn" class="px-4 py-2 bg-gray-200 rounded-md text-sm sm:text-base">Cancelar</button><button id="save-edit-btn" class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm sm:text-base">Guardar Cambios</button></div></div></div>
@@ -596,7 +580,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         startDataListeners();
         
-        // CARGAR HISTORIAL AL SELECCIONAR NEGOCIO
         loadHistorialPeriods();
         
         document.getElementById('business-selector-overlay').classList.add('hidden');
@@ -838,7 +821,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <th class="px-4 py-2 text-left">Descripción</th>
                 <th class="px-4 py-2 text-left">Monto</th>
             `;
-            if (dataType === 'ingresos') headers += `<th class="px-4 py-2 text-left">Efectivo</th><th class="px-4 py-2 text-left">Tarjeta/Banco</th>`;
+            if (dataType === 'ingresos') headers += `<th class="px-4 py-2 text-left">Efectivo</th><th class="px-4 py-2 text-left">Nequi</th><th class="px-4 py-2 text-left">Banco</th>`;
             if (dataType === 'compras' || dataType === 'retiros') headers += `<th class="px-4 py-2 text-left">Método</th>`;
             if (dataType === 'gastos') headers += `<th class="px-4 py-2 text-left">Categoría</th>`;
 
@@ -849,8 +832,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td class="px-4 py-2">${descripcion}</td>
                     <td class="px-4 py-2 font-medium">${formatCurrency(item.monto)}</td>
                 `;
-                if (dataType === 'ingresos') row += `<td class="px-4 py-2 text-green-600">${formatCurrency(item.monto_efectivo || 0)}</td><td class="px-4 py-2 text-blue-600">${formatCurrency(item.monto_tarjeta || 0)}</td>`;
-                if (dataType === 'compras' || dataType === 'retiros') row += `<td class="px-4 py-2"><span class="px-2 py-1 rounded-full text-xs ${item.metodo === 'Efectivo' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}"><i class="fas fa-${item.metodo === 'Efectivo' ? 'money-bill' : 'credit-card'} mr-1"></i>${item.metodo}</span></td>`;
+                if (dataType === 'ingresos') row += `<td class="px-4 py-2 text-green-600">${formatCurrency(item.monto_efectivo || 0)}</td><td class="px-4 py-2" style="color:#e83e8c;">${formatCurrency(item.monto_nequi || 0)}</td><td class="px-4 py-2 text-blue-600">${formatCurrency(item.monto_tarjeta || 0)}</td>`;
+                if (dataType === 'compras' || dataType === 'retiros') row += `<td class="px-4 py-2"><span class="px-2 py-1 rounded-full text-xs ${item.metodo === 'Efectivo' ? 'bg-green-100 text-green-800' : (item.metodo === 'Nequi' ? 'text-white' : 'bg-blue-100 text-blue-800')}" style="${item.metodo === 'Nequi' ? 'background-color:#e83e8c;' : ''}"><i class="fas fa-${item.metodo === 'Efectivo' ? 'money-bill' : 'credit-card'} mr-1"></i>${item.metodo}</span></td>`;
                 if (dataType === 'gastos') row += `<td class="px-4 py-2"><span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">${item.categoria}</span></td>`;
                 return `<tr class="border-b border-gray-200">${row}</tr>`;
             }).join('');
@@ -872,7 +855,6 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).filter(html => html !== '').join('');
 
-        // Add Sobrantes table separately
         const sobrantesData = (data.ingresos || []).filter(i => i.monto_sobrante && i.monto_sobrante > 0);
         if (sobrantesData.length > 0) {
             tablesHTML += `
@@ -1049,7 +1031,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalGastosOpMes = (periodData.gastos || []).reduce((sum, item) => sum + item.monto, 0);
         const totalRetirosMes = (periodData.retiros || []).reduce((sum, item) => sum + item.monto, 0);
 
-        const { efectivo, banco } = calculateCurrentBalances();
+        // MODIFICADO: Llamada a la función de cálculo de saldos actualizada
+        const { efectivo, banco, nequi } = calculateCurrentBalances();
         
         const totalCPC = (globalData.cuentasPorCobrar || []).reduce((sum, d) => sum + (d.monto - ((d.abonos || []).reduce((s, a) => s + a.monto, 0))), 0);
         const totalCPP = (globalData.cuentasPorPagar || []).filter(d => d.estado !== 'Pagada').reduce((sum, d) => sum + d.monto - ((d.abonos || []).reduce((s, a) => s + a.monto, 0)), 0);
@@ -1060,6 +1043,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('total-retiros').textContent = formatCurrency(totalRetirosMes);
         document.getElementById('efectivo-caja').textContent = formatCurrency(efectivo);
         document.getElementById('saldo-banco').textContent = formatCurrency(banco);
+        // NUEVO: Actualizar tarjeta de saldo Nequi
+        document.getElementById('saldo-nequi').textContent = formatCurrency(nequi);
         document.getElementById('cuentas-cobrar-total').textContent = formatCurrency(totalCPC);
         document.getElementById('cuentas-pagar-total').textContent = formatCurrency(totalCPP);
 
@@ -1132,6 +1117,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const previewContent = document.getElementById('corte-preview-content');
+        // MODIFICADO: Añadido Nequi al preview del corte
         previewContent.innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                  <div class="space-y-4">
@@ -1142,17 +1128,18 @@ document.addEventListener('DOMContentLoaded', () => {
                          <div class="flex justify-between"><span>Total Gastos:</span><span class="font-medium text-red-600">${formatCurrency(totales.gastos)}</span></div>
                          <div class="flex justify-between"><span>Total Retiros:</span><span class="font-medium text-orange-600">${formatCurrency(totales.retiros)}</span></div>
                      </div>
-             </div>
-                <div class="space-y-4">
+               </div>
+                 <div class="space-y-4">
                     <h5 class="font-semibold text-gray-800 border-b pb-2">Saldos a la Fecha de Corte</h5>
                      <div class="space-y-2 text-sm">
                          <div class="flex justify-between"><span>Efectivo en Caja:</span><span class="font-medium text-blue-600">${formatCurrency(saldos.efectivo)}</span></div>
+                         <div class="flex justify-between"><span>Saldo en Nequi:</span><span class="font-medium" style="color: #e83e8c;">${formatCurrency(saldos.nequi)}</span></div>
                          <div class="flex justify-between"><span>Saldo en Banco:</span><span class="font-medium text-green-600">${formatCurrency(saldos.banco)}</span></div>
                          <div class="flex justify-between"><span>Cuentas por Cobrar Pendientes:</span><span class="font-medium">${cuentasPendientes.porCobrar.length}</span></div>
                          <div class="flex justify-between"><span>Cuentas por Pagar Pendientes:</span><span class="font-medium">${cuentasPendientes.porPagar.length}</span></div>
                          <div class="flex justify-between"><span>Vales Pendientes:</span><span class="font-medium">${cuentasPendientes.vales.length}</span></div>
                     </div>
-                </div>
+                 </div>
             </div>
             <div class="mt-4 sm:mt-6 p-4 bg-yellow-50 border border-yellow-300 rounded-lg">
                 <h5 class="font-semibold text-yellow-800 mb-2">¡Atención! Proceso de Archivado</h5>
@@ -1160,23 +1147,31 @@ document.addEventListener('DOMContentLoaded', () => {
                     <li>El período <strong>${periodo}</strong> se marcará como <strong>CERRADO</strong>.</li>
                     <li>Todos los registros (ingresos, gastos, etc.) y deudas saldadas de este período se <strong>ARCHIVARÁN</strong> permanentemente. ¡No se borrará información!</li>
                     <li>Las deudas con saldo pendiente se transferirán al nuevo mes. Su registro original será archivado para mantener el historial de abonos.</li>
-                    <li>Se crearán retiros automáticos para que los saldos de caja y banco inicien en <strong>CERO</strong>.</li>
+                    <li>Se crearán retiros automáticos para que los saldos de caja, Nequi y banco inicien en <strong>CERO</strong>.</li>
                 </ul>
             </div>
         `;
     };
 
+    // MODIFICADO: Función de cálculo de saldos actualizada para incluir Nequi
     const calculateCurrentBalances = () => {
         const totalIngresosEfectivo = (allData.ingresos || []).reduce((sum, i) => sum + (i.monto_efectivo || 0), 0);
+        const totalIngresosNequi = (allData.ingresos || []).reduce((sum, i) => sum + (i.monto_nequi || 0), 0);
         const totalIngresosBanco = (allData.ingresos || []).reduce((sum, i) => sum + (i.monto_tarjeta || 0), 0);
+        
         const totalComprasEfectivo = (allData.compras || []).filter(c => c.metodo === 'Efectivo').reduce((sum, c) => sum + c.monto, 0);
+        const totalComprasNequi = (allData.compras || []).filter(c => c.metodo === 'Nequi').reduce((sum, c) => sum + c.monto, 0);
         const totalComprasBanco = (allData.compras || []).filter(c => c.metodo === 'Banco').reduce((sum, c) => sum + c.monto, 0);
+        
         const totalGastosOp = (allData.gastos || []).reduce((sum, g) => sum + g.monto, 0);
+        
         const totalRetirosEfectivo = (allData.retiros || []).filter(r => r.metodo === 'Efectivo').reduce((sum, r) => sum + r.monto, 0);
+        const totalRetirosNequi = (allData.retiros || []).filter(r => r.metodo === 'Nequi').reduce((sum, r) => sum + r.monto, 0);
         const totalRetirosBanco = (allData.retiros || []).filter(r => r.metodo === 'Banco').reduce((sum, r) => sum + r.monto, 0);
         
         return {
             efectivo: totalIngresosEfectivo - totalComprasEfectivo - totalGastosOp - totalRetirosEfectivo,
+            nequi: totalIngresosNequi - totalComprasNequi - totalRetirosNequi,
             banco: totalIngresosBanco - totalComprasBanco - totalRetirosBanco
         };
     };
@@ -1198,7 +1193,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const stepsList = document.getElementById('corte-steps-list');
         const progressBar = document.getElementById('corte-progress-bar');
         const progressText = document.getElementById('corte-progress-text');
-        stepsList.innerHTML = ''; // Limpiar logs anteriores
+        stepsList.innerHTML = '';
 
         try {
             const updates = {};
@@ -1210,14 +1205,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 stepEl.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i><span>${steps[i]}</span>`;
                 stepsList.appendChild(stepEl);
 
-                // Lógica de cada paso
                 switch (i) {
-                    case 0: // Iniciando...
+                    case 0: 
                         await new Promise(res => setTimeout(res, 100));
                         break;
                     
-                    case 1: // Archivar todo
-                        // Agregar información de cierre al historial
+                    case 1: 
                         updates[`/historial_periodos/${periodo}/closedDate`] = fechaCorte;
                         updates[`/historial_periodos/${periodo}/notes`] = notas;
                         
@@ -1233,13 +1226,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         break;
 
-                    case 2: // Limpiar todo
+                    case 2: 
                         for (const type of dataTypes) {
                             updates[`/${type}`] = null;
                         }
                         break;
 
-                    case 3: // Finalizar y crear nuevo período
+                    case 3: 
                         const periodToClose = periods.find(p => p.monthKey === periodo);
                         if (periodToClose) {
                             updates[`/periods/${periodToClose.id}/isClosed`] = true;
@@ -1342,7 +1335,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (type === 'deudas-cobrar') exportDeudasPDF('cuentasPorCobrar');
             else if (type === 'deudas-pagar') exportDeudasPDF('cuentasPorPagar');
             else if (type === 'vales') exportDeudasPDF('vales');
-            else if (type === 'sobrantes') exportSobrantesPDF(); // New PDF handler
+            else if (type === 'sobrantes') exportSobrantesPDF();
+            // NUEVO: Manejador para PDF de Nequi
+            else if (type === 'nequi') exportNequiPDF();
             else exportToPDF(type);
         }
         else if (abonoBtn) handleAbonar(abonoBtn.dataset.id, abonoBtn.dataset.type);
@@ -1392,16 +1387,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const formatInputAsCurrency = (e) => { let input = e.target; let value = input.value.replace(/\D/g, ''); if (value) { const number = parseInt(value, 10); input.value = number.toLocaleString('es-CO'); } else { input.value = ''; } };
     const addCurrencyFormatting = (container) => { container.querySelectorAll('[data-moneda]').forEach(input => { input.removeEventListener('input', formatInputAsCurrency); input.addEventListener('input', formatInputAsCurrency); formatInputAsCurrency({ target: input }); }); };
     
-    // UPDATED to call sobrantes table renderer
+    // MODIFICADO: Llamada a la nueva tabla de Nequi
     const renderAllTables = () => { 
-        renderTable('ingresos', document.getElementById('tabla-ingresos'), ['Fecha', 'Venta Efectivo', 'Tarjeta', 'Sobrante', 'Total Ingreso', 'Notas', 'Acciones']); 
-        renderSobrantesTable(); // NEW
+        renderTable('ingresos', document.getElementById('tabla-ingresos'), ['Fecha', 'Venta Efectivo', 'Nequi', 'Banco', 'Sobrante', 'Total Ingreso', 'Notas', 'Acciones']); 
+        renderSobrantesTable();
+        renderNequiTable(); // NUEVO
         renderTable('compras', document.getElementById('tabla-compras'), ['Fecha', 'Proveedor', 'Descripción', 'Monto', 'Pagado con', 'Acciones']); 
         renderTable('gastos', document.getElementById('tabla-gastos'), ['Fecha', 'Descripción', 'Categoría', 'Monto', 'Acciones']); 
         renderTable('retiros', document.getElementById('tabla-retiros'), ['Fecha', 'Retirado de', 'Descripción', 'Monto', 'Acciones']); 
     };
 
-    // UPDATED to show sobrante column in main income table
+    // MODIFICADO: Renderizado de tabla de ingresos para incluir Nequi
     const renderTable = (type, tableEl, headers) => { 
         const data = (allData[type] || []).filter(d => d.fecha instanceof Date).sort((a, b) => b.fecha - a.fecha); 
         tableEl.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`; 
@@ -1410,8 +1406,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const rowsHTML = data.map(item => { 
             let cellsHTML = ''; 
             if (type === 'ingresos') {
-                const ventaEfectivo = item.monto_efectivo - (item.monto_sobrante || 0);
-                cellsHTML = `<td class="px-3 sm:px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td><td class="px-3 sm:px-4 py-3">${formatCurrency(ventaEfectivo)}</td><td class="px-3 sm:px-4 py-3">${formatCurrency(item.monto_tarjeta)}</td><td class="px-3 sm:px-4 py-3 text-blue-600 font-medium">${formatCurrency(item.monto_sobrante)}</td><td class="px-3 sm:px-4 py-3 font-bold">${formatCurrency(item.monto)}</td><td class="px-3 sm:px-4 py-3">${item.notas || '-'}</td>`; 
+                const ventaEfectivo = (item.monto_efectivo || 0) - (item.monto_sobrante || 0);
+                cellsHTML = `<td class="px-3 sm:px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td><td class="px-3 sm:px-4 py-3">${formatCurrency(ventaEfectivo)}</td><td class="px-3 sm:px-4 py-3" style="color:#e83e8c;">${formatCurrency(item.monto_nequi)}</td><td class="px-3 sm:px-4 py-3">${formatCurrency(item.monto_tarjeta)}</td><td class="px-3 sm:px-4 py-3 text-blue-600 font-medium">${formatCurrency(item.monto_sobrante)}</td><td class="px-3 sm:px-4 py-3 font-bold">${formatCurrency(item.monto)}</td><td class="px-3 sm:px-4 py-3">${item.notas || '-'}</td>`; 
             } else if (type === 'compras') {
                 cellsHTML = `<td class="px-3 sm:px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td><td class="px-3 sm:px-4 py-3">${item.proveedor}</td><td class="px-3 sm:px-4 py-3">${item.descripcion}</td><td class="px-3 sm:px-4 py-3">${formatCurrency(item.monto)}</td><td class="px-3 sm:px-4 py-3">${item.metodo}</td>`; 
             } else if (type === 'gastos') {
@@ -1425,7 +1421,6 @@ document.addEventListener('DOMContentLoaded', () => {
         tbody.innerHTML = rowsHTML; 
     };
 
-    // NEW function to render sobrantes table
     const renderSobrantesTable = () => {
         const tableEl = document.getElementById('tabla-sobrantes');
         const headers = ['Fecha', 'Monto Sobrante', 'Notas', 'Acciones'];
@@ -1454,6 +1449,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
         tbody.innerHTML = rowsHTML;
     };
+    
+    // NUEVO: Función para renderizar la tabla de movimientos de Nequi
+    const renderNequiTable = () => {
+        const tableEl = document.getElementById('tabla-nequi');
+        const headers = ['Fecha', 'Tipo', 'Descripción', 'Entrada', 'Salida'];
+        
+        const ingresosNequi = (allData.ingresos || [])
+            .filter(i => i.monto_nequi && i.monto_nequi > 0)
+            .map(i => ({ ...i, tipo: 'Ingreso', entrada: i.monto_nequi, salida: 0, descripcion: i.notas || 'Venta por Nequi' }));
+            
+        const comprasNequi = (allData.compras || [])
+            .filter(c => c.metodo === 'Nequi')
+            .map(c => ({ ...c, tipo: 'Compra', entrada: 0, salida: c.monto, descripcion: `${c.proveedor} - ${c.descripcion}` }));
+
+        const retirosNequi = (allData.retiros || [])
+            .filter(r => r.metodo === 'Nequi')
+            .map(r => ({ ...r, tipo: 'Retiro', entrada: 0, salida: r.monto }));
+
+        const data = [...ingresosNequi, ...comprasNequi, ...retirosNequi]
+            .filter(d => d.fecha instanceof Date)
+            .sort((a, b) => b.fecha - a.fecha);
+
+        tableEl.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
+        const tbody = tableEl.querySelector('tbody');
+
+        if (data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay movimientos en Nequi.</td></tr>`;
+            return;
+        }
+
+        const rowsHTML = data.map(item => {
+            const cellsHTML = `
+                <td class="px-3 sm:px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td>
+                <td class="px-3 sm:px-4 py-3">${item.tipo}</td>
+                <td class="px-3 sm:px-4 py-3">${item.descripcion}</td>
+                <td class="px-3 sm:px-4 py-3 font-medium text-green-600">${item.entrada > 0 ? formatCurrency(item.entrada) : '-'}</td>
+                <td class="px-3 sm:px-4 py-3 font-medium text-red-600">${item.salida > 0 ? formatCurrency(item.salida) : '-'}</td>
+            `;
+            return `<tr class="bg-white border-b hover:bg-gray-50">${cellsHTML}</tr>`;
+        }).join('');
+
+        tbody.innerHTML = rowsHTML;
+    };
 
     const renderCuentasPorCobrar = () => { const table = document.getElementById('tabla-cuentas-cobrar'); const headers = ['Cliente', 'Total Deuda', 'Abonado', 'Restante', 'Acciones']; table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`; const tbody = table.querySelector('tbody'); const data = (allData.cuentasPorCobrar || []).filter(d => d.fecha instanceof Date).sort((a,b) => b.fecha - a.fecha); if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay cuentas por cobrar.</td></tr>`; return; } const rowsHTML = data.map(d => { const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0); const restante = d.monto - totalAbonado; const isPaid = restante <= 0; const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white'; const textStyle = isPaid ? 'line-through' : ''; const actionButtons = isPaid ? `<button class="historial-btn action-button text-blue-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button> <span class="px-2 py-1 text-xs font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Saldado</span>` : `<button class="historial-btn action-button text-blue-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button><button class="abono-btn action-button text-green-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Registrar Abono"><i class="fas fa-plus-circle"></i></button><button class="delete-btn action-button text-red-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Eliminar"><i class="fas fa-trash"></i></button>`; return `<tr class="${rowClass} border-b hover:bg-gray-50"><td class="px-3 sm:px-4 py-3 font-medium ${textStyle}">${d.cliente}<p class="text-xs font-normal">${d.descripcion}</p></td><td class="px-3 sm:px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td><td class="px-3 sm:px-4 py-3 text-green-600 ${textStyle}">${formatCurrency(totalAbonado)}</td><td class="px-3 sm:px-4 py-3 font-bold ${textStyle}">${formatCurrency(restante)}</td><td class="px-3 sm:px-4 py-3 flex items-center gap-1">${actionButtons}</td></tr>`; }).join(''); tbody.innerHTML = rowsHTML; };
     const renderCuentasPorPagar = () => { const table = document.getElementById('tabla-cuentas-pagar'); const headers = ['Proveedor', 'Concepto', 'Monto', 'Estado', 'Acciones']; table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`; const tbody = table.querySelector('tbody'); const data = (allData.cuentasPorPagar || []).filter(d => d.fecha instanceof Date).sort((a,b) => b.fecha - a.fecha); if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay cuentas por pagar.</td></tr>`; return; } const rowsHTML = data.map(d => { const isPaid = d.estado === 'Pagada'; const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white'; const textStyle = isPaid ? 'line-through' : ''; const statusBadge = isPaid ? `<span class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Pagada</span>` : `<span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full">Pendiente</span>`; const actionButtons = isPaid ? `<span class="text-xs text-gray-400">Completado</span>` : `<div class="flex items-center gap-2"><button class="pagar-btn bg-blue-500 text-white text-xs px-2 py-1 rounded-md hover:bg-blue-600" data-id="${d.id}">Pagar</button><button class="delete-btn action-button text-red-600" data-type="cuentasPorPagar" data-id="${d.id}"><i class="fas fa-trash"></i></button></div>`; return `<tr class="${rowClass} border-b"><td class="px-3 sm:px-4 py-3 font-medium ${textStyle}">${d.acreedor}</td><td class="px-3 sm:px-4 py-3 ${textStyle}">${d.descripcion}</td><td class="px-3 sm:px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td><td class="px-3 sm:px-4 py-3">${statusBadge}</td><td class="px-3 sm:px-4 py-3">${actionButtons}</td></tr>`; }).join(''); tbody.innerHTML = rowsHTML; };
@@ -1463,21 +1501,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const initializeDates = () => { setFormDatesToToday(); const now = new Date(); document.getElementById('month-filter').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`; };
     const getRefFor = (type) => database.ref(`businesses/${selectedBusinessId}/${type}`);
 
-    // UPDATED to handle sobrantes
+    // MODIFICADO: Formulario de ingresos para incluir Nequi
     document.getElementById('form-ingresos').addEventListener('submit', (e) => { 
         e.preventDefault(); 
         if (!validatePeriodAccess()) return;
         const ventasEfectivo = getNumericValue(document.getElementById('ingreso-efectivo').value); 
+        const ventasNequi = getNumericValue(document.getElementById('ingreso-nequi').value);
         const ventasTarjeta = getNumericValue(document.getElementById('ingreso-tarjeta').value); 
         const sobrante = getNumericValue(document.getElementById('ingreso-sobrante').value);
         
-        const totalEfectivo = ventasEfectivo + sobrante;
-        const totalIngreso = totalEfectivo + ventasTarjeta;
+        const totalEfectivoConSobrante = ventasEfectivo + sobrante;
+        const totalIngreso = totalEfectivoConSobrante + ventasNequi + ventasTarjeta;
 
         const newData = { 
             fecha: getTimestampFromDateInput('ingreso-fecha'), 
             monto: totalIngreso, 
-            monto_efectivo: totalEfectivo, 
+            monto_efectivo: totalEfectivoConSobrante, 
+            monto_nequi: ventasNequi,
             monto_tarjeta: ventasTarjeta, 
             monto_sobrante: sobrante,
             notas: document.getElementById('ingreso-notas').value 
@@ -1576,6 +1616,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const handleHistorial = (deudaId, type) => { const deuda = (allData[type] || []).find(d => d.id === deudaId); if (!deuda) return; const modal = document.getElementById('historial-modal'); const personKey = type === 'vales' ? 'persona' : 'cliente'; document.getElementById('historial-modal-subtitle').textContent = `Detalle para: ${deuda[personKey]} | Total: ${formatCurrency(deuda.monto)}`; const tbody = document.getElementById('historial-abonos-body'); const abonos = (deuda.abonos || []).filter(a => a.fecha instanceof Date).sort((a,b) => b.fecha - a.fecha); if (abonos.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">No se han registrado abonos.</td></tr>`; } else { tbody.innerHTML = abonos.map(abono => `<tr class="border-b"><td class="px-3 sm:px-4 py-3">${abono.fecha.toLocaleDateString('es-CO')}</td><td class="px-3 sm:px-4 py-3">${abono.fecha.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</td><td class="px-3 sm:px-4 py-3 font-medium">${formatCurrency(abono.monto)}</td><td class="px-3 sm:px-4 py-3">${abono.metodo}</td></tr>`).join(''); } modal.style.display = 'flex'; };
     
+    // MODIFICADO: Registro de abonos para incluir Nequi
     document.getElementById('save-abono-btn').addEventListener('click', async () => { 
         if (!validatePeriodAccess()) return;
         const deudaId = document.getElementById('abono-deuda-id').value; 
@@ -1597,6 +1638,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fecha: nowISO,
                 monto: monto,
                 monto_efectivo: metodo === 'Efectivo' ? monto : 0,
+                monto_nequi: metodo === 'Nequi' ? monto : 0,
                 monto_tarjeta: metodo === 'Banco' ? monto : 0,
                 notas: `Abono de: ${persona}`
             };
@@ -1612,6 +1654,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } 
     });
 
+    // MODIFICADO: Pago de cuentas para incluir Nequi
     const handlePagar = (deudaId) => { 
         if (!validatePeriodAccess()) return;
         const deuda = (allData.cuentasPorPagar || []).find(d => d.id === deudaId); 
@@ -1627,7 +1670,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const showNotification = (title, message, type = 'success') => { const modal = document.getElementById('notification-modal'); document.getElementById('notification-title').textContent = title; document.getElementById('notification-message').textContent = message; document.getElementById('notification-icon').innerHTML = type === 'success' ? `<i class="fas fa-check-circle text-3xl sm:text-4xl text-green-500"></i>` : `<i class="fas fa-times-circle text-3xl sm:text-4xl text-red-500"></i>`; modal.style.display = 'flex'; };
-    const showConfirm = (title, message, callback, showOptions = false) => { const modal = document.getElementById('confirm-modal'); document.getElementById('confirm-title').textContent = title; const msgContainer = document.getElementById('confirm-message-container'); msgContainer.innerHTML = `<p id="confirm-message" class="text-xs sm:text-sm text-gray-500">${message}</p>`; if (showOptions) { msgContainer.insertAdjacentHTML('beforeend', `<div class="mt-4"><select id="confirm-options" class="block w-full rounded-md border-gray-300 shadow-sm"><option value="Efectivo">Efectivo</option><option value="Banco">Banco</option></select></div>`); } confirmCallback = () => { const optionsEl = document.getElementById('confirm-options'); callback(showOptions ? optionsEl.value : true); }; modal.style.display = 'flex'; };
+    // MODIFICADO: Modal de confirmación para incluir Nequi
+    const showConfirm = (title, message, callback, showOptions = false) => { const modal = document.getElementById('confirm-modal'); document.getElementById('confirm-title').textContent = title; const msgContainer = document.getElementById('confirm-message-container'); msgContainer.innerHTML = `<p id="confirm-message" class="text-xs sm:text-sm text-gray-500">${message}</p>`; if (showOptions) { msgContainer.insertAdjacentHTML('beforeend', `<div class="mt-4"><select id="confirm-options" class="block w-full rounded-md border-gray-300 shadow-sm"><option value="Efectivo">Efectivo</option><option value="Nequi">Nequi</option><option value="Banco">Banco</option></select></div>`); } confirmCallback = () => { const optionsEl = document.getElementById('confirm-options'); callback(showOptions ? optionsEl.value : true); }; modal.style.display = 'flex'; };
     const cleanupConfirmModal = () => { const modal = document.getElementById('confirm-modal'); const customContent = document.querySelector('#confirm-message-container > div'); if (customContent) customContent.remove(); modal.style.display = 'none'; confirmCallback = null; };
     document.getElementById('notification-close').onclick = () => document.getElementById('notification-modal').style.display = 'none';
     document.getElementById('cancel-confirm-btn').onclick = cleanupConfirmModal;
@@ -1643,9 +1687,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // FUNCIONES DE PDF
     // =========================================================================
+    // MODIFICADO: Añadido Nequi a los títulos de reportes
     const reportTitles = {
         ingresos: 'Ingresos', compras: 'Compras', gastos: 'Gastos Operacionales', retiros: 'Retiros del Jefe',
-        sobrantes: 'Sobrantes del Día', // NEW
+        sobrantes: 'Sobrantes del Día', 
+        nequi: 'Movimientos de Nequi', // NUEVO
         cuentasPorCobrar: 'Cuentas por Cobrar', cuentasPorPagar: 'Cuentas por Pagar', vales: 'Vales de Personal'
     };
 
@@ -1662,7 +1708,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return 40;
     };
 
-    // NEW function for sobrantes PDF
     const exportSobrantesPDF = () => {
         const title = `Reporte de ${reportTitles.sobrantes}`;
         const sobrantesData = (allData.ingresos || [])
@@ -1685,6 +1730,44 @@ document.addEventListener('DOMContentLoaded', () => {
         showNotification('Éxito', 'El reporte profesional se ha generado.');
     };
 
+    // NUEVO: Función para generar PDF de movimientos de Nequi
+    const exportNequiPDF = () => {
+        const title = `Reporte de ${reportTitles.nequi}`;
+        const ingresosNequi = (allData.ingresos || []).filter(i => i.monto_nequi && i.monto_nequi > 0).map(i => ({ ...i, tipo: 'Ingreso', entrada: i.monto_nequi, salida: 0, descripcion: i.notas || 'Venta por Nequi' }));
+        const comprasNequi = (allData.compras || []).filter(c => c.metodo === 'Nequi').map(c => ({ ...c, tipo: 'Compra', entrada: 0, salida: c.monto, descripcion: `${c.proveedor} - ${c.descripcion}` }));
+        const retirosNequi = (allData.retiros || []).filter(r => r.metodo === 'Nequi').map(r => ({ ...r, tipo: 'Retiro', entrada: 0, salida: r.monto }));
+        const data = [...ingresosNequi, ...comprasNequi, ...retirosNequi].filter(d => d.fecha instanceof Date).sort((a, b) => b.fecha - a.fecha);
+
+        if (data.length === 0) {
+            showNotification('Sin datos', `No hay registros para generar el reporte de ${reportTitles.nequi}.`, 'error');
+            return;
+        }
+
+        const doc = new jsPDF();
+        let startY = drawHeader(doc, title);
+        const headers = [['Fecha', 'Tipo', 'Descripción', 'Entrada', 'Salida']];
+        const body = data.map(item => [item.fecha.toLocaleDateString('es-CO'), item.tipo, item.descripcion, item.entrada > 0 ? formatCurrency(item.entrada) : '-', item.salida > 0 ? formatCurrency(item.salida) : '-']);
+        
+        const totalEntradas = data.reduce((sum, item) => sum + item.entrada, 0);
+        const totalSalidas = data.reduce((sum, item) => sum + item.salida, 0);
+        const saldoFinal = totalEntradas - totalSalidas;
+
+        body.push([
+            { content: 'Totales:', colSpan: 3, styles: { halign: 'right', fontStyle: 'bold' } },
+            { content: formatCurrency(totalEntradas), styles: { fontStyle: 'bold', halign: 'left' } },
+            { content: formatCurrency(totalSalidas), styles: { fontStyle: 'bold', halign: 'left' } }
+        ]);
+        body.push([
+            { content: 'Saldo Final Nequi:', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold' } },
+            { content: formatCurrency(saldoFinal), styles: { fontStyle: 'bold', halign: 'left' } }
+        ]);
+
+        doc.autoTable({ head: headers, body, startY, theme: 'grid' });
+        doc.save(`Reporte_Profesional_${reportTitles.nequi}.pdf`);
+        showNotification('Éxito', 'El reporte de Nequi se ha generado.');
+    };
+
+    // MODIFICADO: Generación de PDF de ingresos para incluir Nequi
     const exportToPDF = (type) => {
         const data = (allData[type] || []).filter(d => d.fecha instanceof Date).sort((a, b) => b.fecha - a.fecha);
         const title = `Reporte de ${reportTitles[type]}`;
@@ -1702,13 +1785,13 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'ingresos':
                 groupingKey = 'metodo';
                 headers = [['Fecha', 'Notas', 'Monto']];
-                grandTotals = { Efectivo: 0, Banco: 0 };
+                grandTotals = { Efectivo: 0, Nequi: 0, Banco: 0 };
                 break;
             case 'compras':
             case 'retiros':
                 groupingKey = 'metodo';
                 headers = [['Fecha', 'Descripción', 'Monto']];
-                grandTotals = { Efectivo: 0, Banco: 0 };
+                grandTotals = { Efectivo: 0, Nequi: 0, Banco: 0 };
                 break;
             case 'gastos':
                 groupingKey = 'categoria';
@@ -1720,7 +1803,8 @@ document.addEventListener('DOMContentLoaded', () => {
             let key;
             if (type === 'ingresos') {
                 if (item.monto_efectivo > 0) acc['Efectivo'] = [...(acc['Efectivo'] || []), {...item, monto_grupo: item.monto_efectivo}];
-                if (item.monto_tarjeta > 0) acc['Banco'] = [...(acc['Banco'] || []), {...item, monto_grupo: item.monto_tarjeta, notas: item.notas + " (Tarjeta/Banco)"}];
+                if (item.monto_nequi > 0) acc['Nequi'] = [...(acc['Nequi'] || []), {...item, monto_grupo: item.monto_nequi, notas: item.notas + " (Nequi)"}];
+                if (item.monto_tarjeta > 0) acc['Banco'] = [...(acc['Banco'] || []), {...item, monto_grupo: item.monto_tarjeta, notas: item.notas + " (Banco)"}];
                 return acc;
             } else {
                 key = item[groupingKey];
