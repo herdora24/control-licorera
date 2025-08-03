@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control Financiero - Multi-Negocio (Corregido)</title>
+    <!-- CORRECCIÓN: Añadido Favicon para eliminar el error 404 de la consola -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -590,7 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // =========================================================================
-    // LÓGICA DE HISTORIAL (Sin cambios)
+    // LÓGICA DE HISTORIAL
     // =========================================================================
      const loadHistorialPeriods = () => {
         if (historialListener) {
@@ -888,10 +890,6 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }
         return tablesHTML;
-    };
-
-    const generateHistorialReport = (monthKey) => {
-        showNotification('Función en desarrollo', 'La descarga de reportes históricos estará disponible pronto.', 'success');
     };
 
     // =========================================================================
@@ -1398,6 +1396,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showNotification('Éxito', 'Historial actualizado correctamente.');
             return;
         }
+        // **CAMBIO**: Asegurarse que el listener llama a la función correcta
         if (e.target.closest('#download-historial-report')) {
             generateHistorialReport(e.target.closest('#download-historial-report').dataset.monthKey);
             return;
@@ -1591,17 +1590,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderCuentasPorCobrar = () => { const table = document.getElementById('tabla-cuentas-cobrar'); const headers = ['Cliente', 'Total Deuda', 'Abonado', 'Restante', 'Acciones']; table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`; const tbody = table.querySelector('tbody'); const data = (allData.cuentasPorCobrar || []).filter(d => d.fecha instanceof Date).sort((a,b) => b.fecha - a.fecha); if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay cuentas por cobrar.</td></tr>`; return; } const rowsHTML = data.map(d => { const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0); const restante = d.monto - totalAbonado; const isPaid = restante <= 0; const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white'; const textStyle = isPaid ? 'line-through' : ''; const actionButtons = isPaid ? `<button class="historial-btn action-button text-blue-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button> <span class="px-2 py-1 text-xs font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Saldado</span>` : `<button class="historial-btn action-button text-blue-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button><button class="abono-btn action-button text-green-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Registrar Abono"><i class="fas fa-plus-circle"></i></button><button class="delete-btn action-button text-red-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Eliminar"><i class="fas fa-trash"></i></button>`; return `<tr class="${rowClass} border-b hover:bg-gray-50"><td class="px-3 sm:px-4 py-3 font-medium ${textStyle}">${d.cliente}<p class="text-xs font-normal">${d.descripcion}</p></td><td class="px-3 sm:px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td><td class="px-3 sm:px-4 py-3 text-green-600 ${textStyle}">${formatCurrency(totalAbonado)}</td><td class="px-3 sm:px-4 py-3 font-bold ${textStyle}">${formatCurrency(restante)}</td><td class="px-3 sm:px-4 py-3 flex items-center gap-1">${actionButtons}</td></tr>`; }).join(''); tbody.innerHTML = rowsHTML; };
     const renderCuentasPorPagar = () => { const table = document.getElementById('tabla-cuentas-pagar'); const headers = ['Proveedor', 'Concepto', 'Monto', 'Estado', 'Acciones']; table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`; const tbody = table.querySelector('tbody'); const data = (allData.cuentasPorPagar || []).filter(d => d.fecha instanceof Date).sort((a,b) => b.fecha - a.fecha); if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay cuentas por pagar.</td></tr>`; return; } const rowsHTML = data.map(d => { const isPaid = d.estado === 'Pagada'; const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white'; const textStyle = isPaid ? 'line-through' : ''; const statusBadge = isPaid ? `<span class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Pagada</span>` : `<span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full">Pendiente</span>`; const actionButtons = isPaid ? `<span class="text-xs text-gray-400">Completado</span>` : `<div class="flex items-center gap-2"><button class="pagar-btn bg-blue-500 text-white text-xs px-2 py-1 rounded-md hover:bg-blue-600" data-id="${d.id}">Pagar</button><button class="delete-btn action-button text-red-600" data-type="cuentasPorPagar" data-id="${d.id}"><i class="fas fa-trash"></i></button></div>`; return `<tr class="${rowClass} border-b"><td class="px-3 sm:px-4 py-3 font-medium ${textStyle}">${d.acreedor}</td><td class="px-3 sm:px-4 py-3 ${textStyle}">${d.descripcion}</td><td class="px-3 sm:px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td><td class="px-3 sm:px-4 py-3">${statusBadge}</td><td class="px-3 sm:px-4 py-3">${actionButtons}</td></tr>`; }).join(''); tbody.innerHTML = rowsHTML; };
     const renderVales = () => { const table = document.getElementById('tabla-vales'); const headers = ['Persona', 'Total Vale', 'Abonado', 'Restante', 'Acciones']; table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`; const tbody = table.querySelector('tbody'); const data = (allData.vales || []).filter(d => d.fecha instanceof Date).sort((a,b) => b.fecha - a.fecha); if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay vales registrados.</td></tr>`; return; } const rowsHTML = data.map(d => { const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0); const restante = d.monto - totalAbonado; const isPaid = restante <= 0; const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white'; const textStyle = isPaid ? 'line-through' : ''; const actionButtons = isPaid ? `<button class="historial-btn action-button text-blue-600" data-type="vales" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button> <span class="px-2 py-1 text-xs font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Saldado</span>` : `<button class="historial-btn action-button text-blue-600" data-type="vales" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button><button class="abono-btn action-button text-green-600" data-type="vales" data-id="${d.id}" title="Registrar Abono"><i class="fas fa-plus-circle"></i></button><button class="delete-btn action-button text-red-600" data-type="vales" data-id="${d.id}" title="Eliminar Vale"><i class="fas fa-trash"></i></button>`; return `<tr class="${rowClass} border-b hover:bg-gray-50"><td class="px-3 sm:px-4 py-3 font-medium ${textStyle}">${d.persona}<p class="text-xs font-normal">${d.descripcion}</p></td><td class="px-3 sm:px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td><td class="px-3 sm:px-4 py-3 text-green-600 ${textStyle}">${formatCurrency(totalAbonado)}</td><td class="px-3 sm:px-4 py-3 font-bold ${textStyle}">${formatCurrency(restante)}</td><td class="px-3 sm:px-4 py-3 flex items-center gap-1">${actionButtons}</td></tr>`; }).join(''); tbody.innerHTML = rowsHTML; };
-    const getTimestampFromDateInput = (dateInputId) => { const dateValue = document.getElementById(dateInputId).value; const now = new Date(); const [year, month, day] = dateValue.split('-').map(Number); return new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds()).toISOString(); };
+    
     const setFormDatesToToday = () => { const today = formatDateForInput(new Date()); ['ingreso-fecha', 'gasto-fecha', 'compra-fecha', 'retiro-fecha'].forEach(id => { const el = document.getElementById(id); if (el) el.value = today; }); };
     
     const getRefFor = (type) => database.ref(`businesses/${selectedBusinessId}/${type}`);
 
     // =========================================================================
-    // ========= INICIO DE CAMBIOS: LÓGICA DE GUARDADO CORREGIDA =========
+    // LÓGICA DE GUARDADO CORREGIDA
     // =========================================================================
 
     /**
-     * **FUNCIÓN CLAVE CORREGIDA**
      * Crea una fecha oficial para la transacción.
      * Toma el DÍA del input del usuario, pero el MES y AÑO del período contable activo.
      * @param {string} dateInputId - El ID del campo de fecha (ej: 'ingreso-fecha').
@@ -1613,19 +1611,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return null;
         }
 
-        // Se toma el valor completo del input (ej: "2024-08-02") para obtener el día.
         const userInputDateValue = document.getElementById(dateInputId).value;
-        // Se crea un objeto Date en UTC para evitar problemas de zona horaria.
         const userInputDate = new Date(userInputDateValue + 'T12:00:00Z');
         const day = userInputDate.getUTCDate();
 
-        // Se obtienen el año y mes del PERÍODO ACTIVO, que es la fuente de verdad.
         const [periodYear, periodMonth] = currentPeriod.monthKey.split('-').map(Number);
 
-        // Se construye la fecha oficial de la transacción.
-        // Ej: Si el período es Julio (7) y el usuario eligió el día 2 de agosto,
-        // la fecha será: Año del período, Mes del período (6 en base 0), día 2.
-        // El resultado es una fecha DENTRO del período de Julio.
         const officialDate = new Date(Date.UTC(periodYear, periodMonth - 1, day, 12, 0, 0));
         
         return officialDate.toISOString();
@@ -1633,10 +1624,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('form-ingresos').addEventListener('submit', (e) => { 
         e.preventDefault(); 
-        
-        // **CAMBIO**: Usamos la nueva función para obtener la fecha oficial.
         const officialTimestamp = getOfficialTransactionDate('ingreso-fecha');
-        if (!officialTimestamp) return; // Detiene si no hay período activo.
+        if (!officialTimestamp) return;
 
         const ventasEfectivo = getNumericValue(document.getElementById('ingreso-efectivo').value); 
         const ventasNequi = getNumericValue(document.getElementById('ingreso-nequi').value);
@@ -1647,7 +1636,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalIngreso = totalEfectivoConSobrante + ventasNequi + ventasTarjeta;
 
         const newData = { 
-            // **CAMBIO**: Guardamos la fecha oficial, no la del input.
             fecha: officialTimestamp, 
             monto: totalIngreso, 
             monto_efectivo: totalEfectivoConSobrante, 
@@ -1702,20 +1690,16 @@ document.addEventListener('DOMContentLoaded', () => {
         changeTab('resumen'); 
     });
 
-    // Para deudas y vales, se asume que se crean en el momento actual,
-    // por lo que deben usar la fecha oficial del período activo.
     const getOfficialCurrentDate = () => {
         if (!currentPeriod || currentPeriod.isClosed) {
             showNotification('Error', 'No hay un período contable activo y abierto.', 'error');
             return null;
         }
-        // Usamos la fecha y hora REAL, pero la asociamos al período correcto.
         return new Date().toISOString();
     };
 
     document.getElementById('form-cuentas-cobrar').addEventListener('submit', (e) => { 
         e.preventDefault(); 
-        // **CAMBIO**: Usamos la fecha actual pero validamos contra el período activo.
         const fecha = getOfficialCurrentDate();
         if (!fecha) return;
 
@@ -1750,12 +1734,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addCurrencyFormatting(e.target); 
     });
     
-    // =========================================================================
-    // ========= FIN DE CAMBIOS: LÓGICA DE GUARDADO CORREGIDA ============
-    // =========================================================================
-
     const handleDelete = (type, id, fechaISO) => { 
-        // La validación aquí es correcta, porque previene borrar algo de un período ya cerrado.
         if (!validatePeriodAccess(fechaISO)) return;
         const item = (allData[type] || []).find(i => i.id === id); 
         if (!item) return; 
@@ -1769,7 +1748,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const handleAbonar = (deudaId, type, fechaISO) => { 
-        // La validación aquí es correcta. No se puede abonar a una deuda de un período cerrado.
         if (!validatePeriodAccess(fechaISO)) return;
         document.getElementById('abono-deuda-id').value = deudaId; 
         document.getElementById('abono-type').value = type; 
@@ -1786,7 +1764,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const monto = getNumericValue(document.getElementById('abono-monto').value); 
         const metodo = document.getElementById('abono-metodo').value; 
         
-        // Un abono siempre ocurre en el período activo actual.
         const nowISO = getOfficialCurrentDate();
         if (!nowISO) return;
 
@@ -1851,7 +1828,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('month-filter').addEventListener('change', refreshUI);
 
     // =========================================================================
-    // FUNCIONES DE PDF (Sin cambios mayores)
+    // FUNCIONES DE PDF
     // =========================================================================
     const reportTitles = {
         ingresos: 'Ingresos', compras: 'Compras', gastos: 'Gastos Operacionales', retiros: 'Retiros del Jefe',
@@ -1871,6 +1848,138 @@ document.addEventListener('DOMContentLoaded', () => {
         doc.text(`Negocio: ${businessName}`, 14, 30);
         doc.text(`Generado el: ${new Date().toLocaleString('es-CO')}`, 14, 36);
         return 40;
+    };
+
+    // **NUEVA FUNCIÓN**: Reporte detallado de un período histórico
+    const generateHistorialReport = (monthKey) => {
+        const period = historialPeriods.find(p => p.monthKey === monthKey);
+        if (!period) {
+            showNotification('Error', 'No se encontraron los datos para el período seleccionado.', 'error');
+            return;
+        }
+
+        const monthDate = new Date(period.monthKey + '-02T00:00:00');
+        const monthName = monthDate.toLocaleDateString('es-CO', { 
+            month: 'long', 
+            year: 'numeric',
+            timeZone: 'UTC'
+        });
+        const title = `Reporte Completo: ${monthName}`;
+        const doc = new jsPDF();
+        let startY = drawHeader(doc, title);
+
+        const periodData = period.data;
+        
+        // 1. Resumen General del Período
+        const totales = {
+            ingresos: (periodData.ingresos || []).reduce((sum, item) => sum + item.monto, 0),
+            compras: (periodData.compras || []).reduce((sum, item) => sum + item.monto, 0),
+            gastos: (periodData.gastos || []).reduce((sum, item) => sum + item.monto, 0),
+            retiros: (periodData.retiros || []).reduce((sum, item) => sum + item.monto, 0)
+        };
+        const utilidad = totales.ingresos - totales.compras - totales.gastos;
+
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Resumen General del Período', 14, startY);
+        startY += 8;
+
+        const summaryBody = [
+            ['Ingresos Totales', formatCurrency(totales.ingresos)],
+            ['Compras Totales', formatCurrency(totales.compras)],
+            ['Gastos Op. Totales', formatCurrency(totales.gastos)],
+            ['Retiros del Jefe', formatCurrency(totales.retiros)],
+            ['Utilidad Bruta (Ingresos - Compras - Gastos)', formatCurrency(utilidad)]
+        ];
+        doc.autoTable({
+            body: summaryBody,
+            startY,
+            theme: 'striped',
+            styles: { fontSize: 10 },
+            headStyles: { fillColor: [79, 70, 229] },
+            columnStyles: {
+                0: { fontStyle: 'bold' },
+                1: { halign: 'right' }
+            }
+        });
+        startY = doc.lastAutoTable.finalY + 12;
+
+        // 2. Tablas detalladas para transacciones principales
+        const transactionTypeInfo = {
+            ingresos: { title: 'Detalle de Ingresos', headers: [['Fecha', 'Notas', 'Efectivo', 'Nequi', 'Banco', 'Total']], body: (d) => [d.fecha.toLocaleDateString('es-CO'), d.notas || '-', formatCurrency(d.monto_efectivo || 0), formatCurrency(d.monto_nequi || 0), formatCurrency(d.monto_tarjeta || 0), formatCurrency(d.monto)] },
+            compras: { title: 'Detalle de Compras', headers: [['Fecha', 'Proveedor', 'Descripción', 'Método', 'Monto']], body: (d) => [d.fecha.toLocaleDateString('es-CO'), d.proveedor, d.descripcion, d.metodo, formatCurrency(d.monto)] },
+            gastos: { title: 'Detalle de Gastos Operacionales', headers: [['Fecha', 'Descripción', 'Categoría', 'Monto']], body: (d) => [d.fecha.toLocaleDateString('es-CO'), d.descripcion, d.categoria, formatCurrency(d.monto)] },
+            retiros: { title: 'Detalle de Retiros del Jefe', headers: [['Fecha', 'Descripción', 'Retirado de', 'Monto']], body: (d) => [d.fecha.toLocaleDateString('es-CO'), d.descripcion, d.metodo, formatCurrency(d.monto)] },
+        };
+
+        for(const type in transactionTypeInfo) {
+            const data = (periodData[type] || []).sort((a,b) => a.fecha - b.fecha);
+            if (data.length > 0) {
+                const info = transactionTypeInfo[type];
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text(info.title, 14, startY);
+                startY += 6;
+
+                const body = data.map(info.body);
+                const total = data.reduce((sum, item) => sum + item.monto, 0);
+                
+                const footer = [
+                    [{ content: `Total ${info.title}:`, colSpan: info.headers[0].length - 1, styles: { halign: 'right', fontStyle: 'bold' } },
+                     { content: formatCurrency(total), styles: { fontStyle: 'bold' } }]
+                ];
+
+                doc.autoTable({ head: info.headers, body, foot: footer, startY, theme: 'grid', styles: { fontSize: 8 } });
+                startY = doc.lastAutoTable.finalY + 10;
+            }
+        }
+        
+        // 3. Tabla para Sobrantes
+        const sobrantesData = (periodData.ingresos || []).filter(i => i.monto_sobrante && i.monto_sobrante > 0).sort((a,b) => a.fecha - b.fecha);
+        if (sobrantesData.length > 0) {
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Detalle de Sobrantes', 14, startY);
+            startY += 6;
+            const headers = [['Fecha', 'Notas', 'Monto']];
+            const body = sobrantesData.map(d => [d.fecha.toLocaleDateString('es-CO'), d.notas || 'Registro de Venta', formatCurrency(d.monto_sobrante)]);
+            const total = sobrantesData.reduce((sum, item) => sum + item.monto_sobrante, 0);
+            const footer = [[{ content: 'Total Sobrantes:', colSpan: 2, styles: { halign: 'right', fontStyle: 'bold' } }, { content: formatCurrency(total), styles: { fontStyle: 'bold' } }]];
+            doc.autoTable({ head: headers, body, foot: footer, startY, theme: 'grid', styles: { fontSize: 8 } });
+            startY = doc.lastAutoTable.finalY + 10;
+        }
+
+        // 4. Tablas para deudas y vales creados en el período
+        const debtTypeInfo = {
+            cuentasPorCobrar: { title: 'Cuentas por Cobrar (Creadas en el Período)', headers: [['Fecha', 'Cliente', 'Descripción', 'Monto']], body: (d) => [d.fecha.toLocaleDateString('es-CO'), d.cliente, d.descripcion, formatCurrency(d.monto)] },
+            cuentasPorPagar: { title: 'Cuentas por Pagar (Creadas en el Período)', headers: [['Fecha', 'Acreedor', 'Concepto', 'Monto']], body: (d) => [d.fecha.toLocaleDateString('es-CO'), d.acreedor, d.descripcion, formatCurrency(d.monto)] },
+            vales: { title: 'Vales de Personal (Creados en el Período)', headers: [['Fecha', 'Persona', 'Descripción', 'Monto']], body: (d) => [d.fecha.toLocaleDateString('es-CO'), d.persona, d.descripcion, formatCurrency(d.monto)] }
+        };
+
+        for(const type in debtTypeInfo) {
+            const data = (periodData[type] || []).sort((a,b) => a.fecha - b.fecha);
+            if (data.length > 0) {
+                const info = debtTypeInfo[type];
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.text(info.title, 14, startY);
+                startY += 6;
+
+                const body = data.map(info.body);
+                const total = data.reduce((sum, item) => sum + item.monto, 0);
+                
+                const footer = [
+                    [{ content: `Total Creado:`, colSpan: info.headers[0].length - 1, styles: { halign: 'right', fontStyle: 'bold' } },
+                     { content: formatCurrency(total), styles: { fontStyle: 'bold' } }]
+                ];
+
+                doc.autoTable({ head: info.headers, body, foot: footer, startY, theme: 'grid', styles: { fontSize: 8 } });
+                startY = doc.lastAutoTable.finalY + 10;
+            }
+        }
+
+        doc.save(`Reporte_Completo_${monthKey}.pdf`);
+        showNotification('Éxito', 'El reporte completo del período se ha generado.');
     };
 
     const exportSobrantesPDF = () => {
