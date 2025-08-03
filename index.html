@@ -156,50 +156,51 @@
 
             <main>
                 <div id="resumen" class="tab-content">
-                         <div id="print-area">
-                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-4">
-                                 <div>
-                                     <h2 class="text-xl sm:text-2xl font-semibold text-gray-700">Resumen del Periodo</h2>
-                                     <p id="period-display" class="text-xs sm:text-sm text-gray-500 mt-1">Calculando periodo...</p>
-                                     <div id="period-status" class="hidden mt-2 px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
-                                         <i class="fas fa-lock mr-1"></i>🔒 PERÍODO CERRADO - Solo consulta
+                             <div id="print-area">
+                                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-4">
+                                     <div>
+                                         <h2 class="text-xl sm:text-2xl font-semibold text-gray-700">Resumen del Periodo</h2>
+                                         <p id="period-display" class="text-xs sm:text-sm text-gray-500 mt-1">Calculando periodo...</p>
+                                         <div id="period-status" class="hidden mt-2 px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
+                                             <i class="fas fa-lock mr-1"></i>🔒 PERÍODO CERRADO - Solo consulta
+                                         </div>
+                                     </div>
+                                     <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto no-print">
+                                         <input type="month" id="month-filter" class="p-2 border border-gray-300 rounded-md text-sm">
+                                         <button id="close-period-btn" class="bg-indigo-600 text-white font-semibold px-3 sm:px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-xs sm:text-sm">
+                                             <i class="fas fa-calendar-check mr-1 sm:mr-2"></i><span class="hidden sm:inline">Realizar </span>Corte de Mes
+                                         </button>
                                      </div>
                                  </div>
-                                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto no-print">
-                                     <input type="month" id="month-filter" class="p-2 border border-gray-300 rounded-md text-sm">
-                                     <button id="close-period-btn" class="bg-indigo-600 text-white font-semibold px-3 sm:px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors text-xs sm:text-sm">
-                                         <i class="fas fa-calendar-check mr-1 sm:mr-2"></i><span class="hidden sm:inline">Realizar </span>Corte de Mes
-                                     </button>
+                                 <!-- MODIFICADO: Añadido Nequi y ajustado el grid -->
+                                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+                                     <div class="card p-3 sm:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Ingresos Totales (Periodo)</h3><p id="total-ingresos" class="text-lg sm:text-2xl font-semibold text-green-600 mt-1">$0</p></div>
+                                     <div class="card p-3 sm:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Compras Totales (Periodo)</h3><p id="total-compras" class="text-lg sm:text-2xl font-semibold text-purple-600 mt-1">$0</p></div>
+                                     <div class="card p-3 sm:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Gastos Op. Totales (Periodo)</h3><p id="total-gastos-op" class="text-lg sm:text-2xl font-semibold text-red-600 mt-1">$0</p></div>
+                                     <div class="card p-3 sm:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Retiros del Jefe (Periodo)</h3><p id="total-retiros" class="text-lg sm:text-2xl font-semibold text-orange-500 mt-1">$0</p></div>
+                                     
+                                     <div class="card p-3 sm:p-5 bg-blue-50 border-blue-200 border"><h3 class="text-blue-800 text-xs sm:text-sm font-medium">Efectivo en Caja (Actual)</h3><p id="efectivo-caja" class="text-lg sm:text-2xl font-semibold text-blue-700 mt-1">$0</p></div>
+                                     <!-- NUEVO: Tarjeta de Saldo Nequi -->
+                                     <div class="card p-3 sm:p-5" style="background-color: #fde6f3; border-color: #e83e8c;"><h3 class="text-xs sm:text-sm font-medium" style="color: #8c2552;">Saldo en Nequi (Actual)</h3><p id="saldo-nequi" class="text-lg sm:text-2xl font-semibold mt-1" style="color: #e83e8c;">$0</p></div>
+                                     <div class="card p-3 sm:p-5 bg-green-50 border-green-200 border"><h3 class="text-green-800 text-xs sm:text-sm font-medium">Saldo en Banco (Actual)</h3><p id="saldo-banco" class="text-lg sm:text-2xl font-semibold text-green-700 mt-1">$0</p></div>
+                                     
+                                     <div class="card p-3 sm:p-5 bg-yellow-50 border-yellow-200 border"><h3 class="text-yellow-800 text-xs sm:text-sm font-medium">Cuentas por Cobrar</h3><p id="cuentas-cobrar-total" class="text-lg sm:text-2xl font-semibold text-yellow-700 mt-1">$0</p></div>
+                                     <div class="card p-3 sm:p-5 bg-red-50 border-red-200 border"><h3 class="text-red-800 text-xs sm:text-sm font-medium">Cuentas por Pagar</h3><p id="cuentas-pagar-total" class="text-lg sm:text-2xl font-semibold text-red-700 mt-1">$0</p></div>
+                                 </div>
+                                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-8">
+                                     <div class="lg:col-span-2 card p-4 sm:p-6"><h3 class="text-base sm:text-lg font-semibold text-gray-700 mb-4">Distribución de Gastos (Periodo)</h3><canvas id="gastos-chart"></canvas></div>
+                                     <div class="lg:col-span-3 card p-4 sm:p-6"><h3 class="text-base sm:text-lg font-semibold text-gray-700 mb-4">Últimos Movimientos (Global)</h3><div class="overflow-x-auto"><table class="w-full text-xs sm:text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-3 sm:px-6 py-3">Fecha</th><th class="px-3 sm:px-6 py-3">Descripción</th><th class="px-3 sm:px-6 py-3">Monto</th></tr></thead><tbody id="ultimos-movimientos-body"></tbody></table></div></div>
                                  </div>
                              </div>
-                             <!-- MODIFICADO: Añadido Nequi y ajustado el grid -->
-                             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-                                 <div class="card p-3 sm:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Ingresos Totales (Periodo)</h3><p id="total-ingresos" class="text-lg sm:text-2xl font-semibold text-green-600 mt-1">$0</p></div>
-                                 <div class="card p-3 sm:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Compras Totales (Periodo)</h3><p id="total-compras" class="text-lg sm:text-2xl font-semibold text-purple-600 mt-1">$0</p></div>
-                                 <div class="card p-3 sm:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Gastos Op. Totales (Periodo)</h3><p id="total-gastos-op" class="text-lg sm:text-2xl font-semibold text-red-600 mt-1">$0</p></div>
-                                 <div class="card p-3 sm:p-5"><h3 class="text-gray-500 text-xs sm:text-sm font-medium">Retiros del Jefe (Periodo)</h3><p id="total-retiros" class="text-lg sm:text-2xl font-semibold text-orange-500 mt-1">$0</p></div>
-                                 
-                                 <div class="card p-3 sm:p-5 bg-blue-50 border-blue-200 border"><h3 class="text-blue-800 text-xs sm:text-sm font-medium">Efectivo en Caja (Actual)</h3><p id="efectivo-caja" class="text-lg sm:text-2xl font-semibold text-blue-700 mt-1">$0</p></div>
-                                 <!-- NUEVO: Tarjeta de Saldo Nequi -->
-                                 <div class="card p-3 sm:p-5" style="background-color: #fde6f3; border-color: #e83e8c;"><h3 class="text-xs sm:text-sm font-medium" style="color: #8c2552;">Saldo en Nequi (Actual)</h3><p id="saldo-nequi" class="text-lg sm:text-2xl font-semibold mt-1" style="color: #e83e8c;">$0</p></div>
-                                 <div class="card p-3 sm:p-5 bg-green-50 border-green-200 border"><h3 class="text-green-800 text-xs sm:text-sm font-medium">Saldo en Banco (Actual)</h3><p id="saldo-banco" class="text-lg sm:text-2xl font-semibold text-green-700 mt-1">$0</p></div>
-                                 
-                                 <div class="card p-3 sm:p-5 bg-yellow-50 border-yellow-200 border"><h3 class="text-yellow-800 text-xs sm:text-sm font-medium">Cuentas por Cobrar</h3><p id="cuentas-cobrar-total" class="text-lg sm:text-2xl font-semibold text-yellow-700 mt-1">$0</p></div>
-                                 <div class="card p-3 sm:p-5 bg-red-50 border-red-200 border"><h3 class="text-red-800 text-xs sm:text-sm font-medium">Cuentas por Pagar</h3><p id="cuentas-pagar-total" class="text-lg sm:text-2xl font-semibold text-red-700 mt-1">$0</p></div>
-                             </div>
-                             <div class="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-8">
-                                 <div class="lg:col-span-2 card p-4 sm:p-6"><h3 class="text-base sm:text-lg font-semibold text-gray-700 mb-4">Distribución de Gastos (Periodo)</h3><canvas id="gastos-chart"></canvas></div>
-                                 <div class="lg:col-span-3 card p-4 sm:p-6"><h3 class="text-base sm:text-lg font-semibold text-gray-700 mb-4">Últimos Movimientos (Global)</h3><div class="overflow-x-auto"><table class="w-full text-xs sm:text-sm text-left text-gray-500"><thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr><th class="px-3 sm:px-6 py-3">Fecha</th><th class="px-3 sm:px-6 py-3">Descripción</th><th class="px-3 sm:px-6 py-3">Monto</th></tr></thead><tbody id="ultimos-movimientos-body"></tbody></table></div></div>
-                             </div>
-                         </div>
                 </div>
                 <div id="ingresos" class="tab-content hidden">
                     <div class="max-w-xl mx-auto card p-6 sm:p-8">
                         <h2 class="text-xl sm:text-2xl font-semibold">Registrar Venta</h2>
                         <form id="form-ingresos" class="space-y-4 sm:space-y-6">
                             <div>
-                                <label for="ingreso-fecha" class="block text-sm font-medium">Fecha</label>
+                                <label for="ingreso-fecha" class="block text-sm font-medium">Fecha de la Venta</label>
                                 <input type="date" id="ingreso-fecha" class="mt-1 block w-full rounded-md" required>
+                                <p class="text-xs text-gray-500 mt-1">La venta se registrará en el período contable activo.</p>
                             </div>
                             <div>
                                 <label for="ingreso-efectivo" class="block text-sm font-medium">Ventas en Efectivo</label>
@@ -226,10 +227,10 @@
                         </form>
                     </div>
                 </div>
-                <div id="compras" class="tab-content hidden"><div class="max-w-xl mx-auto card p-6 sm:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Compra</h2><form id="form-compras" class="space-y-4 sm:space-y-6"><div><label for="compra-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="compra-fecha" class="mt-1 block w-full" required></div><div><label for="compra-proveedor" class="block text-sm font-medium">Proveedor</label><input type="text" id="compra-proveedor" class="mt-1 block w-full" required></div><div><label for="compra-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="compra-descripcion" class="mt-1 block w-full" required></div><div><label for="compra-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="compra-monto" class="mt-1 block w-full" required></div><div><label for="compra-metodo" class="block text-sm font-medium">Pagado con</label><select id="compra-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo</option><option value="Nequi">Nequi</option><option value="Banco">Banco</option></select></div><button type="submit" class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Compra</button></form></div></div>
-                <div id="gastos" class="tab-content hidden"><div class="max-w-xl mx-auto card p-6 sm:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Gasto Op. (del Efectivo)</h2><form id="form-gastos" class="space-y-4 sm:space-y-6"><div><label for="gasto-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="gasto-fecha" class="mt-1 block w-full" required></div><div><label for="gasto-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="gasto-descripcion" class="mt-1 block w-full" required></div><div><label for="gasto-categoria" class="block text-sm font-medium">Categoría</label><select id="gasto-categoria" class="mt-1 block w-full" required><option>Arriendo</option><option>Servicios</option><option>Nómina</option><option>Marketing</option><option>Mantenimiento</option><option>Impuestos</option><option>Insumos</option><option>Otro</option></select></div><div><label for="gasto-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="gasto-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Gasto</button></form></div></div>
+                <div id="compras" class="tab-content hidden"><div class="max-w-xl mx-auto card p-6 sm:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Compra</h2><form id="form-compras" class="space-y-4 sm:space-y-6"><div><label for="compra-fecha" class="block text-sm font-medium">Fecha de la Compra</label><input type="date" id="compra-fecha" class="mt-1 block w-full" required><p class="text-xs text-gray-500 mt-1">La compra se registrará en el período contable activo.</p></div><div><label for="compra-proveedor" class="block text-sm font-medium">Proveedor</label><input type="text" id="compra-proveedor" class="mt-1 block w-full" required></div><div><label for="compra-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="compra-descripcion" class="mt-1 block w-full" required></div><div><label for="compra-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="compra-monto" class="mt-1 block w-full" required></div><div><label for="compra-metodo" class="block text-sm font-medium">Pagado con</label><select id="compra-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo</option><option value="Nequi">Nequi</option><option value="Banco">Banco</option></select></div><button type="submit" class="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Compra</button></form></div></div>
+                <div id="gastos" class="tab-content hidden"><div class="max-w-xl mx-auto card p-6 sm:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Gasto Op. (del Efectivo)</h2><form id="form-gastos" class="space-y-4 sm:space-y-6"><div><label for="gasto-fecha" class="block text-sm font-medium">Fecha del Gasto</label><input type="date" id="gasto-fecha" class="mt-1 block w-full" required><p class="text-xs text-gray-500 mt-1">El gasto se registrará en el período contable activo.</p></div><div><label for="gasto-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="gasto-descripcion" class="mt-1 block w-full" required></div><div><label for="gasto-categoria" class="block text-sm font-medium">Categoría</label><select id="gasto-categoria" class="mt-1 block w-full" required><option>Arriendo</option><option>Servicios</option><option>Nómina</option><option>Marketing</option><option>Mantenimiento</option><option>Impuestos</option><option>Insumos</option><option>Otro</option></select></div><div><label for="gasto-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="gasto-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-semibold">Añadir Gasto</button></form></div></div>
                 <!-- MODIFICADO: Añadido Nequi a retiros -->
-                <div id="retiros" class="tab-content hidden"><div class="max-w-xl mx-auto card p-6 sm:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Retiro Jefe</h2><form id="form-retiros" class="space-y-4 sm:space-y-6"><div><label for="retiro-fecha" class="block text-sm font-medium">Fecha</label><input type="date" id="retiro-fecha" class="mt-1 block w-full" required></div><div><label for="retiro-metodo" class="block text-sm font-medium">Retirar de</label><select id="retiro-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo (Caja)</option><option value="Nequi">Nequi</option><option value="Banco">Banco (Transferencia)</option></select></div><div><label for="retiro-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="retiro-descripcion" class="mt-1 block w-full" required></div><div><label for="retiro-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="retiro-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold">Añadir Retiro</button></form></div></div>
+                <div id="retiros" class="tab-content hidden"><div class="max-w-xl mx-auto card p-6 sm:p-8"><h2 class="text-xl sm:text-2xl font-semibold">Registrar Retiro Jefe</h2><form id="form-retiros" class="space-y-4 sm:space-y-6"><div><label for="retiro-fecha" class="block text-sm font-medium">Fecha del Retiro</label><input type="date" id="retiro-fecha" class="mt-1 block w-full" required><p class="text-xs text-gray-500 mt-1">El retiro se registrará en el período contable activo.</p></div><div><label for="retiro-metodo" class="block text-sm font-medium">Retirar de</label><select id="retiro-metodo" class="mt-1 block w-full" required><option value="Efectivo">Efectivo (Caja)</option><option value="Nequi">Nequi</option><option value="Banco">Banco (Transferencia)</option></select></div><div><label for="retiro-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="retiro-descripcion" class="mt-1 block w-full" required></div><div><label for="retiro-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="retiro-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-orange-500 text-white py-3 px-4 rounded-lg font-semibold">Añadir Retiro</button></form></div></div>
                 <div id="deudas" class="tab-content hidden grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
                     <div class="space-y-4 sm:space-y-6"><h2 class="text-xl sm:text-2xl font-semibold">Cuentas por Cobrar (Fiado)</h2><div class="card p-4 sm:p-6"><form id="form-cuentas-cobrar" class="space-y-4"><div><label for="cpc-cliente" class="block text-sm font-medium">Nombre Cliente</label><input type="text" id="cpc-cliente" class="mt-1 block w-full" required></div><div><label for="cpc-descripcion" class="block text-sm font-medium">Descripción</label><input type="text" id="cpc-descripcion" class="mt-1 block w-full" required></div><div><label for="cpc-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="cpc-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-yellow-500 text-white py-2 rounded-lg font-semibold">Añadir Deuda</button></form></div><div class="card p-3 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-cuentas-cobrar"></table></div></div>
                     <div class="space-y-4 sm:space-y-6"><h2 class="text-xl sm:text-2xl font-semibold">Cuentas por Pagar</h2><div class="card p-4 sm:p-6"><form id="form-cuentas-pagar" class="space-y-4"><div><label for="cpp-acreedor" class="block text-sm font-medium">Proveedor/Acreedor</label><input type="text" id="cpp-acreedor" class="mt-1 block w-full" required></div><div><label for="cpp-descripcion" class="block text-sm font-medium">Concepto</label><input type="text" id="cpp-descripcion" class="mt-1 block w-full" required></div><div><label for="cpp-monto" class="block text-sm font-medium">Monto</label><input type="text" data-moneda inputmode="numeric" id="cpp-monto" class="mt-1 block w-full" required></div><button type="submit" class="w-full bg-red-500 text-white py-2 rounded-lg font-semibold">Añadir Cuenta por Pagar</button></form></div><div class="card p-3 sm:p-4 overflow-x-auto"><table class="w-full text-xs sm:text-sm" id="tabla-cuentas-pagar"></table></div></div>
@@ -584,7 +585,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         document.getElementById('business-selector-overlay').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
-        // La inicialización de fechas y UI ahora es manejada por el listener de períodos.
         addCurrencyFormatting(document.body);
         changeTab('resumen');
     };
@@ -1447,10 +1447,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('corte-mes-modal').style.display = 'flex';
     });
     
-    // **CAMBIO**: Recargar la página al cerrar el modal de corte para asegurar que se cargue el nuevo estado.
     const closeCorteModalAndReload = () => {
         document.getElementById('corte-mes-modal').style.display = 'none';
-        // location.reload(); // Descomentar si se quiere forzar la recarga completa
     };
 
     document.getElementById('close-corte-modal-btn').addEventListener('click', closeCorteModalAndReload);
@@ -1596,14 +1594,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const getTimestampFromDateInput = (dateInputId) => { const dateValue = document.getElementById(dateInputId).value; const now = new Date(); const [year, month, day] = dateValue.split('-').map(Number); return new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds()).toISOString(); };
     const setFormDatesToToday = () => { const today = formatDateForInput(new Date()); ['ingreso-fecha', 'gasto-fecha', 'compra-fecha', 'retiro-fecha'].forEach(id => { const el = document.getElementById(id); if (el) el.value = today; }); };
     
-    // **FUNCIÓN ELIMINADA**: initializeDates() ya no es necesaria, su lógica se maneja en determineActivePeriod.
-    
     const getRefFor = (type) => database.ref(`businesses/${selectedBusinessId}/${type}`);
+
+    // =========================================================================
+    // ========= INICIO DE CAMBIOS: LÓGICA DE GUARDADO CORREGIDA =========
+    // =========================================================================
+
+    /**
+     * **FUNCIÓN CLAVE CORREGIDA**
+     * Crea una fecha oficial para la transacción.
+     * Toma el DÍA del input del usuario, pero el MES y AÑO del período contable activo.
+     * @param {string} dateInputId - El ID del campo de fecha (ej: 'ingreso-fecha').
+     * @returns {string|null} - La fecha en formato ISOString, o null si no hay período activo.
+     */
+    const getOfficialTransactionDate = (dateInputId) => {
+        if (!currentPeriod || currentPeriod.isClosed) {
+            showNotification('Error', 'No hay un período contable activo y abierto para registrar transacciones.', 'error');
+            return null;
+        }
+
+        // Se toma el valor completo del input (ej: "2024-08-02") para obtener el día.
+        const userInputDateValue = document.getElementById(dateInputId).value;
+        // Se crea un objeto Date en UTC para evitar problemas de zona horaria.
+        const userInputDate = new Date(userInputDateValue + 'T12:00:00Z');
+        const day = userInputDate.getUTCDate();
+
+        // Se obtienen el año y mes del PERÍODO ACTIVO, que es la fuente de verdad.
+        const [periodYear, periodMonth] = currentPeriod.monthKey.split('-').map(Number);
+
+        // Se construye la fecha oficial de la transacción.
+        // Ej: Si el período es Julio (7) y el usuario eligió el día 2 de agosto,
+        // la fecha será: Año del período, Mes del período (6 en base 0), día 2.
+        // El resultado es una fecha DENTRO del período de Julio.
+        const officialDate = new Date(Date.UTC(periodYear, periodMonth - 1, day, 12, 0, 0));
+        
+        return officialDate.toISOString();
+    };
 
     document.getElementById('form-ingresos').addEventListener('submit', (e) => { 
         e.preventDefault(); 
-        const fecha = getTimestampFromDateInput('ingreso-fecha');
-        if (!validatePeriodAccess(fecha)) return;
+        
+        // **CAMBIO**: Usamos la nueva función para obtener la fecha oficial.
+        const officialTimestamp = getOfficialTransactionDate('ingreso-fecha');
+        if (!officialTimestamp) return; // Detiene si no hay período activo.
 
         const ventasEfectivo = getNumericValue(document.getElementById('ingreso-efectivo').value); 
         const ventasNequi = getNumericValue(document.getElementById('ingreso-nequi').value);
@@ -1614,7 +1647,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalIngreso = totalEfectivoConSobrante + ventasNequi + ventasTarjeta;
 
         const newData = { 
-            fecha: fecha, 
+            // **CAMBIO**: Guardamos la fecha oficial, no la del input.
+            fecha: officialTimestamp, 
             monto: totalIngreso, 
             monto_efectivo: totalEfectivoConSobrante, 
             monto_nequi: ventasNequi,
@@ -1631,9 +1665,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('form-compras').addEventListener('submit', (e) => { 
         e.preventDefault(); 
-        const fecha = getTimestampFromDateInput('compra-fecha');
-        if (!validatePeriodAccess(fecha)) return;
-        const newData = { fecha: fecha, proveedor: document.getElementById('compra-proveedor').value, descripcion: document.getElementById('compra-descripcion').value, monto: getNumericValue(document.getElementById('compra-monto').value), metodo: document.getElementById('compra-metodo').value }; 
+        const officialTimestamp = getOfficialTransactionDate('compra-fecha');
+        if (!officialTimestamp) return;
+
+        const newData = { fecha: officialTimestamp, proveedor: document.getElementById('compra-proveedor').value, descripcion: document.getElementById('compra-descripcion').value, monto: getNumericValue(document.getElementById('compra-monto').value), metodo: document.getElementById('compra-metodo').value }; 
         getRefFor('compras').push(newData); 
         showNotification('Éxito', 'Compra registrada.'); 
         e.target.reset(); 
@@ -1643,9 +1678,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('form-gastos').addEventListener('submit', (e) => { 
         e.preventDefault(); 
-        const fecha = getTimestampFromDateInput('gasto-fecha');
-        if (!validatePeriodAccess(fecha)) return;
-        const newData = { fecha: fecha, descripcion: document.getElementById('gasto-descripcion').value, categoria: document.getElementById('gasto-categoria').value, monto: getNumericValue(document.getElementById('gasto-monto').value) }; 
+        const officialTimestamp = getOfficialTransactionDate('gasto-fecha');
+        if (!officialTimestamp) return;
+
+        const newData = { fecha: officialTimestamp, descripcion: document.getElementById('gasto-descripcion').value, categoria: document.getElementById('gasto-categoria').value, monto: getNumericValue(document.getElementById('gasto-monto').value) }; 
         getRefFor('gastos').push(newData); 
         showNotification('Éxito', 'Gasto registrado.'); 
         e.target.reset(); 
@@ -1655,9 +1691,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('form-retiros').addEventListener('submit', (e) => { 
         e.preventDefault(); 
-        const fecha = getTimestampFromDateInput('retiro-fecha');
-        if (!validatePeriodAccess(fecha)) return;
-        const newData = { fecha: fecha, metodo: document.getElementById('retiro-metodo').value, descripcion: document.getElementById('retiro-descripcion').value, monto: getNumericValue(document.getElementById('retiro-monto').value) }; 
+        const officialTimestamp = getOfficialTransactionDate('retiro-fecha');
+        if (!officialTimestamp) return;
+
+        const newData = { fecha: officialTimestamp, metodo: document.getElementById('retiro-metodo').value, descripcion: document.getElementById('retiro-descripcion').value, monto: getNumericValue(document.getElementById('retiro-monto').value) }; 
         getRefFor('retiros').push(newData); 
         showNotification('Éxito', 'Retiro registrado.'); 
         e.target.reset(); 
@@ -1665,10 +1702,23 @@ document.addEventListener('DOMContentLoaded', () => {
         changeTab('resumen'); 
     });
 
+    // Para deudas y vales, se asume que se crean en el momento actual,
+    // por lo que deben usar la fecha oficial del período activo.
+    const getOfficialCurrentDate = () => {
+        if (!currentPeriod || currentPeriod.isClosed) {
+            showNotification('Error', 'No hay un período contable activo y abierto.', 'error');
+            return null;
+        }
+        // Usamos la fecha y hora REAL, pero la asociamos al período correcto.
+        return new Date().toISOString();
+    };
+
     document.getElementById('form-cuentas-cobrar').addEventListener('submit', (e) => { 
         e.preventDefault(); 
-        const fecha = new Date().toISOString();
-        if (!validatePeriodAccess(fecha)) return;
+        // **CAMBIO**: Usamos la fecha actual pero validamos contra el período activo.
+        const fecha = getOfficialCurrentDate();
+        if (!fecha) return;
+
         const newData = { fecha: fecha, cliente: document.getElementById('cpc-cliente').value, descripcion: document.getElementById('cpc-descripcion').value, monto: getNumericValue(document.getElementById('cpc-monto').value), abonos: {} }; 
         getRefFor('cuentasPorCobrar').push(newData); 
         showNotification('Éxito', 'Deuda por cobrar registrada.'); 
@@ -1678,8 +1728,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('form-cuentas-pagar').addEventListener('submit', (e) => { 
         e.preventDefault(); 
-        const fecha = new Date().toISOString();
-        if (!validatePeriodAccess(fecha)) return;
+        const fecha = getOfficialCurrentDate();
+        if (!fecha) return;
+
         const newData = { fecha: fecha, acreedor: document.getElementById('cpp-acreedor').value, descripcion: document.getElementById('cpp-descripcion').value, monto: getNumericValue(document.getElementById('cpp-monto').value), estado: 'Pendiente' }; 
         getRefFor('cuentasPorPagar').push(newData); 
         showNotification('Éxito', 'Cuenta por pagar registrada.'); 
@@ -1689,16 +1740,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('form-vales').addEventListener('submit', (e) => { 
         e.preventDefault(); 
-        const fecha = new Date().toISOString();
-        if (!validatePeriodAccess(fecha)) return;
-        const newData = { fecha: new Date().toISOString(), persona: document.getElementById('vale-persona').value, descripcion: document.getElementById('vale-descripcion').value, monto: getNumericValue(document.getElementById('vale-monto').value), abonos: {} }; 
+        const fecha = getOfficialCurrentDate();
+        if (!fecha) return;
+
+        const newData = { fecha: fecha, persona: document.getElementById('vale-persona').value, descripcion: document.getElementById('vale-descripcion').value, monto: getNumericValue(document.getElementById('vale-monto').value), abonos: {} }; 
         getRefFor('vales').push(newData); 
         showNotification('Éxito', 'Vale registrado correctamente.'); 
         e.target.reset(); 
         addCurrencyFormatting(e.target); 
     });
+    
+    // =========================================================================
+    // ========= FIN DE CAMBIOS: LÓGICA DE GUARDADO CORREGIDA ============
+    // =========================================================================
 
     const handleDelete = (type, id, fechaISO) => { 
+        // La validación aquí es correcta, porque previene borrar algo de un período ya cerrado.
         if (!validatePeriodAccess(fechaISO)) return;
         const item = (allData[type] || []).find(i => i.id === id); 
         if (!item) return; 
@@ -1712,6 +1769,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const handleAbonar = (deudaId, type, fechaISO) => { 
+        // La validación aquí es correcta. No se puede abonar a una deuda de un período cerrado.
         if (!validatePeriodAccess(fechaISO)) return;
         document.getElementById('abono-deuda-id').value = deudaId; 
         document.getElementById('abono-type').value = type; 
@@ -1728,8 +1786,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const monto = getNumericValue(document.getElementById('abono-monto').value); 
         const metodo = document.getElementById('abono-metodo').value; 
         
-        const nowISO = new Date().toISOString();
-        if (!validatePeriodAccess(nowISO)) return;
+        // Un abono siempre ocurre en el período activo actual.
+        const nowISO = getOfficialCurrentDate();
+        if (!nowISO) return;
 
         if (!deudaId || !type || monto <= 0) { 
             showNotification('Error', 'Monto inválido o datos incompletos.', 'error'); 
@@ -1762,8 +1821,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const handlePagar = (deudaId) => { 
-        const nowISO = new Date().toISOString();
-        if (!validatePeriodAccess(nowISO)) return;
+        const nowISO = getOfficialCurrentDate();
+        if (!nowISO) return;
 
         const deuda = (allData.cuentasPorPagar || []).find(d => d.id === deudaId); 
         if (!deuda) return; 
