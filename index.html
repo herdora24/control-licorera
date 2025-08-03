@@ -910,11 +910,9 @@ document.addEventListener('DOMContentLoaded', () => {
         detachAllListeners();
         allData = {};
         
-        // Listener para los períodos. Este es el corazón de la nueva lógica.
         const periodsRef = database.ref(`businesses/${selectedBusinessId}/periods`);
         const periodsListener = periodsRef.on('value', async (snapshot) => {
             if (!snapshot.exists()) {
-                // Si no hay ningún período, crea el primero para el mes actual.
                 const now = new Date();
                 const initialPeriod = { 
                     startDate: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(), 
@@ -922,23 +920,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     monthKey: now.toISOString().slice(0, 7),
                     isClosed: false
                 };
-                // Usamos `push` para generar un ID único para el período.
                 await periodsRef.push(initialPeriod);
-                // No es necesario hacer más nada, el listener se volverá a disparar con el nuevo dato.
             } else {
                 periods = firebaseObjectToArray(snapshot);
-                // **CAMBIO CLAVE**: En lugar de leer el filtro, determinamos el período activo.
                 determineActivePeriod();
             }
         });
         dataListeners.push({ ref: periodsRef, listener: periodsListener });
 
-        // Listeners para los datos de transacciones (sin cambios)
         dataTypes.forEach(type => {
             const ref = database.ref(`businesses/${selectedBusinessId}/${type}`);
             const listener = ref.on('value', snapshot => {
                 allData[type] = firebaseObjectToArray(snapshot);
-                // Refresca la UI solo si ya hay un período activo seleccionado.
                 if (currentPeriod) {
                     refreshUI();
                 }
@@ -947,40 +940,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // **NUEVA FUNCIÓN** para determinar el período activo
     const determineActivePeriod = () => {
-        // Busca el último período que no esté cerrado.
-        // Se ordena por monthKey descendente para asegurar que tomamos el más reciente.
         const openPeriods = periods
             .filter(p => !p.isClosed)
             .sort((a, b) => b.monthKey.localeCompare(a.monthKey));
 
         if (openPeriods.length > 0) {
-            // El período activo es el más reciente que está abierto.
             currentPeriod = openPeriods[0];
         } else {
-            // Como fallback (si todos los períodos se cerraran por error),
-            // muestra el último período cerrado.
             currentPeriod = periods.sort((a, b) => b.monthKey.localeCompare(a.monthKey))[0];
         }
 
         if (currentPeriod) {
-            // **CAMBIO CLAVE**: Actualiza el valor del input del filtro con el período correcto.
             document.getElementById('month-filter').value = currentPeriod.monthKey;
-            // Ahora que tenemos el período correcto, refrescamos toda la interfaz.
             refreshUI();
         } else {
             console.error("No se pudo determinar un período activo.");
         }
     };
 
-    // **FUNCIÓN MODIFICADA**: Ahora solo actualiza el estado visual del período.
     const updatePeriodStatus = () => {
         const statusEl = document.getElementById('period-status');
         const closePeriodBtn = document.getElementById('close-period-btn');
         const monthFilterValue = document.getElementById('month-filter').value;
         
-        // Encuentra el período que coincide con el filtro actual
         const displayedPeriod = periods.find(p => p.monthKey === monthFilterValue);
 
         if (displayedPeriod && displayedPeriod.isClosed) {
@@ -1002,10 +985,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return period && period.isClosed;
     };
 
-    const validatePeriodAccess = (dateString) => {
-        const monthKey = dateString.slice(0, 7);
-        if (isPeriodClosed(monthKey)) {
-            showNotification('Período Cerrado', `No se pueden realizar modificaciones en ${monthKey} porque ya está cerrado.`, 'error');
+    // **CAMBIO**: La validación de acceso ahora usa el monthKey, no la fecha.
+    const validatePeriodAccess = (itemMonthKey) => {
+        if (isPeriodClosed(itemMonthKey)) {
+            showNotification('Período Cerrado', `No se pueden realizar modificaciones en el período ${itemMonthKey} porque ya está cerrado.`, 'error');
             return false;
         }
         return true;
@@ -1017,15 +1000,13 @@ document.addEventListener('DOMContentLoaded', () => {
             snapshot.forEach(childSnapshot => {
                 const item = childSnapshot.val();
                 if (typeof item !== 'object' || item === null) return;
-                // Asegurarse de que las fechas siempre sean objetos Date
                 if (item.fecha && typeof item.fecha === 'string') {
-                    // Manejar posibles fechas inválidas
                     const dateObj = new Date(item.fecha);
                     if (!isNaN(dateObj)) {
                         item.fecha = dateObj;
                     } else {
                         console.warn('Fecha inválida encontrada:', item.fecha);
-                        item.fecha = new Date(); // Fallback a la fecha actual
+                        item.fecha = new Date();
                     }
                 }
                 if(item.abonos && typeof item.abonos === 'object') {
@@ -1053,25 +1034,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterAndRenderDashboard = () => {
         const filterValue = document.getElementById('month-filter').value;
         if (!filterValue || Object.keys(allData).length === 0) { 
-            // Si no hay filtro o datos, limpia el dashboard para evitar mostrar data incorrecta.
             updateDashboard({}, {}); 
             return; 
         }
         
+        const periodDisplayDate = new Date(filterValue + '-02T00:00:00Z');
+        document.getElementById('period-display').textContent = `Mostrando datos para: ${periodDisplayDate.toLocaleDateString('es-CO', { month: 'long', year: 'numeric', timeZone: 'UTC' })}`;
+        
+        updatePeriodStatus();
+        
+        const periodData = {};
+        // **CAMBIO CLAVE**: La lógica de filtrado ahora usa `monthKey`.
+        // También se incluye una comprobación para datos antiguos que no tengan `monthKey`.
         const [year, month] = filterValue.split('-').map(Number);
         const startDate = new Date(year, month - 1, 1);
         startDate.setHours(0, 0, 0, 0);
         const endDate = new Date(year, month, 1);
         endDate.setHours(0, 0, 0, 0);
-        
-        const periodDisplayDate = new Date(filterValue + '-02T00:00:00Z');
-        document.getElementById('period-display').textContent = `Mostrando datos para: ${periodDisplayDate.toLocaleDateString('es-CO', { month: 'long', year: 'numeric', timeZone: 'UTC' })}`;
-        
-        updatePeriodStatus(); // Actualiza el indicador de "Cerrado/Abierto"
-        
-        const periodData = {};
+
         ['ingresos', 'compras', 'gastos', 'retiros'].forEach(key => {
-            periodData[key] = (allData[key] || []).filter(d => d.fecha && d.fecha >= startDate && d.fecha < endDate);
+            periodData[key] = (allData[key] || []).filter(d => {
+                // Si el item tiene monthKey, lo usamos.
+                if (d.monthKey) return d.monthKey === filterValue;
+                // Si no (para datos antiguos), usamos la fecha como antes.
+                return d.fecha && d.fecha >= startDate && d.fecha < endDate;
+            });
         });
         updateDashboard(periodData, allData);
     };
@@ -1120,16 +1107,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // =========================================================================
-    // FUNCIONES DE CORTE DE MES (LÓGICA DE ARCHIVADO)
+    // FUNCIONES DE CORTE DE MES
     // =========================================================================
     const initializeCorteModal = () => {
         const today = new Date();
-        // **CAMBIO**: El período a cerrar es el que está activo en el filtro, no necesariamente el mes actual.
         const activePeriodKey = document.getElementById('month-filter').value;
-        
         document.getElementById('corte-periodo').value = activePeriodKey;
         document.getElementById('corte-fecha').value = today.toISOString().slice(0, 10);
-        
         showCorteStep(1);
     };
 
@@ -1141,24 +1125,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const generateCortePreview = () => {
         const periodo = document.getElementById('corte-periodo').value;
         
-        // Validar que el período seleccionado no esté ya cerrado
         const periodToClose = periods.find(p => p.monthKey === periodo);
         if (periodToClose && periodToClose.isClosed) {
             showNotification('Error', `El período ${periodo} ya está cerrado y no se puede volver a procesar.`, 'error');
-            showCorteStep(1); // Volver al paso 1
+            showCorteStep(1);
             return;
         }
 
-        const [year, month] = periodo.split('-').map(Number);
-        const startDate = new Date(year, month - 1, 1);
-        const endDate = new Date(year, month, 1);
-
         const periodData = {};
+        // **CAMBIO**: Filtrado por `monthKey` para el corte.
         dataTypes.forEach(type => {
-            // Se filtran los datos del período a cerrar
-            periodData[type] = (allData[type] || []).filter(d => 
-                d.fecha && d.fecha >= startDate && d.fecha < endDate
-            );
+            periodData[type] = (allData[type] || []).filter(d => d.monthKey === periodo);
         });
 
         const totales = {
@@ -1258,9 +1235,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const updates = {};
-            const [year, month] = periodo.split('-').map(Number);
-            const startDate = new Date(year, month - 1, 1);
-            const endDate = new Date(year, month, 1);
             
             for (let i = 0; i < steps.length; i++) {
                 progressText.textContent = `Paso ${i + 1} de ${steps.length}: ${steps[i]}`;
@@ -1274,9 +1248,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         const periodTransactions = {};
                         const typesToArchive = ['ingresos', 'compras', 'gastos', 'retiros'];
                         typesToArchive.forEach(type => {
-                            periodTransactions[type] = (allData[type] || []).filter(d => d.fecha >= startDate && d.fecha < endDate);
+                            // **CAMBIO**: Filtrado por `monthKey` para archivar
+                            periodTransactions[type] = (allData[type] || []).filter(d => d.monthKey === periodo);
                         });
-                        updates['periodTransactions'] = periodTransactions; // Guardar temporalmente
+                        updates['periodTransactions'] = periodTransactions;
                         await new Promise(res => setTimeout(res, 100));
                         break;
                     
@@ -1305,7 +1280,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 });
                             }
                         }
-                        delete updates.periodTransactions; // Limpiar datos temporales
+                        delete updates.periodTransactions;
                         break;
 
                     case 3: // Marcar período y crear nuevo
@@ -1355,7 +1330,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const getNextMonth = (currentMonth) => {
         const [year, month] = currentMonth.split('-').map(Number);
-        const nextDate = new Date(year, month, 1); // El mes es 0-indexado, así que 'month' es el siguiente mes.
+        const nextDate = new Date(year, month, 1);
         return nextDate.toISOString().slice(0, 7);
     };
 
@@ -1396,7 +1371,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showNotification('Éxito', 'Historial actualizado correctamente.');
             return;
         }
-        // **CAMBIO**: Asegurarse que el listener llama a la función correcta
         if (e.target.closest('#download-historial-report')) {
             generateHistorialReport(e.target.closest('#download-historial-report').dataset.monthKey);
             return;
@@ -1413,8 +1387,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (tabBtn) changeTab(tabBtn.dataset.tab);
         else if (deleteBtn) {
             const item = (allData[deleteBtn.dataset.type] || []).find(i => i.id === deleteBtn.dataset.id);
-            if (item && item.fecha) {
-                 handleDelete(deleteBtn.dataset.type, deleteBtn.dataset.id, item.fecha.toISOString());
+            if (item) {
+                 handleDelete(deleteBtn.dataset.type, deleteBtn.dataset.id, item.monthKey);
             }
         }
         else if (pdfBtn) {
@@ -1428,8 +1402,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         else if (abonoBtn) {
             const item = (allData[abonoBtn.dataset.type] || []).find(i => i.id === abonoBtn.dataset.id);
-            if(item && item.fecha) {
-                 handleAbonar(abonoBtn.dataset.id, abonoBtn.dataset.type, item.fecha.toISOString());
+            if(item) {
+                 handleAbonar(abonoBtn.dataset.id, abonoBtn.dataset.type, item.monthKey);
             }
         }
         else if (pagarBtn) handlePagar(pagarBtn.dataset.id);
@@ -1596,150 +1570,162 @@ document.addEventListener('DOMContentLoaded', () => {
     const getRefFor = (type) => database.ref(`businesses/${selectedBusinessId}/${type}`);
 
     // =========================================================================
-    // LÓGICA DE GUARDADO CORREGIDA
+    // LÓGICA DE GUARDADO DEFINITIVA
     // =========================================================================
+    const getTimestampFromDateInput = (dateInputId) => {
+        const dateValue = document.getElementById(dateInputId).value;
+        const now = new Date();
+        const [year, month, day] = dateValue.split('-').map(Number);
+        // Se preserva la hora actual para tener un orden cronológico dentro del mismo día
+        return new Date(year, month - 1, day, now.getHours(), now.getMinutes(), now.getSeconds()).toISOString();
+    };
 
-    /**
-     * Crea una fecha oficial para la transacción.
-     * Toma el DÍA del input del usuario, pero el MES y AÑO del período contable activo.
-     * @param {string} dateInputId - El ID del campo de fecha (ej: 'ingreso-fecha').
-     * @returns {string|null} - La fecha en formato ISOString, o null si no hay período activo.
-     */
-    const getOfficialTransactionDate = (dateInputId) => {
+    const addTransaction = (type, data) => {
         if (!currentPeriod || currentPeriod.isClosed) {
             showNotification('Error', 'No hay un período contable activo y abierto para registrar transacciones.', 'error');
-            return null;
+            return false;
         }
-
-        const userInputDateValue = document.getElementById(dateInputId).value;
-        const userInputDate = new Date(userInputDateValue + 'T12:00:00Z');
-        const day = userInputDate.getUTCDate();
-
-        const [periodYear, periodMonth] = currentPeriod.monthKey.split('-').map(Number);
-
-        const officialDate = new Date(Date.UTC(periodYear, periodMonth - 1, day, 12, 0, 0));
-        
-        return officialDate.toISOString();
+        // **CAMBIO CLAVE**: Se añade el `monthKey` del período activo a cada nueva transacción.
+        const newData = {
+            ...data,
+            monthKey: currentPeriod.monthKey
+        };
+        getRefFor(type).push(newData);
+        return true;
     };
 
     document.getElementById('form-ingresos').addEventListener('submit', (e) => { 
         e.preventDefault(); 
-        const officialTimestamp = getOfficialTransactionDate('ingreso-fecha');
-        if (!officialTimestamp) return;
-
+        const fecha = getTimestampFromDateInput('ingreso-fecha');
         const ventasEfectivo = getNumericValue(document.getElementById('ingreso-efectivo').value); 
         const ventasNequi = getNumericValue(document.getElementById('ingreso-nequi').value);
         const ventasTarjeta = getNumericValue(document.getElementById('ingreso-tarjeta').value); 
         const sobrante = getNumericValue(document.getElementById('ingreso-sobrante').value);
-        
         const totalEfectivoConSobrante = ventasEfectivo + sobrante;
         const totalIngreso = totalEfectivoConSobrante + ventasNequi + ventasTarjeta;
 
-        const newData = { 
-            fecha: officialTimestamp, 
+        const success = addTransaction('ingresos', { 
+            fecha: fecha, 
             monto: totalIngreso, 
             monto_efectivo: totalEfectivoConSobrante, 
             monto_nequi: ventasNequi,
             monto_tarjeta: ventasTarjeta, 
             monto_sobrante: sobrante,
             notas: document.getElementById('ingreso-notas').value 
-        }; 
-        getRefFor('ingresos').push(newData); 
-        showNotification('Éxito', 'Ingreso registrado.'); 
-        e.target.reset(); 
-        addCurrencyFormatting(e.target); 
-        changeTab('resumen'); 
+        }); 
+
+        if (success) {
+            showNotification('Éxito', 'Ingreso registrado.'); 
+            e.target.reset(); 
+            addCurrencyFormatting(e.target); 
+            changeTab('resumen'); 
+        }
     });
 
     document.getElementById('form-compras').addEventListener('submit', (e) => { 
         e.preventDefault(); 
-        const officialTimestamp = getOfficialTransactionDate('compra-fecha');
-        if (!officialTimestamp) return;
-
-        const newData = { fecha: officialTimestamp, proveedor: document.getElementById('compra-proveedor').value, descripcion: document.getElementById('compra-descripcion').value, monto: getNumericValue(document.getElementById('compra-monto').value), metodo: document.getElementById('compra-metodo').value }; 
-        getRefFor('compras').push(newData); 
-        showNotification('Éxito', 'Compra registrada.'); 
-        e.target.reset(); 
-        addCurrencyFormatting(e.target); 
-        changeTab('resumen'); 
+        const success = addTransaction('compras', { 
+            fecha: getTimestampFromDateInput('compra-fecha'), 
+            proveedor: document.getElementById('compra-proveedor').value, 
+            descripcion: document.getElementById('compra-descripcion').value, 
+            monto: getNumericValue(document.getElementById('compra-monto').value), 
+            metodo: document.getElementById('compra-metodo').value 
+        }); 
+        if (success) {
+            showNotification('Éxito', 'Compra registrada.'); 
+            e.target.reset(); 
+            addCurrencyFormatting(e.target); 
+            changeTab('resumen'); 
+        }
     });
 
     document.getElementById('form-gastos').addEventListener('submit', (e) => { 
         e.preventDefault(); 
-        const officialTimestamp = getOfficialTransactionDate('gasto-fecha');
-        if (!officialTimestamp) return;
-
-        const newData = { fecha: officialTimestamp, descripcion: document.getElementById('gasto-descripcion').value, categoria: document.getElementById('gasto-categoria').value, monto: getNumericValue(document.getElementById('gasto-monto').value) }; 
-        getRefFor('gastos').push(newData); 
-        showNotification('Éxito', 'Gasto registrado.'); 
-        e.target.reset(); 
-        addCurrencyFormatting(e.target); 
-        changeTab('resumen'); 
+        const success = addTransaction('gastos', { 
+            fecha: getTimestampFromDateInput('gasto-fecha'), 
+            descripcion: document.getElementById('gasto-descripcion').value, 
+            categoria: document.getElementById('gasto-categoria').value, 
+            monto: getNumericValue(document.getElementById('gasto-monto').value) 
+        }); 
+        if (success) {
+            showNotification('Éxito', 'Gasto registrado.'); 
+            e.target.reset(); 
+            addCurrencyFormatting(e.target); 
+            changeTab('resumen'); 
+        }
     });
 
     document.getElementById('form-retiros').addEventListener('submit', (e) => { 
         e.preventDefault(); 
-        const officialTimestamp = getOfficialTransactionDate('retiro-fecha');
-        if (!officialTimestamp) return;
-
-        const newData = { fecha: officialTimestamp, metodo: document.getElementById('retiro-metodo').value, descripcion: document.getElementById('retiro-descripcion').value, monto: getNumericValue(document.getElementById('retiro-monto').value) }; 
-        getRefFor('retiros').push(newData); 
-        showNotification('Éxito', 'Retiro registrado.'); 
-        e.target.reset(); 
-        addCurrencyFormatting(e.target); 
-        changeTab('resumen'); 
-    });
-
-    const getOfficialCurrentDate = () => {
-        if (!currentPeriod || currentPeriod.isClosed) {
-            showNotification('Error', 'No hay un período contable activo y abierto.', 'error');
-            return null;
+        const success = addTransaction('retiros', { 
+            fecha: getTimestampFromDateInput('retiro-fecha'), 
+            metodo: document.getElementById('retiro-metodo').value, 
+            descripcion: document.getElementById('retiro-descripcion').value, 
+            monto: getNumericValue(document.getElementById('retiro-monto').value) 
+        }); 
+        if (success) {
+            showNotification('Éxito', 'Retiro registrado.'); 
+            e.target.reset(); 
+            addCurrencyFormatting(e.target); 
+            changeTab('resumen'); 
         }
-        return new Date().toISOString();
-    };
+    });
 
     document.getElementById('form-cuentas-cobrar').addEventListener('submit', (e) => { 
         e.preventDefault(); 
-        const fecha = getOfficialCurrentDate();
-        if (!fecha) return;
-
-        const newData = { fecha: fecha, cliente: document.getElementById('cpc-cliente').value, descripcion: document.getElementById('cpc-descripcion').value, monto: getNumericValue(document.getElementById('cpc-monto').value), abonos: {} }; 
-        getRefFor('cuentasPorCobrar').push(newData); 
-        showNotification('Éxito', 'Deuda por cobrar registrada.'); 
-        e.target.reset(); 
-        addCurrencyFormatting(e.target); 
+        const success = addTransaction('cuentasPorCobrar', { 
+            fecha: new Date().toISOString(), 
+            cliente: document.getElementById('cpc-cliente').value, 
+            descripcion: document.getElementById('cpc-descripcion').value, 
+            monto: getNumericValue(document.getElementById('cpc-monto').value), 
+            abonos: {} 
+        }); 
+        if (success) {
+            showNotification('Éxito', 'Deuda por cobrar registrada.'); 
+            e.target.reset(); 
+            addCurrencyFormatting(e.target); 
+        }
     });
 
     document.getElementById('form-cuentas-pagar').addEventListener('submit', (e) => { 
         e.preventDefault(); 
-        const fecha = getOfficialCurrentDate();
-        if (!fecha) return;
-
-        const newData = { fecha: fecha, acreedor: document.getElementById('cpp-acreedor').value, descripcion: document.getElementById('cpp-descripcion').value, monto: getNumericValue(document.getElementById('cpp-monto').value), estado: 'Pendiente' }; 
-        getRefFor('cuentasPorPagar').push(newData); 
-        showNotification('Éxito', 'Cuenta por pagar registrada.'); 
-        e.target.reset(); 
-        addCurrencyFormatting(e.target); 
+        const success = addTransaction('cuentasPorPagar', { 
+            fecha: new Date().toISOString(), 
+            acreedor: document.getElementById('cpp-acreedor').value, 
+            descripcion: document.getElementById('cpp-descripcion').value, 
+            monto: getNumericValue(document.getElementById('cpp-monto').value), 
+            estado: 'Pendiente' 
+        }); 
+        if (success) {
+            showNotification('Éxito', 'Cuenta por pagar registrada.'); 
+            e.target.reset(); 
+            addCurrencyFormatting(e.target); 
+        }
     });
 
     document.getElementById('form-vales').addEventListener('submit', (e) => { 
         e.preventDefault(); 
-        const fecha = getOfficialCurrentDate();
-        if (!fecha) return;
-
-        const newData = { fecha: fecha, persona: document.getElementById('vale-persona').value, descripcion: document.getElementById('vale-descripcion').value, monto: getNumericValue(document.getElementById('vale-monto').value), abonos: {} }; 
-        getRefFor('vales').push(newData); 
-        showNotification('Éxito', 'Vale registrado correctamente.'); 
-        e.target.reset(); 
-        addCurrencyFormatting(e.target); 
+        const success = addTransaction('vales', { 
+            fecha: new Date().toISOString(), 
+            persona: document.getElementById('vale-persona').value, 
+            descripcion: document.getElementById('vale-descripcion').value, 
+            monto: getNumericValue(document.getElementById('vale-monto').value), 
+            abonos: {} 
+        }); 
+        if (success) {
+            showNotification('Éxito', 'Vale registrado correctamente.'); 
+            e.target.reset(); 
+            addCurrencyFormatting(e.target); 
+        }
     });
     
-    const handleDelete = (type, id, fechaISO) => { 
-        if (!validatePeriodAccess(fechaISO)) return;
+    // **CAMBIO**: La validación ahora recibe el monthKey del item.
+    const handleDelete = (type, id, itemMonthKey) => { 
+        if (!validatePeriodAccess(itemMonthKey)) return;
         const item = (allData[type] || []).find(i => i.id === id); 
         if (!item) return; 
         if ((type === 'cuentasPorCobrar' || type === 'vales') && item.abonos && Object.values(item.abonos).length > 0) { 
-            showNotification('Acción no permitida', 'No puede eliminar un registro que ya tiene abonos. Esto protege la integridad de sus registros de ingresos.', 'error'); 
+            showNotification('Acción no permitida', 'No puede eliminar un registro que ya tiene abonos.', 'error'); 
             return; 
         } 
         showConfirm('Confirmar Eliminación', '¿Estás seguro? Esta acción no se puede deshacer.', () => { 
@@ -1747,8 +1733,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }); 
     };
 
-    const handleAbonar = (deudaId, type, fechaISO) => { 
-        if (!validatePeriodAccess(fechaISO)) return;
+    const handleAbonar = (deudaId, type, itemMonthKey) => { 
+        if (!validatePeriodAccess(itemMonthKey)) return;
         document.getElementById('abono-deuda-id').value = deudaId; 
         document.getElementById('abono-type').value = type; 
         document.getElementById('abono-modal-title').textContent = type === 'vales' ? 'Registrar Abono a Vale' : 'Registrar Abono'; 
@@ -1764,28 +1750,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const monto = getNumericValue(document.getElementById('abono-monto').value); 
         const metodo = document.getElementById('abono-metodo').value; 
         
-        const nowISO = getOfficialCurrentDate();
-        if (!nowISO) return;
+        if (!currentPeriod || currentPeriod.isClosed) {
+            showNotification('Error', 'No hay un período contable activo y abierto.', 'error');
+            return;
+        }
 
         if (!deudaId || !type || monto <= 0) { 
             showNotification('Error', 'Monto inválido o datos incompletos.', 'error'); 
             return; 
         } 
         try { 
+            const nowISO = new Date().toISOString();
             const abonoData = { fecha: nowISO, monto, metodo }; 
             await getRefFor(type).child(deudaId).child('abonos').push(abonoData); 
 
             const deuda = (allData[type] || []).find(d => d.id === deudaId);
             const persona = type === 'vales' ? (deuda?.persona || 'Vale') : (deuda?.cliente || 'Cliente');
-            const ingresoData = {
+            
+            // El abono genera un ingreso que pertenece al período actual.
+            addTransaction('ingresos', {
                 fecha: nowISO,
+                monthKey: currentPeriod.monthKey, // Se añade explícitamente
                 monto: monto,
                 monto_efectivo: metodo === 'Efectivo' ? monto : 0,
                 monto_nequi: metodo === 'Nequi' ? monto : 0,
                 monto_tarjeta: metodo === 'Banco' ? monto : 0,
                 notas: `Abono de: ${persona}`
-            };
-            await getRefFor('ingresos').push(ingresoData);
+            });
             
             showNotification('Éxito', 'Abono registrado correctamente como un ingreso.'); 
             document.getElementById('abono-modal').style.display = 'none'; 
@@ -1798,15 +1789,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const handlePagar = (deudaId) => { 
-        const nowISO = getOfficialCurrentDate();
-        if (!nowISO) return;
+        if (!currentPeriod || currentPeriod.isClosed) {
+            showNotification('Error', 'No hay un período contable activo y abierto.', 'error');
+            return;
+        }
 
         const deuda = (allData.cuentasPorPagar || []).find(d => d.id === deudaId); 
         if (!deuda) return; 
         showConfirm('Confirmar Pago', `¿Cómo se pagó esta cuenta de ${formatCurrency(deuda.monto)} a ${deuda.acreedor}?`, (metodo) => { 
             if (metodo) { 
-                const compraData = { fecha: nowISO, proveedor: deuda.acreedor, descripcion: `Pago Cta. Pendiente: ${deuda.descripcion}`, monto: deuda.monto, metodo: metodo }; 
-                getRefFor('compras').push(compraData); 
+                // El pago genera una compra que pertenece al período actual.
+                addTransaction('compras', { 
+                    fecha: new Date().toISOString(), 
+                    proveedor: deuda.acreedor, 
+                    descripcion: `Pago Cta. Pendiente: ${deuda.descripcion}`, 
+                    monto: deuda.monto, 
+                    metodo: metodo 
+                }); 
                 getRefFor('cuentasPorPagar').child(deudaId).update({ estado: 'Pagada' }); 
                 showNotification('Éxito', `Cuenta pagada y registrada como compra.`); 
             } 
@@ -1850,7 +1849,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return 40;
     };
 
-    // **NUEVA FUNCIÓN**: Reporte detallado de un período histórico
     const generateHistorialReport = (monthKey) => {
         const period = historialPeriods.find(p => p.monthKey === monthKey);
         if (!period) {
