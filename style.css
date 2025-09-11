@@ -1,0 +1,53 @@
+body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+.tab-button.active { border-bottom-color: #4f46e5; color: #4f46e5; font-weight: 600; }
+.card { background-color: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+.card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
+.modal { transition: opacity 0.3s ease; }
+.action-button { background: none; border: none; cursor: pointer; padding: 0.5rem; border-radius: 9999px; }
+.action-button:hover { background-color: #f0f0f0; }
+.auth-overlay { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.period-locked { background: linear-gradient(135deg, #fee2e2, #fef3c7); border: 2px solid #f59e0b; }
+.locked-indicator { animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+@keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.slide-in { animation: slideIn 0.5s ease-out; }
+@media print { body * { visibility: hidden; } #print-area, #print-area * { visibility: visible; } #print-area { position: absolute; left: 0; top: 0; width: 100%; } .no-print { display: none; } }
+
+/* Responsive Navigation */
+@media (max-width: 640px) {
+    .tab-button { font-size: 0.75rem; padding: 0.75rem 0.25rem; }
+    .tab-button i { margin-right: 0.25rem; }
+}
+
+@media (max-width: 480px) {
+    .tab-button { padding: 0.75rem 0.125rem; }
+    .tab-button .tab-text { display: none; }
+    .tab-button i { margin-right: 0; font-size: 1rem; }
+}
+
+@media (max-width: 360px) {
+    .tab-button i { display: none; }
+    .tab-button::after { content: attr(data-emoji); font-size: 1.2rem; }
+}
+
+/* Estilos para el historial */
+.historial-period-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+.historial-period-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+}
+.historial-period-card.selected {
+    border-color: #4f46e5;
+    background-color: #f0f4ff;
+    box-shadow: 0 4px 12px -2px rgba(79, 70, 229, 0.2);
+}
+.historial-data-section {
+    animation: fadeIn 0.5s ease-in-out;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
