@@ -55,12 +55,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
      const populateTercerosSelects = () => {
         const terceros = allData.terceros || [];
-        const empleados = terceros.filter(t => t.tipo === 'empleado');
-        const clientes = terceros.filter(t => t.tipo === 'cliente');
-        const proveedores = terceros.filter(t => t.tipo === 'proveedor');
+        const empleados = terceros.filter(t => t.tipo === 'empleado').sort((a, b) => a.nombre.localeCompare(b.nombre));
+        const clientes = terceros.filter(t => t.tipo === 'cliente').sort((a, b) => a.nombre.localeCompare(b.nombre));
+        const proveedores = terceros.filter(t => t.tipo === 'proveedor').sort((a, b) => a.nombre.localeCompare(b.nombre));
 
         const populate = (selectId, items) => {
             const select = document.getElementById(selectId);
+            if (!select) return;
             select.innerHTML = '<option value="">Seleccione...</option>';
             items.forEach(item => {
                 const option = document.createElement('option');
@@ -95,6 +96,78 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
             </tr>
         `).join('');
+        tbody.innerHTML = rowsHTML;
+    };
+
+    const renderDeudasConsolidadas = (type, tableId) => {
+        const table = document.getElementById(tableId);
+        const data = allData[type] || [];
+        const terceros = allData.terceros || [];
+    
+        const personKey = type === 'vales' ? 'Persona' : (type === 'cuentasPorPagar' ? 'Proveedor' : 'Cliente');
+        const headers = [personKey, 'Total Deuda', 'Abonado', 'Restante', 'Acciones'];
+        table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`;
+        const tbody = table.querySelector('tbody');
+    
+        const cuentas = new Map();
+    
+        data.forEach(item => {
+            let key, displayName, isLegacy = false;
+    
+            if (item.terceroId) {
+                const tercero = terceros.find(t => t.id === item.terceroId);
+                if (!tercero) return; 
+                key = item.terceroId;
+                displayName = tercero.nombre;
+            } else { // Handle legacy data
+                displayName = item.cliente || item.acreedor || item.persona;
+                if (!displayName) return;
+                key = `legacy_${displayName}`;
+                isLegacy = true;
+            }
+    
+            if (!cuentas.has(key)) {
+                cuentas.set(key, {
+                    displayName,
+                    totalDeuda: 0,
+                    totalAbonado: 0,
+                    isLegacy,
+                    terceroId: item.terceroId || null
+                });
+            }
+    
+            const cuenta = cuentas.get(key);
+            cuenta.totalDeuda += item.monto;
+            const abonos = item.abonos ? Object.values(item.abonos) : [];
+            cuenta.totalAbonado += abonos.reduce((sum, abono) => sum + abono.monto, 0);
+        });
+    
+        if (cuentas.size === 0) {
+            tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay cuentas activas.</td></tr>`;
+            return;
+        }
+    
+        let rowsHTML = '';
+        cuentas.forEach((cuenta, key) => {
+            const restante = cuenta.totalDeuda - cuenta.totalAbonado;
+            const isPaid = restante <= 0.01;
+            const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white';
+            const textStyle = isPaid ? 'line-through' : '';
+            
+            const actionButtons = `
+                <button class="details-btn action-button text-blue-600" data-type="${type}" data-tercero-id="${cuenta.terceroId || ''}" data-legacy-name="${cuenta.isLegacy ? cuenta.displayName : ''}" title="Ver Detalles"><i class="fas fa-eye"></i></button>
+                ${!isPaid ? `<button class="abono-btn action-button text-green-600" data-type="${type}" data-tercero-id="${cuenta.terceroId || ''}" data-legacy-name="${cuenta.isLegacy ? cuenta.displayName : ''}" title="Registrar Abono"><i class="fas fa-plus-circle"></i></button>` : ''}
+            `;
+    
+            rowsHTML += `
+                <tr class="${rowClass} border-b hover:bg-gray-50">
+                    <td class="px-3 sm:px-4 py-3 font-medium ${textStyle}">${cuenta.displayName}</td>
+                    <td class="px-3 sm:px-4 py-3 ${textStyle}">${formatCurrency(cuenta.totalDeuda)}</td>
+                    <td class="px-3 sm:px-4 py-3 text-green-600 ${textStyle}">${formatCurrency(cuenta.totalAbonado)}</td>
+                    <td class="px-3 sm:px-4 py-3 font-bold ${textStyle}">${formatCurrency(restante)}</td>
+                    <td class="px-3 sm:px-4 py-3 flex items-center gap-1">${actionButtons}</td>
+                </tr>`;
+        });
         tbody.innerHTML = rowsHTML;
     };
 
@@ -190,9 +263,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         tbody.innerHTML = rowsHTML;
     };
-    const renderCuentasPorCobrar = () => { const table = document.getElementById('tabla-cuentas-cobrar'); const headers = ['Cliente', 'Total Deuda', 'Abonado', 'Restante', 'Acciones']; table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`; const tbody = table.querySelector('tbody'); const data = (allData.cuentasPorCobrar || []).filter(d => d.fecha instanceof Date).sort((a,b) => b.fecha - a.fecha); if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay cuentas por cobrar.</td></tr>`; return; } const rowsHTML = data.map(d => { const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0); const restante = d.monto - totalAbonado; const isPaid = restante <= 0; const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white'; const textStyle = isPaid ? 'line-through' : ''; const actionButtons = isPaid ? `<button class="historial-btn action-button text-blue-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button> <span class="px-2 py-1 text-xs font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Saldado</span>` : `<button class="historial-btn action-button text-blue-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button><button class="abono-btn action-button text-green-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Registrar Abono"><i class="fas fa-plus-circle"></i></button><button class="delete-btn action-button text-red-600" data-type="cuentasPorCobrar" data-id="${d.id}" title="Eliminar"><i class="fas fa-trash"></i></button>`; return `<tr class="${rowClass} border-b hover:bg-gray-50"><td class="px-3 sm:px-4 py-3 font-medium ${textStyle}">${d.cliente}<p class="text-xs font-normal">${d.descripcion}</p></td><td class="px-3 sm:px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td><td class="px-3 sm:px-4 py-3 text-green-600 ${textStyle}">${formatCurrency(totalAbonado)}</td><td class="px-3 sm:px-4 py-3 font-bold ${textStyle}">${formatCurrency(restante)}</td><td class="px-3 sm:px-4 py-3 flex items-center gap-1">${actionButtons}</td></tr>`; }).join(''); tbody.innerHTML = rowsHTML; };
-    const renderCuentasPorPagar = () => { const table = document.getElementById('tabla-cuentas-pagar'); const headers = ['Proveedor', 'Concepto', 'Monto', 'Estado', 'Acciones']; table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`; const tbody = table.querySelector('tbody'); const data = (allData.cuentasPorPagar || []).filter(d => d.fecha instanceof Date).sort((a,b) => b.fecha - a.fecha); if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay cuentas por pagar.</td></tr>`; return; } const rowsHTML = data.map(d => { const isPaid = d.estado === 'Pagada'; const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white'; const textStyle = isPaid ? 'line-through' : ''; const statusBadge = isPaid ? `<span class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Pagada</span>` : `<span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full">Pendiente</span>`; const actionButtons = isPaid ? `<span class="text-xs text-gray-400">Completado</span>` : `<div class="flex items-center gap-2"><button class="pagar-btn bg-blue-500 text-white text-xs px-2 py-1 rounded-md hover:bg-blue-600" data-id="${d.id}">Pagar</button><button class="delete-btn action-button text-red-600" data-type="cuentasPorPagar" data-id="${d.id}"><i class="fas fa-trash"></i></button></div>`; return `<tr class="${rowClass} border-b"><td class="px-3 sm:px-4 py-3 font-medium ${textStyle}">${d.acreedor}</td><td class="px-3 sm:px-4 py-3 ${textStyle}">${d.descripcion}</td><td class="px-3 sm:px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td><td class="px-3 sm:px-4 py-3">${statusBadge}</td><td class="px-3 sm:px-4 py-3">${actionButtons}</td></tr>`; }).join(''); tbody.innerHTML = rowsHTML; };
-    const renderVales = () => { const table = document.getElementById('tabla-vales'); const headers = ['Persona', 'Total Vale', 'Abonado', 'Restante', 'Acciones']; table.innerHTML = `<thead class="text-xs text-gray-700 uppercase bg-gray-50"><tr>${headers.map(h => `<th class="px-3 sm:px-4 py-3">${h}</th>`).join('')}</tr></thead><tbody></tbody>`; const tbody = table.querySelector('tbody'); const data = (allData.vales || []).filter(d => d.fecha instanceof Date).sort((a,b) => b.fecha - a.fecha); if (data.length === 0) { tbody.innerHTML = `<tr><td colspan="${headers.length}" class="text-center py-4 text-gray-500">No hay vales registrados.</td></tr>`; return; } const rowsHTML = data.map(d => { const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0); const restante = d.monto - totalAbonado; const isPaid = restante <= 0; const rowClass = isPaid ? 'bg-gray-100 text-gray-500' : 'bg-white'; const textStyle = isPaid ? 'line-through' : ''; const actionButtons = isPaid ? `<button class="historial-btn action-button text-blue-600" data-type="vales" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button> <span class="px-2 py-1 text-xs font-semibold leading-tight text-green-700 bg-green-100 rounded-full">Saldado</span>` : `<button class="historial-btn action-button text-blue-600" data-type="vales" data-id="${d.id}" title="Ver Historial"><i class="fas fa-history"></i></button><button class="abono-btn action-button text-green-600" data-type="vales" data-id="${d.id}" title="Registrar Abono"><i class="fas fa-plus-circle"></i></button><button class="delete-btn action-button text-red-600" data-type="vales" data-id="${d.id}" title="Eliminar Vale"><i class="fas fa-trash"></i></button>`; return `<tr class="${rowClass} border-b hover:bg-gray-50"><td class="px-3 sm:px-4 py-3 font-medium ${textStyle}">${d.persona}<p class="text-xs font-normal">${d.descripcion}</p></td><td class="px-3 sm:px-4 py-3 ${textStyle}">${formatCurrency(d.monto)}</td><td class="px-3 sm:px-4 py-3 text-green-600 ${textStyle}">${formatCurrency(totalAbonado)}</td><td class="px-3 sm:px-4 py-3 font-bold ${textStyle}">${formatCurrency(restante)}</td><td class="px-3 sm:px-4 py-3 flex items-center gap-1">${actionButtons}</td></tr>`; }).join(''); tbody.innerHTML = rowsHTML; };
+    const renderCuentasPorCobrar = () => { renderDeudasConsolidadas('cuentasPorCobrar', 'tabla-cuentas-cobrar'); };
+    const renderCuentasPorPagar = () => { renderDeudasConsolidadas('cuentasPorPagar', 'tabla-cuentas-pagar'); };
+    const renderVales = () => { renderDeudasConsolidadas('vales', 'tabla-vales'); };
     const renderAllTables = () => { 
         renderTable('ingresos', document.getElementById('tabla-ingresos'), ['Fecha', 'Venta Efectivo', 'Nequi', 'Banco', 'Sobrante', 'Total Ingreso', 'Notas', 'Acciones']); 
         renderSobrantesTable();
@@ -788,8 +861,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const { efectivo, banco, nequi } = calculateCurrentBalances();
         
-        const totalCPC = (globalData.cuentasPorCobrar || []).reduce((sum, d) => sum + (d.monto - ((d.abonos || []).reduce((s, a) => s + a.monto, 0))), 0);
-        const totalCPP = (globalData.cuentasPorPagar || []).filter(d => d.estado !== 'Pagada').reduce((sum, d) => sum + d.monto - ((d.abonos || []).reduce((s, a) => s + a.monto, 0)), 0);
+        const totalCPC = (globalData.cuentasPorCobrar || []).reduce((sum, d) => sum + (d.monto - (Object.values(d.abonos || {})).reduce((s, a) => s + a.monto, 0)), 0);
+        const totalCPP = (globalData.cuentasPorPagar || []).filter(d => d.estado !== 'Pagada').reduce((sum, d) => sum + d.monto - (Object.values(d.abonos || {})).reduce((s, a) => s + a.monto, 0), 0);
         
         document.getElementById('total-ingresos').textContent = formatCurrency(totalIngresosMes);
         document.getElementById('total-compras').textContent = formatCurrency(totalComprasMes);
@@ -1110,7 +1183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tabBtn = target.closest('.tab-button');
         const abonoBtn = target.closest('.abono-btn');
         const pagarBtn = target.closest('.pagar-btn');
-        const historialBtn = target.closest('.historial-btn');
+        const detailsBtn = target.closest('.details-btn');
 
         if (tabBtn) changeTab(tabBtn.dataset.tab);
         else if (deleteBtn) {
@@ -1129,13 +1202,10 @@ document.addEventListener('DOMContentLoaded', () => {
             else exportToPDF(type);
         }
         else if (abonoBtn) {
-            const item = (allData[abonoBtn.dataset.type] || []).find(i => i.id === abonoBtn.dataset.id);
-            if(item) {
-                 handleAbonar(abonoBtn.dataset.id, abonoBtn.dataset.type, item.monthKey);
-            }
+             handleAbonar(abonoBtn.dataset.terceroId, abonoBtn.dataset.type, abonoBtn.dataset.legacyName);
         }
         else if (pagarBtn) handlePagar(pagarBtn.dataset.id);
-        else if (historialBtn) handleHistorial(historialBtn.dataset.id, historialBtn.dataset.type);
+        else if (detailsBtn) handleTerceroDetails(detailsBtn.dataset.terceroId, detailsBtn.dataset.type, detailsBtn.dataset.legacyName);
     });
 
     document.getElementById('close-period-btn').addEventListener('click', () => {
@@ -1162,6 +1232,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-nuevo-cpc').addEventListener('click', () => { changeTab('terceros'); document.getElementById('tercero-tipo').value = 'cliente'; });
     document.getElementById('btn-nuevo-cpp').addEventListener('click', () => { changeTab('terceros'); document.getElementById('tercero-tipo').value = 'proveedor'; });
     document.getElementById('btn-nuevo-vale').addEventListener('click', () => { changeTab('terceros'); document.getElementById('tercero-tipo').value = 'empleado'; });
+    document.getElementById('cancel-tercero-details-btn').onclick = () => document.getElementById('tercero-details-modal').style.display = 'none';
 
 
     const getRefFor = (type) => database.ref(`businesses/${selectedBusinessId}/${type}`);
@@ -1263,51 +1334,81 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.getElementById('form-cuentas-cobrar').addEventListener('submit', (e) => { 
-        e.preventDefault(); 
-        const success = addTransaction('cuentasPorCobrar', { 
-            fecha: new Date().toISOString(), 
-            cliente: document.getElementById('cpc-cliente').value, 
-            descripcion: document.getElementById('cpc-descripcion').value, 
-            monto: getNumericValue(document.getElementById('cpc-monto').value), 
-            abonos: {} 
-        }); 
+    document.getElementById('form-cuentas-cobrar').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const terceroId = document.getElementById('cpc-tercero').value;
+        if (!terceroId) {
+            showNotification('Error', 'Debe seleccionar un cliente válido.', 'error');
+            return;
+        }
+
+        const success = addTransaction('cuentasPorCobrar', {
+            fecha: new Date().toISOString(),
+            terceroId: terceroId,
+            descripcion: document.getElementById('cpc-descripcion').value,
+            monto: getNumericValue(document.getElementById('cpc-monto').value),
+            abonos: {}
+        });
         if (success) {
-            showNotification('Éxito', 'Deuda por cobrar registrada.'); 
-            e.target.reset(); 
-            addCurrencyFormatting(e.target); 
+            showNotification('Éxito', 'Deuda por cobrar registrada.');
+            e.target.reset();
+            addCurrencyFormatting(e.target);
         }
     });
 
-    document.getElementById('form-cuentas-pagar').addEventListener('submit', (e) => { 
-        e.preventDefault(); 
-        const success = addTransaction('cuentasPorPagar', { 
-            fecha: new Date().toISOString(), 
-            acreedor: document.getElementById('cpp-acreedor').value, 
-            descripcion: document.getElementById('cpp-descripcion').value, 
-            monto: getNumericValue(document.getElementById('cpp-monto').value), 
-            estado: 'Pendiente' 
-        }); 
+    document.getElementById('form-cuentas-pagar').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const terceroId = document.getElementById('cpp-tercero').value;
+        if (!terceroId) {
+            showNotification('Error', 'Debe seleccionar un proveedor válido.', 'error');
+            return;
+        }
+        const success = addTransaction('cuentasPorPagar', {
+            fecha: new Date().toISOString(),
+            terceroId: terceroId,
+            descripcion: document.getElementById('cpp-descripcion').value,
+            monto: getNumericValue(document.getElementById('cpp-monto').value),
+            estado: 'Pendiente'
+        });
         if (success) {
-            showNotification('Éxito', 'Cuenta por pagar registrada.'); 
-            e.target.reset(); 
-            addCurrencyFormatting(e.target); 
+            showNotification('Éxito', 'Cuenta por pagar registrada.');
+            e.target.reset();
+            addCurrencyFormatting(e.target);
         }
     });
 
-    document.getElementById('form-vales').addEventListener('submit', (e) => { 
-        e.preventDefault(); 
-        const success = addTransaction('vales', { 
-            fecha: new Date().toISOString(), 
-            persona: document.getElementById('vale-persona').value, 
-            descripcion: document.getElementById('vale-descripcion').value, 
-            monto: getNumericValue(document.getElementById('vale-monto').value), 
-            abonos: {} 
-        }); 
-        if (success) {
-            showNotification('Éxito', 'Vale registrado correctamente.'); 
-            e.target.reset(); 
-            addCurrencyFormatting(e.target); 
+    document.getElementById('form-vales').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const terceroId = document.getElementById('vale-tercero').value;
+        const tercero = allData.terceros.find(t => t.id === terceroId);
+        if (!tercero) {
+            showNotification('Error', 'Debe seleccionar un empleado válido.', 'error');
+            return;
+        }
+        const monto = getNumericValue(document.getElementById('vale-monto').value);
+        const descripcion = document.getElementById('vale-descripcion').value;
+        const nowISO = new Date().toISOString();
+
+        const successVale = addTransaction('vales', {
+            fecha: nowISO,
+            terceroId: terceroId,
+            descripcion: descripcion,
+            monto: monto,
+            abonos: {}
+        });
+        
+        if (successVale) {
+            // Registrar el vale como un gasto que sale del efectivo
+            addTransaction('gastos', {
+                fecha: nowISO,
+                descripcion: `Vale para: ${tercero.nombre} - ${descripcion}`,
+                categoria: 'Vales a Personal',
+                monto: monto
+            });
+
+            showNotification('Éxito', 'Vale registrado y descontado del efectivo.');
+            e.target.reset();
+            addCurrencyFormatting(e.target);
         }
     });
     
@@ -1328,17 +1429,56 @@ document.addEventListener('DOMContentLoaded', () => {
         if (type !== 'terceros' && !validatePeriodAccess(itemMonthKey)) return;
         const item = (allData[type] || []).find(i => i.id === id); 
         if (!item) return; 
-        if ((type === 'cuentasPorCobrar' || type === 'vales') && item.abonos && Object.values(item.abonos).length > 0) { 
+        
+        const detailsModal = document.getElementById('tercero-details-modal');
+        const isDetailsModalVisible = detailsModal.style.display === 'flex';
+        
+        if (isDetailsModalVisible) {
+            detailsModal.style.display = 'none';
+        }
+
+        if ((type === 'cuentasPorCobrar' || type === 'vales') && item.abonos && Object.keys(item.abonos).length > 0) { 
             showNotification('Acción no permitida', 'No puede eliminar un registro que ya tiene abonos.', 'error'); 
+            if(isDetailsModalVisible) detailsModal.style.display = 'flex'; // Re-show if cancelled
             return; 
         } 
+        
         showConfirm('Confirmar Eliminación', '¿Estás seguro? Esta acción no se puede deshacer.', () => { 
-            getRefFor(type).child(id).remove().then(() => showNotification('Éxito', 'Registro eliminado.')).catch((error) => showNotification('Error', 'No se pudo eliminar: ' + error, 'error')); 
+            getRefFor(type).child(id).remove().then(() => {
+                showNotification('Éxito', 'Registro eliminado.');
+                if (isDetailsModalVisible) {
+                    detailsModal.style.display = 'none'; // Keep it closed on success
+                }
+            }).catch((error) => {
+                showNotification('Error', 'No se pudo eliminar: ' + error, 'error');
+                if(isDetailsModalVisible) detailsModal.style.display = 'flex'; // Re-show on error
+            }); 
         }); 
     };
 
-    const handleAbonar = (deudaId, type, itemMonthKey) => { 
-        if (!validatePeriodAccess(itemMonthKey)) return;
+    const handleAbonar = (terceroId, type, legacyName) => {
+        const data = allData[type] || [];
+        
+        const deudasPendientes = data
+            .filter(item => {
+                const match = terceroId ? item.terceroId === terceroId : (item.cliente || item.acreedor || item.persona) === legacyName;
+                if (!match) return false;
+                const restante = item.monto - (item.abonos || []).reduce((sum, a) => sum + a.monto, 0);
+                return restante > 0;
+            })
+            .sort((a,b) => a.fecha - b.fecha);
+        
+        if(deudasPendientes.length === 0){
+             showNotification('Información', 'Esta cuenta no tiene saldo pendiente para abonar.', 'info');
+             return;
+        }
+
+        // Se abonará a la deuda más antigua
+        const deudaId = deudasPendientes[0].id; 
+        const deuda = deudasPendientes[0];
+
+        if (!validatePeriodAccess(deuda.monthKey)) return;
+
         document.getElementById('abono-deuda-id').value = deudaId; 
         document.getElementById('abono-type').value = type; 
         document.getElementById('abono-modal-title').textContent = type === 'vales' ? 'Registrar Abono a Vale' : 'Registrar Abono'; 
@@ -1346,7 +1486,63 @@ document.addEventListener('DOMContentLoaded', () => {
         addCurrencyFormatting(document.getElementById('abono-modal')); 
     };
 
-    const handleHistorial = (deudaId, type) => { const deuda = (allData[type] || []).find(d => d.id === deudaId); if (!deuda) return; const modal = document.getElementById('historial-modal'); const personKey = type === 'vales' ? 'persona' : 'cliente'; document.getElementById('historial-modal-subtitle').textContent = `Detalle para: ${deuda[personKey]} | Total: ${formatCurrency(deuda.monto)}`; const tbody = document.getElementById('historial-abonos-body'); const abonos = (deuda.abonos || []).filter(a => a.fecha).sort((a,b) => new Date(b.fecha) - new Date(a.fecha)); if (abonos.length === 0) { tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-500">No se han registrado abonos.</td></tr>`; } else { tbody.innerHTML = abonos.map(abono => `<tr class="border-b"><td class="px-3 sm:px-4 py-3">${new Date(abono.fecha).toLocaleDateString('es-CO')}</td><td class="px-3 sm:px-4 py-3">${new Date(abono.fecha).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</td><td class="px-3 sm:px-4 py-3 font-medium">${formatCurrency(abono.monto)}</td><td class="px-3 sm:px-4 py-3">${abono.metodo}</td></tr>`).join(''); } modal.style.display = 'flex'; };
+    const handleTerceroDetails = (terceroId, type, legacyName) => {
+        const tercero = (allData.terceros || []).find(t => t.id === terceroId);
+        const displayName = tercero ? tercero.nombre : legacyName;
+
+        if (!displayName) {
+            showNotification('Error', 'No se pudo encontrar el tercero.', 'error');
+            return;
+        }
+
+        const transacciones = (allData[type] || [])
+            .filter(item => terceroId ? item.terceroId === terceroId : (item.cliente || item.acreedor || item.persona) === legacyName)
+            .sort((a, b) => b.fecha - a.fecha);
+
+        const modal = document.getElementById('tercero-details-modal');
+        document.getElementById('tercero-details-title').textContent = `Detalle de Cuenta: ${displayName}`;
+        
+        const tbody = document.getElementById('tercero-details-body');
+        let totalRestante = 0;
+        let rowsHTML = '';
+
+        transacciones.forEach(item => {
+            const abonos = item.abonos ? Object.values(item.abonos) : [];
+            const totalAbonado = abonos.reduce((sum, a) => sum + a.monto, 0);
+            const restante = item.monto - totalAbonado;
+            totalRestante += restante;
+            const isPaid = restante <= 0.01;
+            
+            rowsHTML += `
+                <tr class="bg-white border-b hover:bg-gray-50 font-medium">
+                    <td class="px-3 sm:px-4 py-3">${item.fecha.toLocaleDateString('es-CO')}</td>
+                    <td class="px-3 sm:px-4 py-3">${item.descripcion}</td>
+                    <td class="px-3 sm:px-4 py-3">${formatCurrency(item.monto)}</td>
+                    <td class="px-3 sm:px-4 py-3 text-green-600">${formatCurrency(totalAbonado)}</td>
+                    <td class="px-3 sm:px-4 py-3 font-bold">${formatCurrency(restante)}</td>
+                    <td class="px-3 sm:px-4 py-3">
+                         ${!isPaid && abonos.length === 0 ? `<button class="action-button text-red-600 delete-btn" data-type="${type}" data-id="${item.id}" title="Eliminar esta entrada"><i class="fas fa-trash"></i></button>` : ''}
+                    </td>
+                </tr>
+            `;
+
+            if (abonos.length > 0) {
+                 rowsHTML += abonos.sort((a,b) => new Date(b.fecha) - new Date(a.fecha)).map(abono => `
+                    <tr class="bg-gray-50 border-b">
+                        <td class="px-3 sm:px-4 py-2 text-right" colspan="2">↳ Abono (${abono.metodo})</td>
+                        <td class="px-3 sm:px-4 py-2"></td>
+                        <td class="px-3 sm:px-4 py-2 text-green-600">-${formatCurrency(abono.monto)}</td>
+                        <td class="px-3 sm:px-4 py-2"></td>
+                        <td class="px-3 sm:px-4 py-2"></td>
+                    </tr>
+                `).join('');
+            }
+        });
+
+        tbody.innerHTML = rowsHTML;
+        document.getElementById('tercero-details-total').textContent = formatCurrency(totalRestante);
+        modal.style.display = 'flex';
+    };
     
     document.getElementById('save-abono-btn').addEventListener('click', async () => { 
         const deudaId = document.getElementById('abono-deuda-id').value; 
@@ -1369,7 +1565,8 @@ document.addEventListener('DOMContentLoaded', () => {
             await getRefFor(type).child(deudaId).child('abonos').push(abonoData); 
 
             const deuda = (allData[type] || []).find(d => d.id === deudaId);
-            const persona = type === 'vales' ? (deuda?.persona || 'Vale') : (deuda?.cliente || 'Cliente');
+            const tercero = (allData.terceros || []).find(t => t.id === deuda.terceroId);
+            const persona = tercero ? tercero.nombre : (deuda.cliente || deuda.persona || 'Tercero');
             
             addTransaction('ingresos', {
                 fecha: nowISO,
@@ -1415,8 +1612,35 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const showNotification = (title, message, type = 'success') => { const modal = document.getElementById('notification-modal'); document.getElementById('notification-title').textContent = title; document.getElementById('notification-message').textContent = message; document.getElementById('notification-icon').innerHTML = type === 'success' ? `<i class="fas fa-check-circle text-3xl sm:text-4xl text-green-500"></i>` : `<i class="fas fa-times-circle text-3xl sm:text-4xl text-red-500"></i>`; modal.style.display = 'flex'; };
-    const showConfirm = (title, message, callback, showOptions = false) => { const modal = document.getElementById('confirm-modal'); document.getElementById('confirm-title').textContent = title; const msgContainer = document.getElementById('confirm-message-container'); msgContainer.innerHTML = `<p id="confirm-message" class="text-xs sm:text-sm text-gray-500">${message}</p>`; if (showOptions) { msgContainer.insertAdjacentHTML('beforeend', `<div class="mt-4"><select id="confirm-options" class="block w-full rounded-md border-gray-300 shadow-sm"><option value="Efectivo">Efectivo</option><option value="Nequi">Nequi</option><option value="Banco">Banco</option></select></div>`); } confirmCallback = () => { const optionsEl = document.getElementById('confirm-options'); callback(showOptions ? optionsEl.value : true); }; modal.style.display = 'flex'; };
-    const cleanupConfirmModal = () => { const modal = document.getElementById('confirm-modal'); const customContent = document.querySelector('#confirm-message-container > div'); if (customContent) customContent.remove(); modal.style.display = 'none'; confirmCallback = null; };
+    
+    let hiddenContextModalId = null;
+    const showConfirm = (title, message, callback, showOptions = false) => {
+        const modal = document.getElementById('confirm-modal');
+        document.getElementById('confirm-title').textContent = title;
+        const msgContainer = document.getElementById('confirm-message-container');
+        msgContainer.innerHTML = `<p id="confirm-message" class="text-xs sm:text-sm text-gray-500">${message}</p>`;
+        if (showOptions) {
+            msgContainer.insertAdjacentHTML('beforeend', `<div class="mt-4"><select id="confirm-options" class="block w-full rounded-md border-gray-300 shadow-sm"><option value="Efectivo">Efectivo</option><option value="Nequi">Nequi</option><option value="Banco">Banco</option></select></div>`);
+        }
+        modal.classList.remove('z-50');
+        modal.classList.add('z-60');
+        confirmCallback = () => {
+            const optionsEl = document.getElementById('confirm-options');
+            callback(showOptions ? optionsEl.value : true);
+        };
+        modal.style.display = 'flex';
+    };
+
+    const cleanupConfirmModal = () => {
+        const modal = document.getElementById('confirm-modal');
+        const customContent = document.querySelector('#confirm-message-container > div');
+        if (customContent) customContent.remove();
+        modal.classList.remove('z-60');
+        modal.classList.add('z-50');
+        modal.style.display = 'none';
+        confirmCallback = null;
+    };
+    
     document.getElementById('notification-close').onclick = () => document.getElementById('notification-modal').style.display = 'none';
     document.getElementById('cancel-confirm-btn').onclick = cleanupConfirmModal;
     document.getElementById('confirm-btn').addEventListener('click', () => { if (confirmCallback) { confirmCallback(); } cleanupConfirmModal(); });
