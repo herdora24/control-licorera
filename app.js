@@ -1475,10 +1475,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Se abonará a la deuda más antigua
         const deudaId = deudasPendientes[0].id; 
-        const deuda = deudasPendientes[0];
-
-        if (!validatePeriodAccess(deuda.monthKey)) return;
-
+        
+        // ** FIX: La validación del período de la deuda original se ha eliminado para permitir abonos en cualquier momento. **
+        // El abono se registrará como un ingreso en el período ACTIVO actual.
+        
         document.getElementById('abono-deuda-id').value = deudaId; 
         document.getElementById('abono-type').value = type; 
         document.getElementById('abono-modal-title').textContent = type === 'vales' ? 'Registrar Abono a Vale' : 'Registrar Abono'; 
@@ -1946,4 +1946,3 @@ document.addEventListener('DOMContentLoaded', () => {
         showNotification('Éxito', 'El reporte se ha generado.');
     };
 });
-
