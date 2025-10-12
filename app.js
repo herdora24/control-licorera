@@ -344,7 +344,8 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserProfile = snapshot.val();
 
             if (!currentUserProfile) {
-                console.error("No se encontró el perfil del usuario.");
+                console.error("No se encontró el perfil del usuario. El usuario puede existir en Authentication pero no tener un registro en la Realtime Database.");
+                showNotification('Error de Perfil', 'No se pudo cargar la configuración de su usuario. Por favor, contacte al administrador.', 'error');
                 handleLogout();
                 return;
             }
@@ -1983,3 +1984,4 @@ document.addEventListener('DOMContentLoaded', () => {
         showNotification('Éxito', 'El reporte se ha generado.');
     };
 });
+
