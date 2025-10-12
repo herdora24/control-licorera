@@ -300,6 +300,43 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     // LÓGICA DE AUTENTICACIÓN Y SELECCIÓN DE NEGOCIO
     // =========================================================================
+    
+    // *** NUEVO: Lógica para el formulario de login ***
+    const loginForm = document.getElementById('login-form');
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const email = loginForm.email.value;
+        const password = loginForm.password.value;
+        const errorEl = document.getElementById('login-error');
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+
+        errorEl.classList.add('hidden');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Ingresando...';
+
+        auth.signInWithEmailAndPassword(email, password)
+            .catch(error => {
+                let message = 'Ocurrió un error inesperado.';
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                    case 'auth/wrong-password':
+                    case 'auth/invalid-email':
+                        message = 'El correo o la contraseña son incorrectos.';
+                        break;
+                    case 'auth/too-many-requests':
+                         message = 'Demasiados intentos. Intenta más tarde.';
+                         break;
+                }
+                errorEl.textContent = message;
+                errorEl.classList.remove('hidden');
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Ingresar';
+            });
+    });
+
+
     auth.onAuthStateChanged(async user => {
         if (user) {
             const userProfileRef = database.ref(`users/${user.uid}`);
