@@ -1462,8 +1462,22 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.reset();
     });
 
+    // =================================================================
+    // INICIO DE LA CORRECCIÓN
+    // =================================================================
     const handleDelete = (type, id, itemMonthKey) => { 
-        if (type !== 'terceros' && !validatePeriodAccess(itemMonthKey)) return;
+        // NUEVO: El chequeo del período solo aplica a transacciones contables, no a deudas o terceros.
+        const isDebtOrTercero = type === 'terceros' || type === 'cuentasPorCobrar' || type === 'cuentasPorPagar' || type === 'vales';
+        
+        if (!isDebtOrTercero && !validatePeriodAccess(itemMonthKey)) {
+            // Si NO es una deuda/tercero y el período está cerrado, bloquear.
+            return; 
+        }
+        // Si es una deuda o tercero, se permite la eliminación sin importar el período.
+    // =================================================================
+    // FIN DE LA CORRECCIÓN
+    // =================================================================
+
         const item = (allData[type] || []).find(i => i.id === id); 
         if (!item) return; 
         
@@ -1512,9 +1526,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Se abonará a la deuda más antigua
         const deudaId = deudasPendientes[0].id; 
-        
-        // ** FIX: La validación del período de la deuda original se ha eliminado para permitir abonos en cualquier momento. **
-        // El abono se registrará como un ingreso en el período ACTIVO actual.
         
         document.getElementById('abono-deuda-id').value = deudaId; 
         document.getElementById('abono-type').value = type; 
@@ -1605,9 +1616,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const tercero = (allData.terceros || []).find(t => t.id === deuda.terceroId);
             const persona = tercero ? tercero.nombre : (deuda.acreedor || deuda.cliente || deuda.persona || 'Tercero');
             
-            // =================================================================
-            // INICIO DE LA CORRECCIÓN
-            // =================================================================
             if (type === 'cuentasPorPagar') {
                 // Es un PAGO que yo hago (un egreso), registrar como COMPRA para que descuente.
                 addTransaction('compras', {
@@ -1639,9 +1647,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Es un PAGO de vale (informativo), no se registra en ingresos.
                 showNotification('Éxito', 'Abono a vale registrado (solo informativo).');
             }
-            // =================================================================
-            // FIN DE LA CORRECCIÓN
-            // =================================================================
             
             document.getElementById('abono-modal').style.display = 'none'; 
             document.getElementById('form-abono').reset(); 
