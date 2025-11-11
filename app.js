@@ -1604,19 +1604,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const deuda = (allData[type] || []).find(d => d.id === deudaId);
             const tercero = (allData.terceros || []).find(t => t.id === deuda.terceroId);
-            const persona = tercero ? tercero.nombre : (deuda.cliente || deuda.persona || 'Tercero');
+            const persona = tercero ? tercero.nombre : (deuda.acreedor || deuda.cliente || deuda.persona || 'Tercero');
             
-            addTransaction('ingresos', {
-                fecha: nowISO,
-                monthKey: currentPeriod.monthKey,
-                monto: monto,
-                monto_efectivo: metodo === 'Efectivo' ? monto : 0,
-                monto_nequi: metodo === 'Nequi' ? monto : 0,
-                monto_tarjeta: metodo === 'Banco' ? monto : 0,
-                notas: `Abono de: ${persona}`
-            });
+            // =================================================================
+            // INICIO DE LA CORRECCIÓN
+            // =================================================================
+            if (type === 'cuentasPorPagar') {
+                // Es un PAGO que yo hago (un egreso), registrar como COMPRA para que descuente.
+                addTransaction('compras', {
+                    fecha: nowISO,
+                    monthKey: currentPeriod.monthKey,
+                    proveedor: persona,
+                    descripcion: `Abono a deuda: ${deuda.descripcion || 'N/A'}`,
+                    monto: monto,
+                    metodo: metodo // Esto descuenta de Efectivo, Nequi o Banco.
+                });
+                
+                showNotification('Éxito', 'Abono (pago) registrado correctamente como una salida de dinero.');
+
+            } else {
+                // Es un COBRO que yo recibo (un ingreso), como 'cuentasPorCobrar' o 'vales'.
+                addTransaction('ingresos', {
+                    fecha: nowISO,
+                    monthKey: currentPeriod.monthKey,
+                    monto: monto,
+                    monto_efectivo: metodo === 'Efectivo' ? monto : 0,
+                    monto_nequi: metodo === 'Nequi' ? monto : 0,
+                    monto_tarjeta: metodo === 'Banco' ? monto : 0,
+                    notas: `Abono recibido de: ${persona}`
+                });
+                
+                showNotification('Éxito', 'Abono (cobro) registrado correctamente como un ingreso.'); 
+            }
+            // =================================================================
+            // FIN DE LA CORRECCIÓN
+            // =================================================================
             
-            showNotification('Éxito', 'Abono registrado correctamente como un ingreso.'); 
             document.getElementById('abono-modal').style.display = 'none'; 
             document.getElementById('form-abono').reset(); 
             document.getElementById('abono-monto').value = ''; 
@@ -1984,4 +2007,3 @@ document.addEventListener('DOMContentLoaded', () => {
         showNotification('Éxito', 'El reporte se ha generado.');
     };
 });
-
