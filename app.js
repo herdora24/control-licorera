@@ -1435,19 +1435,18 @@ document.addEventListener('DOMContentLoaded', () => {
             abonos: {}
         });
         
+        // =================================================================
+        // INICIO DE LA CORRECCIÓN
+        // =================================================================
         if (successVale) {
-            // Registrar el vale como un gasto que sale del efectivo
-            addTransaction('gastos', {
-                fecha: nowISO,
-                descripcion: `Vale para: ${tercero.nombre} - ${descripcion}`,
-                categoria: 'Vales a Personal',
-                monto: monto
-            });
-
-            showNotification('Éxito', 'Vale registrado y descontado del efectivo.');
+            // Se eliminó la creación automática de un 'gasto'.
+            showNotification('Éxito', 'Vale registrado (solo informativo).');
             e.target.reset();
             addCurrencyFormatting(e.target);
         }
+        // =================================================================
+        // FIN DE LA CORRECCIÓN
+        // =================================================================
     });
     
      document.getElementById('form-terceros').addEventListener('submit', (e) => {
@@ -1571,7 +1570,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td class="px-3 sm:px-4 py-2"></td>
                         <td class="px-3 sm:px-4 py-2 text-green-600">-${formatCurrency(abono.monto)}</td>
                         <td class="px-3 sm:px-4 py-2"></td>
-                        <td class="px-3 sm:px-4 py-2"></td>
+                        <td class_id="px-3 sm:px-4 py-2"></td>
                     </tr>
                 `).join('');
             }
@@ -1622,8 +1621,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 showNotification('Éxito', 'Abono (pago) registrado correctamente como una salida de dinero.');
 
-            } else {
-                // Es un COBRO que yo recibo (un ingreso), como 'cuentasPorCobrar' o 'vales'.
+            } else if (type === 'cuentasPorCobrar') {
+                // Es un COBRO que yo recibo (un ingreso)
                 addTransaction('ingresos', {
                     fecha: nowISO,
                     monthKey: currentPeriod.monthKey,
@@ -1634,7 +1633,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     notas: `Abono recibido de: ${persona}`
                 });
                 
-                showNotification('Éxito', 'Abono (cobro) registrado correctamente como un ingreso.'); 
+                showNotification('Éxito', 'Abono (cobro) registrado correctamente como un ingreso.');
+            
+            } else if (type === 'vales') {
+                // Es un PAGO de vale (informativo), no se registra en ingresos.
+                showNotification('Éxito', 'Abono a vale registrado (solo informativo).');
             }
             // =================================================================
             // FIN DE LA CORRECCIÓN
@@ -1985,7 +1988,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const body = data.map(d => {
             const totalAbonado = (d.abonos || []).reduce((sum, a) => sum + a.monto, 0);
             const restante = d.monto - totalAbonado;
-            return [d[personHeader.toLowerCase()] || d.cliente || d.persona, d.descripcion, formatCurrency(d.monto), formatCurrency(totalAbonado), formatCurrency(restante)];
+            const tercero = (allData.terceros || []).find(t => t.id === d.terceroId);
+            const displayName = tercero ? tercero.nombre : (d[personHeader.toLowerCase()] || d.cliente || d.persona || 'N/A');
+            return [displayName, d.descripcion, formatCurrency(d.monto), formatCurrency(totalAbonado), formatCurrency(restante)];
         });
 
         const totalDeuda = data.reduce((sum, item) => sum + item.monto, 0);
